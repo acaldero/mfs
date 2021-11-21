@@ -24,7 +24,7 @@ Make
   <tr>
   <td>
   mpirun -np 1 ./mfs_server &<br>
-  cat mfs_server.port
+  cat mfs_server.port<br>
   tag#0$port#123$description#mirlo$ifname#1.1.1.1$<br>
   </td>
   <td>

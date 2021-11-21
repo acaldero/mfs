@@ -32,56 +32,52 @@
  * Shared state among threads
  */
 
-struct {
-   int the_end ;
-} whiteboard ;
+#define MAX_DATA 1024
+
+typedef struct {
+    int  size ;
+    int  rank ;
+    char port_name[MPI_MAX_PORT_NAME] ;
+    int  the_end ;
+} whiteboard_t ;
 
 
 /*
  *  Main
  */
 
-#define MAX_DATA 1024
-
-int main ( int argc, char **argv )
+int wb_init ( whiteboard_t *wb, int *argc, char ***argv )
 {
-    MPI_Comm client;
-    MPI_Status status;
-    char port_name[MPI_MAX_PORT_NAME];
-    int size, rank ;
-    int again, i;
-    int ret = MPI_SUCCESS;
-    int buff[MAX_DATA] ;
+    int ret ;
 
-    // Welcome...
-    fprintf(stdout, "\n"
- 		    " MPI_PFS (0.1)\n"
-		    " -------------\n"
-		    "\n");
+    // wb->the_end = false
+    wb->the_end = 0 ;
 
-    // Initialize...
-    ret = MPI_Init(&argc, &argv);
+    // MPI_Init
+    ret = MPI_Init(argc, argv);
     if (MPI_SUCCESS != ret) {
-        fprintf(stderr, "MPI_Open_port fails :-S");
+        fprintf(stderr, "ERROR: MPI_Init fails :-S");
         return -1 ;
     }
 
-    ret = MPI_Comm_size(MPI_COMM_WORLD, &size);
+    // wb->size = comm_size()
+    ret = MPI_Comm_size(MPI_COMM_WORLD, &(wb->size));
     if (MPI_SUCCESS != ret) {
-        fprintf(stderr, "MPI_Comm_size fails :-S");
+        fprintf(stderr, "ERROR: MPI_Comm_size fails :-S");
         return -1 ;
     }
 
-    ret = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    // wb->rank = comm_rank()
+    ret = MPI_Comm_rank(MPI_COMM_WORLD, &(wb->rank));
     if (MPI_SUCCESS != ret) {
-        fprintf(stderr, "MPI_Comm_rank fails :-S");
+        fprintf(stderr, "ERROR: MPI_Comm_rank fails :-S");
         return -1 ;
     }
 
     // Open server port...
-    ret = MPI_Open_port(MPI_INFO_NULL, port_name);
+    ret = MPI_Open_port(MPI_INFO_NULL, wb->port_name);
     if (MPI_SUCCESS != ret) {
-        fprintf(stderr, "MPI_Open_port fails :-S");
+        fprintf(stderr, "ERROR: MPI_Open_port fails :-S");
         return -1 ;
     }
 
@@ -91,44 +87,78 @@ int main ( int argc, char **argv )
         fprintf(stderr, "fopen fails :-S");
         return -1 ;
     }
-    fprintf(fd, "%s\n", port_name);
+    fprintf(fd, "%s\n", wb->port_name);
     fclose(fd);
 
-    // To serve requests...
-    whiteboard.the_end = 0 ;
-    while (! whiteboard.the_end)
-    {
-        printf(" * Server[%d] accepting...\n", rank);
+    // Return OK
+    return 0 ;
+}
 
-        MPI_Comm_accept(port_name, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &client);
-        again = 1;
-        while (again)
-        {
-          printf(" * Server[%d] receiving...\n", rank);
-          MPI_Recv(buff, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, client, &status);
+int do_srv ( MPI_Comm *client, whiteboard_t *wb )
+{
+    int again;
+    MPI_Status status;
+    int buff[MAX_DATA] ;
+
+    again = 1;
+    while (again)
+    {
+          printf(" * Server[%d] receiving...\n", wb->rank);
+          MPI_Recv(buff, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, *client, &status);
+
           switch (status.MPI_TAG)
           {
               case 0:
-	        MPI_Comm_free(&client);
-	        MPI_Close_port(port_name);
-	        MPI_Finalize();
-	        return 0;
+	           MPI_Comm_free(client);
+	           MPI_Close_port(wb->port_name);
+	           MPI_Finalize();
+	           return 0;
 
               case 1:
-	        MPI_Comm_disconnect(&client);
-	        again = 0;
-	        break;
+	           MPI_Comm_disconnect(client);
+	           again = 0;
+	           break;
 
               case 2: /* do something */
-	        printf("Received: %d\n", i);
-	        break;
+	           printf("Received: %d\n", buff[0]);
+	           break;
 
               default:
-	        /* Unexpected message type */
-	        MPI_Abort(MPI_COMM_WORLD, 1);
+	           /* Unexpected message type */
+	           MPI_Abort(MPI_COMM_WORLD, 1);
           }
-     }
-   } // while (! whiteboard.the_end)
+    }
+
+    return MPI_SUCCESS;
+}
+
+int main ( int argc, char **argv )
+{
+    whiteboard_t wb ;
+    MPI_Comm client ;
+    int ret ;
+
+    // Welcome...
+    fprintf(stdout, "\n"
+ 		    " MPI_PFS (0.2)\n"
+		    " -------------\n"
+		    "\n");
+
+    // Initialize...
+    ret = wb_init(&wb, &argc, &argv) ;
+    if (ret < 0) {
+        fprintf(stderr, "ERROR: wb_init fails :-S");
+        return -1 ;
+    }
+
+    // To serve requests...
+    while (! wb.the_end)
+    {
+        printf(" * Server[%d] accepting...\n", wb.rank);
+        MPI_Comm_accept(wb.port_name, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &client);
+
+        do_srv(&client, &wb) ;
+   }
 
    // End of main
    return 0 ;
