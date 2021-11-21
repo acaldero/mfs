@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "mpi.h"
+#include <thread>
 
 
 /*
@@ -157,7 +158,10 @@ int main ( int argc, char **argv )
         printf(" * Server[%d] accepting...\n", wb.rank);
         MPI_Comm_accept(wb.port_name, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &client);
 
-        do_srv(&client, &wb) ;
+        // do_srv(&client, &wb) ;
+
+	std::thread t1(do_srv, &client, &wb) ;
+	t1.join() ;
    }
 
    // End of main
