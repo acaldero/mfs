@@ -33,6 +33,8 @@
  *  Main
  */
 
+#define MAX_DATA 1024
+
 int send_request ( MPI_Comm server, int *req_id, int req_action )
 {
     int ret ;
@@ -45,7 +47,7 @@ int main( int argc, char **argv )
 {
     MPI_Comm server;
     char port_name[MPI_MAX_PORT_NAME];
-    int i ;
+    int buff[MAX_DATA] ;
 
     // Welcome...
     if (argc < 2) {
@@ -59,10 +61,11 @@ int main( int argc, char **argv )
     MPI_Comm_connect(port_name, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &server);
 
     // Requests...
-    for (i = 0; i < 5; i++) {
-         send_request(server, &i, 2) ;
+    for (int i = 0; i < 5; i++) {
+         buff[0] = i ;
+         send_request(server, buff, 2) ;
     }
-    send_request(server, &i, 1) ;
+    send_request(server, buff, 1) ;
 
     // Finalize...
     MPI_Comm_disconnect(&server);
