@@ -41,13 +41,17 @@ struct {
  *  Main
  */
 
+#define MAX_DATA 1024
+
 int main ( int argc, char **argv )
 {
    MPI_Comm client;
    MPI_Status status;
    char port_name[MPI_MAX_PORT_NAME];
-   int size, again, i;
+   int size, rank ;
+   int again, i;
    int ret = MPI_SUCCESS;
+   int buff[MAX_DATA] ;
 
    // Welcome...
    fprintf(stdout, "\n"
@@ -62,9 +66,15 @@ int main ( int argc, char **argv )
        return -1 ;
    }
 
-   MPI_Comm_size(MPI_COMM_WORLD, &size);
-   if (size != 1) {
-       fprintf(stderr, "Server too big");
+   ret = MPI_Comm_size(MPI_COMM_WORLD, &size);
+   if (MPI_SUCCESS != ret) {
+       fprintf(stderr, "MPI_Comm_size fails :-S");
+       return -1 ;
+   }
+
+   ret = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   if (MPI_SUCCESS != ret) {
+       fprintf(stderr, "MPI_Comm_rank fails :-S");
        return -1 ;
    }
 
@@ -75,17 +85,20 @@ int main ( int argc, char **argv )
        return -1 ;
    }
 
-   printf(" * Server port: %s\n", port_name);
+   printf(" * Server[%d] at port: %s\n", rank, port_name);
 
    // To serve requests...
    whiteboard.the_end = 0 ;
    while (! whiteboard.the_end)
    {
+       printf(" * Server[%d] accepting...\n", rank);
+
        MPI_Comm_accept(port_name, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &client);
        again = 1;
        while (again)
        {
-         MPI_Recv(&i, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, client, &status);
+         printf(" * Server[%d] receiving...\n", rank);
+         MPI_Recv(buff, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, client, &status);
          switch (status.MPI_TAG)
          {
               case 0:
