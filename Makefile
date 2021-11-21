@@ -3,20 +3,27 @@
 # Const
 #
 
-EXE=mfs_server mfs_client
-MCC=mpicc
-CFLAGS=-O2 -Wall
+BIN_FILES=mfs_server mfs_client
+CC=mpicc
+CFLAGS=-w -g -O0 -Wall -I/usr/local/include/
+LDFLAGS=
 
 
 #
 # Rules
 #
 
-all: $(EXE)
+all: $(BIN_FILES)
+.PHONY: all clean
 
-% : %.c
-	$(MCC) $(CFLAGS) $< -o $@
+mfs_client: mfs_client.o
+	$(CC) $(LDFLAGS) $^  -o $@
+
+mfs_server: mfs_server.o
+	$(CC) $(LDFLAGS) $^  -o $@
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $<	
 
 clean:
-	rm -f *.o $(EXE)
-
+	rm -f *.o $(BIN_FILES)
