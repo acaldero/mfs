@@ -50,14 +50,23 @@ int main( int argc, char **argv )
     int buff[MAX_DATA] ;
 
     // Welcome...
-    if (argc < 2) {
-        fprintf(stderr, "ERROR: server port name required.\n");
+    fprintf(stdout, "\n"
+ 		    " mfs_client\n"
+		    " ----------\n"
+		    "\n");
+
+    // Read server port...
+    FILE *fd = fopen("mfs_server.port", "r");
+    if (fd == NULL) {
+        fprintf(stderr, "ERROR: fopen fails :-S");
+        fprintf(stderr, "ERROR: server port name required in the 'mfs_server.port' file.\n");
         return -1 ;
     }
+    fgets(port_name, MPI_MAX_PORT_NAME, fd) ;
+    fclose(fd);
 
     // Initialize...
     MPI_Init(&argc, &argv);
-    strcpy(port_name, argv[1]);
     MPI_Comm_connect(port_name, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &server);
 
     // Requests...

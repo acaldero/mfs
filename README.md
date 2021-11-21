@@ -23,9 +23,9 @@ Make
   </tr>
   <tr>
   <td>
-  mpirun -np 1 ./mfs_server<br>
-  server 0 available at tag#0$port#41065$description#mirlo$ifname#1.1.1.1$<br>
-  server 0  accepting
+  mpirun -np 1 ./mfs_server &<br>
+  cat mfs_server.port
+  tag#0$port#123$description#mirlo$ifname#1.1.1.1$<br>
   </td>
   <td>
   &nbsp;
@@ -36,7 +36,7 @@ Make
   &nbsp;
   </td>
   <td>
-  mpirun -np 2 ./mfs_client 'tag#0$port#41065$description#mirlo$ifname#1.1.1.1$'  
+  mpirun -np 2 ./mfs_client
   </td>
   </tr>
   </table>
