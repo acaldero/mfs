@@ -27,6 +27,8 @@
 #include <stdio.h>
 #include "mpi.h"
 #include <thread>
+#include <condition_variable>
+#include <chrono>
 
 
 /*
@@ -35,17 +37,26 @@
 
 #define MAX_DATA 1024
 
-typedef struct {
+typedef struct
+{
+    // server identification
     int  size ;
     int  rank ;
     char port_name[MPI_MAX_PORT_NAME] ;
+
+    // to end the server activities
     int  the_end ;
+
+    // to wait for active threads
+    std::condition_variable at_c ;
+    std::mutex at_m ;
+    int  active_threads ;
 } whiteboard_t ;
 
 
-/*
- *  Main
- */
+//
+// Initialization
+//
 
 int wb_init ( whiteboard_t *wb, int *argc, char ***argv )
 {
@@ -53,6 +64,9 @@ int wb_init ( whiteboard_t *wb, int *argc, char ***argv )
 
     // wb->the_end = false
     wb->the_end = 0 ;
+
+    // wb->active_threads = 0
+    wb->active_threads = 0 ;
 
     // MPI_Init
     ret = MPI_Init(argc, argv);
@@ -85,7 +99,7 @@ int wb_init ( whiteboard_t *wb, int *argc, char ***argv )
     // Write server port...
     FILE *fd = fopen("mfs_server.port", "w");
     if (fd == NULL) {
-        fprintf(stderr, "fopen fails :-S");
+        fprintf(stderr, "ERROR: fopen fails :-S");
         return -1 ;
     }
     fprintf(fd, "%s\n", wb->port_name);
@@ -94,6 +108,44 @@ int wb_init ( whiteboard_t *wb, int *argc, char ***argv )
     // Return OK
     return 0 ;
 }
+
+//
+// Thread counter
+//
+
+int th_inc ( whiteboard_t *wb )
+{
+    wb->at_m.lock() ;
+    fprintf(stdout, "INFO: active_threads++\n");
+    wb->active_threads++ ;
+    wb->at_m.unlock() ;
+}
+
+int th_dec ( whiteboard_t *wb )
+{
+    wb->at_m.lock() ;
+    fprintf(stdout, "INFO: active_threads--\n");
+    wb->active_threads-- ;
+    if (0 == wb->active_threads) {
+	wb->at_c.notify_all() ;
+    }
+    wb->at_m.unlock() ;
+}
+
+int th_wait ( whiteboard_t *wb )
+{
+    std::unique_lock<std::mutex> lk(wb->at_m);
+
+    lk.lock() ;
+    while (wb->active_threads != 0) {
+           wb->at_c.wait(lk) ;
+    }
+    lk.unlock() ;
+}
+
+//
+// Thread core: do_srv
+//
 
 int do_srv ( MPI_Comm *client, whiteboard_t *wb )
 {
@@ -104,7 +156,7 @@ int do_srv ( MPI_Comm *client, whiteboard_t *wb )
     again = 1;
     while (again)
     {
-          printf(" * Server[%d] receiving...\n", wb->rank);
+          printf("INFO: Server[%d] receiving...\n", wb->rank);
           MPI_Recv(buff, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, *client, &status);
 
           switch (status.MPI_TAG)
@@ -130,8 +182,14 @@ int do_srv ( MPI_Comm *client, whiteboard_t *wb )
           }
     }
 
+    th_dec(wb) ;
     return MPI_SUCCESS;
 }
+
+
+/*
+ *  Main
+ */
 
 int main ( int argc, char **argv )
 {
@@ -146,6 +204,7 @@ int main ( int argc, char **argv )
 		    "\n");
 
     // Initialize...
+    fprintf(stdout, "INFO: Server[%d] initializing...\n", wb.rank);
     ret = wb_init(&wb, &argc, &argv) ;
     if (ret < 0) {
         fprintf(stderr, "ERROR: wb_init fails :-S");
@@ -153,18 +212,23 @@ int main ( int argc, char **argv )
     }
 
     // To serve requests...
-    while (! wb.the_end)
+    while (0 == wb.the_end)
     {
-        printf(" * Server[%d] accepting...\n", wb.rank);
+        fprintf(stdout, "INFO: Server[%d] accepting...\n", wb.rank);
         MPI_Comm_accept(wb.port_name, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &client);
 
-        // do_srv(&client, &wb) ;
-
-	std::thread t1(do_srv, &client, &wb) ;
-	t1.join() ;
+        fprintf(stdout, "INFO: Server[%d] create new thread...\n", wb.rank);
+        ret = th_inc(&wb) ;
+        std::thread t1(do_srv, &client, &wb) ;
+        t1.detach() ;
    }
 
+   // Wait for active requests...
+   fprintf(stdout, "INFO: Server[%d] wait for threads...\n", wb.rank);
+   ret = th_wait(&wb) ;
+
    // End of main
+   fprintf(stdout, "INFO: Server[%d] ends.\n", wb.rank);
    return 0 ;
 }
 
