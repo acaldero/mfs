@@ -23,12 +23,8 @@
  * Includes
  */
 
-#include <stdlib.h>
-#include <stdio.h>
 #include "mpi.h"
-#include <thread>
-#include <condition_variable>
-#include <chrono>
+#include <mfs_lib.h>
 
 
 /*
@@ -62,12 +58,6 @@ int wb_init ( whiteboard_t *wb, int *argc, char ***argv )
 {
     int ret ;
 
-    // wb->the_end = false
-    wb->the_end = 0 ;
-
-    // wb->active_threads = 0
-    wb->active_threads = 0 ;
-
     // MPI_Init
     ret = MPI_Init(argc, argv);
     if (MPI_SUCCESS != ret) {
@@ -97,13 +87,14 @@ int wb_init ( whiteboard_t *wb, int *argc, char ***argv )
     }
 
     // Write server port...
-    FILE *fd = fopen("mfs_server.port", "w");
-    if (fd == NULL) {
-        fprintf(stderr, "ERROR: fopen fails :-S");
+    ret = mfs_write_server_port(wb->port_name) ;
+    if (ret < 0) {
         return -1 ;
     }
-    fprintf(fd, "%s\n", wb->port_name);
-    fclose(fd);
+
+    // wb->the_end/active_threads
+    wb->the_end        = 0 ; // false
+    wb->active_threads = 0 ;
 
     // Return OK
     return 0 ;
@@ -150,35 +141,34 @@ int th_wait ( whiteboard_t *wb )
 int do_srv ( MPI_Comm *client, whiteboard_t *wb )
 {
     int again;
-    MPI_Status status;
-    int buff[MAX_DATA] ;
+    int req_action ;
+    int req_id ;
 
     again = 1;
     while (again)
     {
           printf("INFO: Server[%d] receiving...\n", wb->rank);
-          MPI_Recv(buff, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, *client, &status);
-
-          switch (status.MPI_TAG)
+          recv_request(*client, &req_action, &req_id) ;
+          switch (req_action)
           {
               case 0:
-	           MPI_Comm_free(client);
-	           MPI_Close_port(wb->port_name);
-	           MPI_Finalize();
+	           MPI_Comm_free(client) ;
+	           MPI_Close_port(wb->port_name) ;
+	           MPI_Finalize() ;
 	           return 0;
 
               case 1:
-	           MPI_Comm_disconnect(client);
-	           again = 0;
+	           MPI_Comm_disconnect(client) ;
+	           again = 0 ;
 	           break;
 
               case 2: /* do something */
-	           printf("Received: %d\n", buff[0]);
+	           printf("INFO: Received: %d\n", req_id) ;
 	           break;
 
               default:
 	           /* Unexpected message type */
-	           MPI_Abort(MPI_COMM_WORLD, 1);
+	           MPI_Abort(MPI_COMM_WORLD, 1) ;
           }
     }
 
@@ -199,15 +189,15 @@ int main ( int argc, char **argv )
 
     // Welcome...
     fprintf(stdout, "\n"
- 		    " MPI_PFS (0.2)\n"
-		    " -------------\n"
+ 		    " mfs_server (0.2)\n"
+		    " ----------------\n"
 		    "\n");
 
     // Initialize...
-    fprintf(stdout, "INFO: Server[%d] initializing...\n", wb.rank);
+    fprintf(stdout, "INFO: Server initializing...\n") ;
     ret = wb_init(&wb, &argc, &argv) ;
     if (ret < 0) {
-        fprintf(stderr, "ERROR: wb_init fails :-S");
+        fprintf(stderr, "ERROR: wb_init fails :-S") ;
         return -1 ;
     }
 

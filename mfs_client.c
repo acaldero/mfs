@@ -23,31 +23,75 @@
  * Includes
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include "mpi.h"
+#include <mfs_lib.h>
+
+
+/*
+ * State among threads
+ */
+
+typedef struct
+{
+    // server identification
+    int  size ;
+    int  rank ;
+    char port_name[MPI_MAX_PORT_NAME] ;
+
+} whiteboard_t ;
+
+
+//
+// Initialization
+//
+
+int wb_init ( whiteboard_t *wb, int *argc, char ***argv )
+{
+    int ret ;
+
+    // Read server port...
+    ret = mfs_read_server_port(wb->port_name) ;
+    if (ret < 0) {
+        fprintf(stderr, "ERROR: server port name required in the 'mfs_server.port' file.\n");
+        return -1 ;
+    }
+
+    // MPI_Init
+    ret = MPI_Init(argc, argv);
+    if (MPI_SUCCESS != ret) {
+        fprintf(stderr, "ERROR: MPI_Init fails :-S");
+        return -1 ;
+    }
+
+    // wb->size = comm_size()
+    ret = MPI_Comm_size(MPI_COMM_WORLD, &(wb->size));
+    if (MPI_SUCCESS != ret) {
+        fprintf(stderr, "ERROR: MPI_Comm_size fails :-S");
+        return -1 ;
+    }
+
+    // wb->rank = comm_rank()
+    ret = MPI_Comm_rank(MPI_COMM_WORLD, &(wb->rank));
+    if (MPI_SUCCESS != ret) {
+        fprintf(stderr, "ERROR: MPI_Comm_rank fails :-S");
+        return -1 ;
+    }
+
+    // Return OK
+    return 0 ;
+}
 
 
 /*
  *  Main
  */
 
-#define MAX_DATA 1024
-
-int send_request ( MPI_Comm server, int *req_id, int req_action )
-{
-    int ret ;
-
-    ret = MPI_Send(req_id, 1, MPI_INT, 0, req_action, server);
-    return (MPI_SUCCESS == ret) ;
-}
-
 int main( int argc, char **argv )
 {
     MPI_Comm server;
-    char port_name[MPI_MAX_PORT_NAME];
-    int buff[MAX_DATA] ;
+    whiteboard_t wb ;
+    int ret ;
+    int i ;
 
     // Welcome...
     fprintf(stdout, "\n"
@@ -55,31 +99,36 @@ int main( int argc, char **argv )
 		    " ----------\n"
 		    "\n");
 
-    // Read server port...
-    FILE *fd = fopen("mfs_server.port", "r");
-    if (fd == NULL) {
-        fprintf(stderr, "ERROR: fopen fails :-S");
-        fprintf(stderr, "ERROR: server port name required in the 'mfs_server.port' file.\n");
+    // Initialize...
+    fprintf(stdout, "INFO: Client initializing...\n") ;
+    ret = wb_init(&wb, &argc, &argv) ;
+    if (ret < 0) {
+        fprintf(stderr, "ERROR: wb_init fails :-S") ;
         return -1 ;
     }
-    fgets(port_name, MPI_MAX_PORT_NAME, fd) ;
-    fclose(fd);
 
-    // Initialize...
-    MPI_Init(&argc, &argv);
-    MPI_Comm_connect(port_name, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &server);
+    // Connect...
+    ret = MPI_Comm_connect(wb.port_name, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &server) ;
+    if (MPI_SUCCESS != ret) {
+        fprintf(stderr, "ERROR: MPI_Comm_connect fails :-S") ;
+        return -1 ;
+    }
 
     // Requests...
-    for (int i = 0; i < 5; i++) {
-         buff[0] = i ;
-         send_request(server, buff, 2) ;
+    for (i = 0; i < 5; i++) {
+         send_request(server, 2, i) ;
     }
-    send_request(server, buff, 1) ;
+    send_request(server, 1, i) ;
 
-    // Finalize...
-    MPI_Comm_disconnect(&server);
-    MPI_Finalize();
+    // Disconnect...
+    ret = MPI_Comm_disconnect(&server) ;
+    if (MPI_SUCCESS != ret) {
+        fprintf(stderr, "ERROR: MPI_Comm_disconnect fails :-S") ;
+        return -1 ;
+    }
 
     // End of main
+    MPI_Finalize() ;
     return 0;
 }
+
