@@ -36,6 +36,10 @@
   int mfs_read_server_port  ( char *port_name ) ;
 
   // messages
+  #define REQ_ACTION_END        0
+  #define REQ_ACTION_DISCONNECT 1
+  #define REQ_ACTION_DATA       2
+
   int send_request ( MPI_Comm server, int  req_action, int  req_id ) ;
   int recv_request ( MPI_Comm client, int *req_action, int *req_id ) ;
 

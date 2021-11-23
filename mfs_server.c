@@ -31,8 +31,6 @@
  * Shared state among threads
  */
 
-#define MAX_DATA 1024
-
 typedef struct
 {
     // server identification
@@ -101,7 +99,7 @@ int wb_init ( whiteboard_t *wb, int *argc, char ***argv )
 }
 
 //
-// Thread counter
+// Thread counter API
 //
 
 int th_inc ( whiteboard_t *wb )
@@ -151,24 +149,25 @@ int do_srv ( MPI_Comm *client, whiteboard_t *wb )
           recv_request(*client, &req_action, &req_id) ;
           switch (req_action)
           {
-              case 0:
+              case REQ_ACTION_END:
+	           printf("INFO: END\n") ;
 	           MPI_Comm_free(client) ;
 	           MPI_Close_port(wb->port_name) ;
 	           MPI_Finalize() ;
 	           return 0;
 
-              case 1:
+              case REQ_ACTION_DISCONNECT:
+	           printf("INFO: Disconnect\n") ;
 	           MPI_Comm_disconnect(client) ;
 	           again = 0 ;
 	           break;
 
-              case 2: /* do something */
+              case REQ_ACTION_DATA:
 	           printf("INFO: Received: %d\n", req_id) ;
 	           break;
 
               default:
-	           /* Unexpected message type */
-	           MPI_Abort(MPI_COMM_WORLD, 1) ;
+	           printf("ERROR: Unexpected message type: %d\n", req_action) ;
           }
     }
 
