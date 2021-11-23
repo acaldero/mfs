@@ -5,7 +5,7 @@
 
 BIN_FILES=mfs_server mfs_client
 CC=mpic++
-CFLAGS=-w -g -O0 -Wall -I/usr/local/include/ -I./
+CFLAGS=-w -g -O2 -Wall -I/usr/local/include/ -I./
 LDFLAGS=-lpthread
 
 
@@ -16,7 +16,7 @@ LDFLAGS=-lpthread
 all: $(BIN_FILES)
 .PHONY: all clean
 
-mfs_client: mfs_client.o mfs_lib.o
+mfs_client: mfs_client.o mfs_client_stub.o mfs_lib.o
 	$(CC) $^  $(LDFLAGS)  -o $@
 
 mfs_server: mfs_server.o mfs_lib.o

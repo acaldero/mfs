@@ -48,7 +48,7 @@ typedef struct
 } server_stub_t ;
 
 
-int wb_init_server ( server_stub_t *wb, int *argc, char ***argv )
+int serverstub_init ( server_stub_t *wb, int *argc, char ***argv )
 {
     int ret ;
 
@@ -94,13 +94,37 @@ int wb_init_server ( server_stub_t *wb, int *argc, char ***argv )
     return 0 ;
 }
 
-int wb_finalize_server ( server_stub_t *wb )
+int serverstub_finalize ( server_stub_t *wb )
 {
+    int ret ;
+
+    // Close port
     MPI_Close_port(wb->port_name) ;
-    MPI_Finalize() ;
+
+    // Finalize
+    ret = MPI_Finalize() ;
+    if (MPI_SUCCESS != ret) {
+        fprintf(stderr, "ERROR: MPI_Finalize fails :-S");
+        return -1 ;
+    }
 
     // Return OK
     return 0 ;
+}
+
+int serverstub_request_recv ( MPI_Comm client,
+		           // server_stub_t *wb, 
+		              int *req_action, int *req_id )
+{
+    int ret ;
+    int buff[2] ;
+    MPI_Status status;
+
+    ret = MPI_Recv(buff, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, client, &status) ;
+    *req_action = buff[0] ;
+    *req_id     = buff[1] ;
+
+    return (MPI_SUCCESS == ret) ;
 }
 
 
@@ -152,7 +176,7 @@ int do_srv ( MPI_Comm *client, server_stub_t *wb )
     while (again)
     {
           printf("INFO: Server[%d] receiving...\n", wb->rank);
-          recv_request(*client, &req_action, &req_id) ;
+          serverstub_request_recv(*client, &req_action, &req_id) ;
           switch (req_action)
           {
               case REQ_ACTION_END:
@@ -198,9 +222,9 @@ int main ( int argc, char **argv )
 
     // Initialize...
     fprintf(stdout, "INFO: Server initializing...\n") ;
-    ret = wb_init_server(&wb, &argc, &argv) ;
+    ret = serverstub_init(&wb, &argc, &argv) ;
     if (ret < 0) {
-        fprintf(stderr, "ERROR: wb_init_server fails :-S") ;
+        fprintf(stderr, "ERROR: serverstub_init fails :-S") ;
         return -1 ;
     }
 
@@ -222,7 +246,7 @@ int main ( int argc, char **argv )
 
    // Finalize...
    fprintf(stdout, "INFO: Server[%d] ends.\n", wb.rank) ;
-   wb_finalize_server(&wb) ;
+   serverstub_finalize(&wb) ;
 
    return 0 ;
 }

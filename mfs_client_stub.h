@@ -19,39 +19,32 @@
  *
  */
 
+#ifndef __MFS_CLIENT_STUB_H__
+#define __MFS_CLIENT_STUB_H__
 
-#include <mfs_client_stub.h>
+    // Includes
+    #include "mpi.h"
+    #include <mfs_lib.h>
+    
+    
+    // Datatypes
+    typedef struct
+    {
+        // server port and comm
+        char port_name[MPI_MAX_PORT_NAME] ;
+        MPI_Comm server ;
+    
+        // client identification
+        int  size ;
+        int  rank ;
+    
+    } client_stub_t ;
+    
+    
+    // API
+    int clientstub_init     ( client_stub_t *wb, int *argc, char ***argv ) ;
+    int clientstub_finalize ( client_stub_t *wb ) ;
+    int clientstub_request  ( client_stub_t *wb, int req_action, int req_id ) ;
 
-
-int main ( int argc, char **argv )
-{
-    client_stub_t wb ;
-    int ret ;
-    int i ;
-
-    // Welcome...
-    fprintf(stdout, "\n"
- 		    " mfs_client\n"
-		    " ----------\n"
-		    "\n");
-
-    // Initialize...
-    fprintf(stdout, "INFO: Client initializing...\n") ;
-    ret = clientstub_init(&wb, &argc, &argv) ;
-    if (ret < 0) {
-        fprintf(stderr, "ERROR: clientstub_init fails :-S") ;
-        return -1 ;
-    }
-
-    // Requests...
-    for (i = 0; i < 5; i++) {
-         clientstub_request(&wb, REQ_ACTION_DATA, i) ;
-    }
-    clientstub_request(&wb, REQ_ACTION_DISCONNECT, i) ;
-
-    // Finalize...
-    clientstub_finalize(&wb) ;
-
-    return 0;
-}
+#endif
 
