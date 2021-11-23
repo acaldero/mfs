@@ -28,7 +28,7 @@
 
 
 /*
- * Shared state among threads
+ * Server stub
  */
 
 typedef struct
@@ -45,14 +45,10 @@ typedef struct
     std::condition_variable at_c ;
     std::mutex at_m ;
     int  active_threads ;
-} whiteboard_t ;
+} server_stub_t ;
 
 
-//
-// Initialization
-//
-
-int wb_init ( whiteboard_t *wb, int *argc, char ***argv )
+int wb_init_server ( server_stub_t *wb, int *argc, char ***argv )
 {
     int ret ;
 
@@ -98,11 +94,21 @@ int wb_init ( whiteboard_t *wb, int *argc, char ***argv )
     return 0 ;
 }
 
+int wb_finalize_server ( server_stub_t *wb )
+{
+    MPI_Close_port(wb->port_name) ;
+    MPI_Finalize() ;
+
+    // Return OK
+    return 0 ;
+}
+
+
 //
 // Thread counter API
 //
 
-int th_inc ( whiteboard_t *wb )
+int th_inc ( server_stub_t *wb )
 {
     wb->at_m.lock() ;
     fprintf(stdout, "INFO: active_threads++\n");
@@ -110,7 +116,7 @@ int th_inc ( whiteboard_t *wb )
     wb->at_m.unlock() ;
 }
 
-int th_dec ( whiteboard_t *wb )
+int th_dec ( server_stub_t *wb )
 {
     wb->at_m.lock() ;
     fprintf(stdout, "INFO: active_threads--\n");
@@ -121,7 +127,7 @@ int th_dec ( whiteboard_t *wb )
     wb->at_m.unlock() ;
 }
 
-int th_wait ( whiteboard_t *wb )
+int th_wait ( server_stub_t *wb )
 {
     std::unique_lock<std::mutex> lk(wb->at_m);
 
@@ -136,7 +142,7 @@ int th_wait ( whiteboard_t *wb )
 // Thread core: do_srv
 //
 
-int do_srv ( MPI_Comm *client, whiteboard_t *wb )
+int do_srv ( MPI_Comm *client, server_stub_t *wb )
 {
     int again;
     int req_action ;
@@ -152,8 +158,6 @@ int do_srv ( MPI_Comm *client, whiteboard_t *wb )
               case REQ_ACTION_END:
 	           printf("INFO: END\n") ;
 	           MPI_Comm_free(client) ;
-	           MPI_Close_port(wb->port_name) ;
-	           MPI_Finalize() ;
 	           return 0;
 
               case REQ_ACTION_DISCONNECT:
@@ -182,7 +186,7 @@ int do_srv ( MPI_Comm *client, whiteboard_t *wb )
 
 int main ( int argc, char **argv )
 {
-    whiteboard_t wb ;
+    server_stub_t wb ;
     MPI_Comm client ;
     int ret ;
 
@@ -194,9 +198,9 @@ int main ( int argc, char **argv )
 
     // Initialize...
     fprintf(stdout, "INFO: Server initializing...\n") ;
-    ret = wb_init(&wb, &argc, &argv) ;
+    ret = wb_init_server(&wb, &argc, &argv) ;
     if (ret < 0) {
-        fprintf(stderr, "ERROR: wb_init fails :-S") ;
+        fprintf(stderr, "ERROR: wb_init_server fails :-S") ;
         return -1 ;
     }
 
@@ -216,8 +220,10 @@ int main ( int argc, char **argv )
    fprintf(stdout, "INFO: Server[%d] wait for threads...\n", wb.rank);
    ret = th_wait(&wb) ;
 
-   // End of main
-   fprintf(stdout, "INFO: Server[%d] ends.\n", wb.rank);
+   // Finalize...
+   fprintf(stdout, "INFO: Server[%d] ends.\n", wb.rank) ;
+   wb_finalize_server(&wb) ;
+
    return 0 ;
 }
 

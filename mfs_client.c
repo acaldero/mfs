@@ -28,24 +28,23 @@
 
 
 /*
- * State among threads
+ * Client stub
  */
 
 typedef struct
 {
-    // server identification
+    // server port and comm
+    char port_name[MPI_MAX_PORT_NAME] ;
+    MPI_Comm server ;
+
+    // client identification
     int  size ;
     int  rank ;
-    char port_name[MPI_MAX_PORT_NAME] ;
 
-} whiteboard_t ;
+} client_stub_t ;
 
 
-//
-// Initialization
-//
-
-int wb_init ( whiteboard_t *wb, int *argc, char ***argv )
+int wb_init_client ( client_stub_t *wb, int *argc, char ***argv )
 {
     int ret ;
 
@@ -77,6 +76,31 @@ int wb_init ( whiteboard_t *wb, int *argc, char ***argv )
         return -1 ;
     }
 
+    // Connect...
+    ret = MPI_Comm_connect(wb->port_name, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &(wb->server)) ;
+    if (MPI_SUCCESS != ret) {
+        fprintf(stderr, "ERROR: MPI_Comm_connect fails :-S") ;
+        return -1 ;
+    }
+
+    // Return OK
+    return 0 ;
+}
+
+int wb_finalize_client ( client_stub_t *wb )
+{
+    int ret ;
+
+    // Disconnect...
+    ret = MPI_Comm_disconnect(&(wb->server)) ;
+    if (MPI_SUCCESS != ret) {
+        fprintf(stderr, "ERROR: MPI_Comm_disconnect fails :-S") ;
+        return -1 ;
+    }
+
+    // Finalize...
+    MPI_Finalize() ;
+
     // Return OK
     return 0 ;
 }
@@ -88,8 +112,7 @@ int wb_init ( whiteboard_t *wb, int *argc, char ***argv )
 
 int main( int argc, char **argv )
 {
-    MPI_Comm server;
-    whiteboard_t wb ;
+    client_stub_t wb ;
     int ret ;
     int i ;
 
@@ -101,34 +124,21 @@ int main( int argc, char **argv )
 
     // Initialize...
     fprintf(stdout, "INFO: Client initializing...\n") ;
-    ret = wb_init(&wb, &argc, &argv) ;
+    ret = wb_init_client(&wb, &argc, &argv) ;
     if (ret < 0) {
-        fprintf(stderr, "ERROR: wb_init fails :-S") ;
-        return -1 ;
-    }
-
-    // Connect...
-    ret = MPI_Comm_connect(wb.port_name, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &server) ;
-    if (MPI_SUCCESS != ret) {
-        fprintf(stderr, "ERROR: MPI_Comm_connect fails :-S") ;
+        fprintf(stderr, "ERROR: wb_init_client fails :-S") ;
         return -1 ;
     }
 
     // Requests...
     for (i = 0; i < 5; i++) {
-         send_request(server, 2, i) ;
+         send_request(wb.server, 2, i) ;
     }
-    send_request(server, 1, i) ;
+    send_request(wb.server, 1, i) ;
 
-    // Disconnect...
-    ret = MPI_Comm_disconnect(&server) ;
-    if (MPI_SUCCESS != ret) {
-        fprintf(stderr, "ERROR: MPI_Comm_disconnect fails :-S") ;
-        return -1 ;
-    }
+    // Finalize...
+    wb_finalize_client(&wb) ;
 
-    // End of main
-    MPI_Finalize() ;
     return 0;
 }
 
