@@ -1,7 +1,16 @@
 #!/bin/sh
 set -x
 
+echo "./mfs_server..."
 mpirun -np 1 ./mfs_server &
 sleep 1
-mpirun -np 2 ./mfs_client
+
+
+for i in $(seq 1 1 3)
+do
+   echo "./mfs_client...($i)"
+   mpirun -np 1 ./mfs_client
+   sleep 1
+done
+
 

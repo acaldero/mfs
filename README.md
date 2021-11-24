@@ -1,4 +1,4 @@
-# MPI_PFS (v0.2)
+# MPI_PFS (v0.3)
 Proof of concept + prototype of MPI_PFS
 
 ## Prerequisites
@@ -24,8 +24,6 @@ Make
   <tr>
   <td>
   mpirun -np 1 ./mfs_server &<br>
-  cat mfs_server.port<br>
-  tag#0$port#123$description#mirlo$ifname#1.1.1.1$<br>
   </td>
   <td>
   &nbsp;
@@ -36,7 +34,7 @@ Make
   &nbsp;
   </td>
   <td>
-  mpirun -np 2 ./mfs_client
+  mpirun -np 1 ./mfs_client
   </td>
   </tr>
   </table>

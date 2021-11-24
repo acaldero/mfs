@@ -19,7 +19,7 @@ all: $(BIN_FILES)
 mfs_client: mfs_client.o mfs_client_stub.o mfs_lib.o
 	$(CC) $^  $(LDFLAGS)  -o $@
 
-mfs_server: mfs_server.o mfs_lib.o
+mfs_server: mfs_server.o mfs_server_stub.o mfs_lib.o
 	$(CC) $^  $(LDFLAGS)  -o $@
 
 %.o: %.c
