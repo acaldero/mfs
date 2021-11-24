@@ -132,7 +132,7 @@ int serverstub_request_recv ( MPI_Comm client,
 // Thread counter API
 //
 
-int th_inc ( server_stub_t *wb )
+void th_inc ( server_stub_t *wb )
 {
     wb->at_m.lock() ;
     fprintf(stdout, "INFO: active_threads++\n");
@@ -140,7 +140,7 @@ int th_inc ( server_stub_t *wb )
     wb->at_m.unlock() ;
 }
 
-int th_dec ( server_stub_t *wb )
+void th_dec ( server_stub_t *wb )
 {
     wb->at_m.lock() ;
     fprintf(stdout, "INFO: active_threads--\n");
@@ -151,7 +151,7 @@ int th_dec ( server_stub_t *wb )
     wb->at_m.unlock() ;
 }
 
-int th_wait ( server_stub_t *wb )
+void th_wait ( server_stub_t *wb )
 {
     std::unique_lock<std::mutex> lk(wb->at_m);
 
@@ -235,14 +235,15 @@ int main ( int argc, char **argv )
         MPI_Comm_accept(wb.port_name, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &client);
 
         fprintf(stdout, "INFO: Server[%d] create new thread...\n", wb.rank);
-        ret = th_inc(&wb) ;
+        th_inc(&wb) ;
         std::thread t1(do_srv, &client, &wb) ;
-        t1.detach() ;
+	if (t1.joinable())
+            t1.detach() ;
    }
 
    // Wait for active requests...
    fprintf(stdout, "INFO: Server[%d] wait for threads...\n", wb.rank);
-   ret = th_wait(&wb) ;
+   th_wait(&wb) ;
 
    // Finalize...
    fprintf(stdout, "INFO: Server[%d] ends.\n", wb.rank) ;

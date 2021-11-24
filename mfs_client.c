@@ -44,7 +44,7 @@ int main ( int argc, char **argv )
     }
 
     // Requests...
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < 2; i++) {
          clientstub_request(&wb, REQ_ACTION_DATA, i) ;
     }
     clientstub_request(&wb, REQ_ACTION_DISCONNECT, i) ;
