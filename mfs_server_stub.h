@@ -35,8 +35,9 @@
         int  rank ;
         char port_name[MPI_MAX_PORT_NAME] ;
 
-        // to end the server activities
+        // server activities
         int  the_end ;
+        MPI_Comm client ;
 
         // to wait for active threads
         std::condition_variable at_c ;
@@ -48,15 +49,13 @@
     // API
     int serverstub_init         ( server_stub_t *wb, int *argc, char ***argv ) ;
     int serverstub_finalize     ( server_stub_t *wb ) ;
-    int serverstub_accept       ( server_stub_t *wb, 
-		                  int (*do_srv)(MPI_Comm *, server_stub_t *) ) ;
+    int serverstub_is_the_end   ( server_stub_t *wb ) ;
 
-    int serverstub_request_recv ( MPI_Comm client,
-		               // server_stub_t *wb, 
-		                  int *req_action, int *req_id ) ;
-    int serverstub_request_send ( MPI_Comm server,
-                               // server_stub_t *wb, 
-			          int req_action, int req_id ) ;
+    int serverstub_accept       ( server_stub_t *ab, server_stub_t *wb ) ;
+    int serverstub_do_request   ( server_stub_t *ab, int (*do_srv)(server_stub_t *) ) ;
+
+    int serverstub_request_recv ( server_stub_t *ab, int *req_action, int *req_id ) ;
+    int serverstub_request_send ( server_stub_t *ab, int req_action, int req_id ) ;
 
     void th_dec ( server_stub_t *wb ) ;
 

@@ -1,9 +1,9 @@
 #!/bin/sh
 set -x
 
-echo "./mfs_server..."
+echo "./mfs_server &"
 mpirun -np 1 ./mfs_server &
-sleep 1
+sleep 2
 
 
 for i in $(seq 1 1 3)

@@ -23,7 +23,7 @@
 #include <mfs_server_stub.h>
 
 
-int do_srv ( MPI_Comm *client, server_stub_t *wb )
+int do_srv ( server_stub_t *ab )
 {
     int again;
     int req_action ;
@@ -32,18 +32,18 @@ int do_srv ( MPI_Comm *client, server_stub_t *wb )
     again = 1;
     while (again)
     {
-          printf("INFO: Server[%d] receiving...\n", wb->rank);
-          serverstub_request_recv(*client, &req_action, &req_id) ;
+          printf("INFO: Server[%d] receiving...\n", ab->rank);
+          serverstub_request_recv(ab, &req_action, &req_id) ;
           switch (req_action)
           {
               case REQ_ACTION_END:
 	           printf("INFO: END\n") ;
-	           MPI_Comm_free(client) ;
+	           MPI_Comm_free(&(ab->client)) ;
 	           return 0;
 
               case REQ_ACTION_DISCONNECT:
 	           printf("INFO: Disconnect\n") ;
-	           MPI_Comm_disconnect(client) ;
+	           MPI_Comm_disconnect(&(ab->client)) ;
 	           again = 0 ;
 	           break;
 
@@ -56,7 +56,7 @@ int do_srv ( MPI_Comm *client, server_stub_t *wb )
           }
     }
 
-    th_dec(wb) ;
+    th_dec(ab) ;
     return MPI_SUCCESS;
 }
 
@@ -67,8 +67,9 @@ int do_srv ( MPI_Comm *client, server_stub_t *wb )
 
 int main ( int argc, char **argv )
 {
-    server_stub_t wb ;
     int ret ;
+    server_stub_t wb ;
+    server_stub_t ab ;
 
     // Welcome...
     fprintf(stdout, "\n"
@@ -85,9 +86,11 @@ int main ( int argc, char **argv )
     }
 
     // To serve requests...
-    while (0 == wb.the_end)
+    serverstub_accept(&ab, &wb) ;
+    while (serverstub_is_the_end(&ab))
     {
-        serverstub_accept(&wb, do_srv) ;
+        serverstub_do_request(&ab, do_srv) ;
+        serverstub_accept(&ab, &wb) ;
     }
 
     // Finalize...

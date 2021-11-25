@@ -128,50 +128,57 @@ int serverstub_finalize ( server_stub_t *wb )
     return 0 ;
 }
 
-int serverstub_accept ( server_stub_t *wb, 
-		        int (*do_srv)(MPI_Comm *, server_stub_t *) )
+int serverstub_is_the_end ( server_stub_t *wb )
 {
-    MPI_Comm client ;
+    return (0 == wb->the_end) ;
+}
+
+int serverstub_accept ( server_stub_t *ab, server_stub_t *wb )
+{
+    // *ab = *wb ;
+    memmove(ab, wb, sizeof(server_stub_t)) ;
 
     fprintf(stdout, "INFO: Server[%d] accepting...\n", wb->rank);
-    MPI_Comm_accept(wb->port_name, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &client);
+    MPI_Comm_accept(ab->port_name, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &(ab->client)) ;
 
-    fprintf(stdout, "INFO: Server[%d] create new thread...\n", wb->rank);
-    th_inc(wb) ;
-    std::thread t1(do_srv, &client, wb) ;
+    // Return OK
+    return 0 ;
+}
+
+int serverstub_do_request ( server_stub_t *ab, int (*do_srv)(server_stub_t *) )
+{
+    fprintf(stdout, "INFO: Server[%d] create new thread...\n", ab->rank) ;
+
+    th_inc(ab) ;
+    std::thread t1(do_srv, ab) ;
     if (t1.joinable()) {
         t1.detach() ;
     }
 }
 
-int serverstub_request_recv ( MPI_Comm client,
-		           // server_stub_t *wb, 
-		              int *req_action, int *req_id )
+int serverstub_request_recv ( server_stub_t *ab, int *req_action, int *req_id )
 {
     int ret ;
     int buff[2] ;
     MPI_Status status;
 
-    ret = MPI_Recv(buff, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, client, &status) ;
+    ret = MPI_Recv(buff, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, ab->client, &status) ;
     *req_action = buff[0] ;
     *req_id     = buff[1] ;
 
     return (MPI_SUCCESS == ret) ;
 }
 
-int serverstub_request_send ( MPI_Comm server,
-                           // server_stub_t *wb, 
-			      int req_action, int req_id )
+int serverstub_request_send ( server_stub_t *ab, int req_action, int req_id )
 {
     int ret ;
     int buff[2] ;
 
     buff[0] = req_action ;
     buff[1] = req_id ;
-    ret = MPI_Send(buff, 2, MPI_INT, 0, 2, server) ;
+    ret = MPI_Send(buff, 2, MPI_INT, 0, 2, ab->client) ;
 
     // Return OK
     return (MPI_SUCCESS == ret) ;
 }
-
 
