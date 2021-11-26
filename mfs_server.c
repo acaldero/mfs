@@ -23,15 +23,12 @@
 #include <mfs_server_stub.h>
 
 
-// to wait for active threads...
-std::condition_variable at_c ;
-std::mutex at_m ;
-int  active_threads ;
-
-// to wait for copy arguments...
-int sync_copied = 1 ;
-pthread_cond_t sync_cond ;
+// to wait for copy arguments and for active threads...
+int sync_copied    = 0 ;
+int active_threads = 0 ;
 pthread_mutex_t sync_mutex ;
+pthread_cond_t  sync_cond ;
+pthread_cond_t   end_cond ;
 
 pthread_attr_t attr ;
 pthread_t thid ;
@@ -48,6 +45,7 @@ void *do_srv ( void *wb )
     pthread_mutex_lock(&sync_mutex) ;
     ab = *((server_stub_t *)wb) ;
     sync_copied = 1 ;
+    active_threads++ ;
     pthread_cond_signal(&sync_cond) ;
     pthread_mutex_unlock(&sync_mutex) ;
 
@@ -79,14 +77,14 @@ void *do_srv ( void *wb )
           }
     }
 
-    // th_dec
-    at_m.lock() ;
+    // active_thread--...
     fprintf(stdout, "INFO: active_threads--\n");
+    pthread_mutex_lock(&sync_mutex) ;
     active_threads-- ;
     if (0 == active_threads) {
-	at_c.notify_all() ;
+        pthread_cond_signal(&end_cond) ;
     }
-    at_m.unlock() ;
+    pthread_mutex_unlock(&sync_mutex) ;
 
     return NULL;
 }
@@ -117,27 +115,23 @@ int main ( int argc, char **argv )
     }
 
     active_threads = 0 ;
+    sync_copied    = 0 ;
+    pthread_mutex_init(&sync_mutex, NULL) ;
+    pthread_cond_init(&sync_cond, NULL) ;
+    pthread_cond_init(&end_cond, NULL) ;
     pthread_attr_init(&attr) ;
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) ;
-    pthread_cond_init(&sync_cond, NULL) ;
-    pthread_mutex_init(&sync_mutex, NULL) ;
 
     // To serve requests...
     fprintf(stdout, "INFO: Server[%d] accepting...\n", wb.rank) ;
     serverstub_accept(&ab, &wb) ;
     while (serverstub_get_theend(&ab))
     {
-	// th_inc...
-	at_m.lock() ;
-	fprintf(stdout, "INFO: active_threads++\n");
-	active_threads++ ;
-	at_m.unlock() ;
-
 	// new thread...
 	fprintf(stdout, "INFO: Server[%d] create new thread...\n", ab.rank) ;
 	pthread_create(&thid, &attr, do_srv, (void *)&ab) ;
 
-	// wait to copy arguments...
+	// wait to copy arguments + active_thread++...
 	pthread_mutex_lock(&sync_mutex) ;
         while (sync_copied == 0) {
                pthread_cond_wait(&sync_cond, &sync_mutex) ;
@@ -150,14 +144,13 @@ int main ( int argc, char **argv )
         serverstub_accept(&ab, &wb) ;
     }
 
-    // Wait for active requests...  th_wait(wb)
+    // Wait for active_thread...
     fprintf(stdout, "INFO: Server[%d] wait for threads...\n", wb.rank) ;
-    std::unique_lock<std::mutex> lk(at_m);
-    lk.lock() ;
+    pthread_mutex_lock(&sync_mutex) ;
     while (active_threads != 0) {
-           at_c.wait(lk) ;
+           pthread_cond_wait(&end_cond, &sync_mutex) ;
     }
-    lk.unlock() ;
+    pthread_mutex_unlock(&sync_mutex) ;
 
     // Finalize...
     fprintf(stdout, "INFO: Server[%d] ends.\n", wb.rank) ;

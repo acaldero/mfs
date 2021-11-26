@@ -98,6 +98,9 @@ int serverstub_get_theend ( server_stub_t *wb )
 int serverstub_set_theend ( server_stub_t *wb, int value )
 {
     wb->the_end = value ;
+
+    // Return OK
+    return 0 ;
 }
 
 int serverstub_accept ( server_stub_t *ab, server_stub_t *wb )
@@ -128,6 +131,7 @@ int serverstub_request_recv ( server_stub_t *ab, int *req_action, int *req_id )
     *req_action = buff[0] ;
     *req_id     = buff[1] ;
 
+    // Return OK/KO
     return (MPI_SUCCESS == ret) ;
 }
 
@@ -140,7 +144,7 @@ int serverstub_request_send ( server_stub_t *ab, int req_action, int req_id )
     buff[1] = req_id ;
     ret = MPI_Send(buff, 2, MPI_INT, 0, 2, ab->client) ;
 
-    // Return OK
+    // Return OK/KO
     return (MPI_SUCCESS == ret) ;
 }
 

@@ -97,7 +97,7 @@ int clientstub_request ( client_stub_t *wb, int req_action, int req_id )
     buff[1] = req_id ;
     ret = MPI_Send(buff, 2, MPI_INT, 0, 2, wb->server) ;
 
-    // Return OK
+    // Return OK/KO
     return (MPI_SUCCESS == ret) ;
 }
 

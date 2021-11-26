@@ -24,7 +24,7 @@
 
     // Includes
     #include "mpi.h"
-    #include <mfs_lib.h>
+    #include "mfs_lib.h"
     
     
     // Datatypes
@@ -38,6 +38,7 @@
         // server activities
         int  the_end ;
         MPI_Comm client ;
+
     } server_stub_t ;
     
     
@@ -50,7 +51,7 @@
 
     int serverstub_accept       ( server_stub_t *ab, server_stub_t *wb ) ;
     int serverstub_request_recv ( server_stub_t *ab, int *req_action, int *req_id ) ;
-    int serverstub_request_send ( server_stub_t *ab, int req_action, int req_id ) ;
+    int serverstub_request_send ( server_stub_t *ab, int  req_action, int  req_id ) ;
 
 #endif
 

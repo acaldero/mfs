@@ -1,4 +1,4 @@
-# MPI_PFS (v0.3)
+# MPI_PFS (v0.5)
 Proof of concept + prototype of MPI_PFS
 
 ## Prerequisites
