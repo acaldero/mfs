@@ -27,7 +27,8 @@ int main ( int argc, char **argv )
 {
     client_stub_t wb ;
     int ret ;
-    int i ;
+    int i, fd ;
+    char str[1024] ;
 
     // Welcome...
     fprintf(stdout, "\n"
@@ -43,11 +44,12 @@ int main ( int argc, char **argv )
         return -1 ;
     }
 
-    // Requests...
-    for (i = 0; i < 2; i++) {
-         clientstub_request(&wb, REQ_ACTION_DATA, i) ;
-    }
-    clientstub_request(&wb, REQ_ACTION_DISCONNECT, i) ;
+    // Example
+    fd = clientstub_open(&wb, "test1.txt", 0x755) ;
+    strcpy(str, "hello word") ;
+    clientstub_write(&wb, fd, str, strlen(str)) ;
+    clientstub_read( &wb, fd, str, strlen(str)) ;
+    clientstub_close(&wb, fd) ;
 
     // Finalize...
     clientstub_finalize(&wb) ;

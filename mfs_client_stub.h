@@ -41,10 +41,14 @@
     } client_stub_t ;
     
     
-    // API
+    // File System API
     int clientstub_init     ( client_stub_t *wb, int *argc, char ***argv ) ;
     int clientstub_finalize ( client_stub_t *wb ) ;
-    int clientstub_request  ( client_stub_t *wb, int req_action, int req_id ) ;
+
+    int clientstub_open  ( client_stub_t *wb, const char *pathname, int flags ) ;
+    int clientstub_close ( client_stub_t *wb, int fd ) ;
+    int clientstub_read  ( client_stub_t *wb, int fd, void *buf, int count ) ;
+    int clientstub_write ( client_stub_t *wb, int fd, void *buf, int count ) ;
 
 #endif
 

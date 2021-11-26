@@ -66,9 +66,25 @@ int clientstub_init ( client_stub_t *wb, int *argc, char ***argv )
     return 0 ;
 }
 
+int clientstub_request ( client_stub_t *wb, int req_action, int req_id )
+{
+    int ret ;
+    int buff[2] ;
+
+    buff[0] = req_action ;
+    buff[1] = req_id ;
+    ret = MPI_Send(buff, 2, MPI_INT, 0, 2, wb->server) ;
+
+    // Return OK/KO
+    return (MPI_SUCCESS == ret) ;
+}
+
 int clientstub_finalize ( client_stub_t *wb )
 {
     int ret ;
+
+    // Remote disconnect...
+    clientstub_request(wb, REQ_ACTION_DISCONNECT, 0) ;
 
     // Disconnect...
     ret = MPI_Comm_disconnect(&(wb->server)) ;
@@ -88,14 +104,76 @@ int clientstub_finalize ( client_stub_t *wb )
     return 0 ;
 }
 
-int clientstub_request ( client_stub_t *wb, int req_action, int req_id )
+
+/*
+ *  File System API
+ */
+
+int clientstub_open ( client_stub_t *wb, const char *pathname, int flags )
 {
     int ret ;
-    int buff[2] ;
+    int buff[3] ;
 
-    buff[0] = req_action ;
-    buff[1] = req_id ;
+    // Send open msg
+    buff[0] = REQ_ACTION_OPEN ;
+    buff[1] = strlen(pathname) ;
+    buff[2] = flags ;
+
+        ret = MPI_Send(buff, 3, MPI_INT, 0, 2, wb->server) ;
+    if (MPI_SUCCESS == ret)
+	ret = MPI_Send(pathname, buff[1], MPI_CHAR, 0, 2, wb->server) ;
+
+    // Return OK/KO
+    return (MPI_SUCCESS == ret) ;
+}
+
+int clientstub_close ( client_stub_t *wb, int fd )
+{
+    int ret ;
+    int buff[3] ;
+
+    // Send close msg
+    buff[0] = REQ_ACTION_CLOSE ;
+    buff[1] = fd ;
+
     ret = MPI_Send(buff, 2, MPI_INT, 0, 2, wb->server) ;
+
+    // Return OK/KO
+    return (MPI_SUCCESS == ret) ;
+}
+
+int clientstub_read ( client_stub_t *wb, int fd, void *buf, int count )
+{
+    int ret ;
+    int buff[3] ;
+    MPI_Status status ;
+
+    // Send open msg
+    buff[0] = REQ_ACTION_READ ;
+    buff[1] = fd ;
+    buff[2] = count ;
+
+        ret = MPI_Send(buff, 3,      MPI_INT, 0, 2, wb->server) ;
+    if (MPI_SUCCESS == ret)
+	ret = MPI_Recv(buf,  count, MPI_CHAR, 0, 2, wb->server, &status) ;
+
+    // Return OK/KO
+    return (MPI_SUCCESS == ret) ;
+}
+
+int clientstub_write ( client_stub_t *wb, int fd, void *buf, int count )
+{
+    int ret ;
+    int buff[3] ;
+
+    // Send open msg
+    buff[0] = REQ_ACTION_WRITE ;
+    buff[1] = fd ;
+    buff[2] = count ;
+
+        ret = MPI_Send(buff, 3,      MPI_INT, 0, 2, wb->server) ;
+    if (MPI_SUCCESS == ret)
+	ret = MPI_Send(buf,  count, MPI_CHAR, 0, 2, wb->server) ;
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;

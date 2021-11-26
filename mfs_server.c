@@ -57,10 +57,9 @@ void *do_srv ( void *wb )
           serverstub_request_recv(&ab, &req_action, &req_id) ;
           switch (req_action)
           {
-              case REQ_ACTION_END:
-	           printf("INFO: END\n") ;
-	           MPI_Comm_free(&(ab.client)) ;
-	           return 0;
+              case REQ_ACTION_NONE:
+	           printf("INFO: None\n") ;
+	           break;
 
               case REQ_ACTION_DISCONNECT:
 	           printf("INFO: Disconnect\n") ;
@@ -68,8 +67,20 @@ void *do_srv ( void *wb )
 	           again = 0 ;
 	           break;
 
-              case REQ_ACTION_DATA:
-	           printf("INFO: Received: %d\n", req_id) ;
+	      case REQ_ACTION_OPEN:
+	           printf("INFO: Open\n") ;
+	           break;
+
+	      case REQ_ACTION_CLOSE:
+	           printf("INFO: Close\n") ;
+	           break;
+
+	      case REQ_ACTION_READ:
+	           printf("INFO: Read\n") ;
+	           break;
+
+	      case REQ_ACTION_WRITE:
+	           printf("INFO: Write: %d\n", req_id) ;
 	           break;
 
               default:

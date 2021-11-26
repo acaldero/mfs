@@ -19,11 +19,11 @@
  *
  */
 
-#include <mfs_lib.h>
+#include "mfs_lib.h"
 
 
 //
-// server_port
+// Server port
 //
 
 int mfs_write_server_port ( char *port_name )
@@ -54,32 +54,5 @@ int mfs_read_server_port ( char *port_name )
 
     // Return OK
     return 0 ;
-}
-
-
-//
-// Message
-//
-
-int send_request ( MPI_Comm server, int req_action, int req_id )
-{
-    int ret ;
-    int buff[1] ;
-
-    buff[0] = req_id ;
-    ret = MPI_Send(buff, 1, MPI_INT, 0, req_action, server) ;
-
-    return (MPI_SUCCESS == ret) ;
-}
-
-int recv_request ( MPI_Comm client, int *req_action, int *req_id )
-{
-    int ret ;
-    MPI_Status status;
-
-    ret = MPI_Recv(req_id, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, client, &status) ;
-    *req_action = status.MPI_TAG ;
-
-    return (MPI_SUCCESS == ret) ;
 }
 
