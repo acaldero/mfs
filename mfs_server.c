@@ -23,27 +23,50 @@
 #include <mfs_server_stub.h>
 
 
-int do_srv ( server_stub_t *ab )
+// to wait for active threads...
+std::condition_variable at_c ;
+std::mutex at_m ;
+int  active_threads ;
+
+// to wait for copy arguments...
+int sync_copied = 1 ;
+pthread_cond_t sync_cond ;
+pthread_mutex_t sync_mutex ;
+
+pthread_attr_t attr ;
+pthread_t thid ;
+
+
+void *do_srv ( void *wb )
 {
     int again;
     int req_action ;
     int req_id ;
+    server_stub_t ab ;
 
+    // copy arguments and signal...
+    pthread_mutex_lock(&sync_mutex) ;
+    ab = *((server_stub_t *)wb) ;
+    sync_copied = 1 ;
+    pthread_cond_signal(&sync_cond) ;
+    pthread_mutex_unlock(&sync_mutex) ;
+
+    // request loop...
     again = 1;
     while (again)
     {
-          printf("INFO: Server[%d] receiving...\n", ab->rank);
-          serverstub_request_recv(ab, &req_action, &req_id) ;
+          printf("INFO: Server[%d] receiving...\n", ab.rank);
+          serverstub_request_recv(&ab, &req_action, &req_id) ;
           switch (req_action)
           {
               case REQ_ACTION_END:
 	           printf("INFO: END\n") ;
-	           MPI_Comm_free(&(ab->client)) ;
+	           MPI_Comm_free(&(ab.client)) ;
 	           return 0;
 
               case REQ_ACTION_DISCONNECT:
 	           printf("INFO: Disconnect\n") ;
-	           MPI_Comm_disconnect(&(ab->client)) ;
+	           MPI_Comm_disconnect(&(ab.client)) ;
 	           again = 0 ;
 	           break;
 
@@ -56,8 +79,16 @@ int do_srv ( server_stub_t *ab )
           }
     }
 
-    th_dec(ab) ;
-    return MPI_SUCCESS;
+    // th_dec
+    at_m.lock() ;
+    fprintf(stdout, "INFO: active_threads--\n");
+    active_threads-- ;
+    if (0 == active_threads) {
+	at_c.notify_all() ;
+    }
+    at_m.unlock() ;
+
+    return NULL;
 }
 
 
@@ -73,7 +104,7 @@ int main ( int argc, char **argv )
 
     // Welcome...
     fprintf(stdout, "\n"
- 		    " mfs_server (0.3)\n"
+ 		    " mfs_server (0.5)\n"
 		    " ----------------\n"
 		    "\n");
 
@@ -85,13 +116,48 @@ int main ( int argc, char **argv )
         return -1 ;
     }
 
+    active_threads = 0 ;
+    pthread_attr_init(&attr) ;
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) ;
+    pthread_cond_init(&sync_cond, NULL) ;
+    pthread_mutex_init(&sync_mutex, NULL) ;
+
     // To serve requests...
+    fprintf(stdout, "INFO: Server[%d] accepting...\n", wb.rank) ;
     serverstub_accept(&ab, &wb) ;
-    while (serverstub_is_the_end(&ab))
+    while (serverstub_get_theend(&ab))
     {
-        serverstub_do_request(&ab, do_srv) ;
+	// th_inc...
+	at_m.lock() ;
+	fprintf(stdout, "INFO: active_threads++\n");
+	active_threads++ ;
+	at_m.unlock() ;
+
+	// new thread...
+	fprintf(stdout, "INFO: Server[%d] create new thread...\n", ab.rank) ;
+	pthread_create(&thid, &attr, do_srv, (void *)&ab) ;
+
+	// wait to copy arguments...
+	pthread_mutex_lock(&sync_mutex) ;
+        while (sync_copied == 0) {
+               pthread_cond_wait(&sync_cond, &sync_mutex) ;
+        }
+        sync_copied = 0 ;
+        pthread_mutex_unlock(&sync_mutex) ;
+
+	// To serve next request...
+        fprintf(stdout, "INFO: Server[%d] accepting...\n", wb.rank) ;
         serverstub_accept(&ab, &wb) ;
     }
+
+    // Wait for active requests...  th_wait(wb)
+    fprintf(stdout, "INFO: Server[%d] wait for threads...\n", wb.rank) ;
+    std::unique_lock<std::mutex> lk(at_m);
+    lk.lock() ;
+    while (active_threads != 0) {
+           at_c.wait(lk) ;
+    }
+    lk.unlock() ;
 
     // Finalize...
     fprintf(stdout, "INFO: Server[%d] ends.\n", wb.rank) ;

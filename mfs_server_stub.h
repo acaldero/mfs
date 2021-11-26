@@ -38,26 +38,19 @@
         // server activities
         int  the_end ;
         MPI_Comm client ;
-
-        // to wait for active threads
-        std::condition_variable at_c ;
-        std::mutex at_m ;
-        int  active_threads ;
     } server_stub_t ;
     
     
     // API
     int serverstub_init         ( server_stub_t *wb, int *argc, char ***argv ) ;
     int serverstub_finalize     ( server_stub_t *wb ) ;
-    int serverstub_is_the_end   ( server_stub_t *wb ) ;
+
+    int serverstub_get_theend   ( server_stub_t *wb ) ;
+    int serverstub_set_theend   ( server_stub_t *wb, int value ) ;
 
     int serverstub_accept       ( server_stub_t *ab, server_stub_t *wb ) ;
-    int serverstub_do_request   ( server_stub_t *ab, int (*do_srv)(server_stub_t *) ) ;
-
     int serverstub_request_recv ( server_stub_t *ab, int *req_action, int *req_id ) ;
     int serverstub_request_send ( server_stub_t *ab, int req_action, int req_id ) ;
-
-    void th_dec ( server_stub_t *wb ) ;
 
 #endif
 

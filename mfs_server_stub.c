@@ -22,39 +22,6 @@
 
 #include <mfs_server_stub.h>
 
-//
-// Thread counter API
-//
-
-void th_inc ( server_stub_t *wb )
-{
-    wb->at_m.lock() ;
-    fprintf(stdout, "INFO: active_threads++\n");
-    wb->active_threads++ ;
-    wb->at_m.unlock() ;
-}
-
-void th_dec ( server_stub_t *wb )
-{
-    wb->at_m.lock() ;
-    fprintf(stdout, "INFO: active_threads--\n");
-    wb->active_threads-- ;
-    if (0 == wb->active_threads) {
-	wb->at_c.notify_all() ;
-    }
-    wb->at_m.unlock() ;
-}
-
-void th_wait ( server_stub_t *wb )
-{
-    std::unique_lock<std::mutex> lk(wb->at_m);
-
-    lk.lock() ;
-    while (wb->active_threads != 0) {
-           wb->at_c.wait(lk) ;
-    }
-    lk.unlock() ;
-}
 
 //
 // Server stub
@@ -99,8 +66,7 @@ int serverstub_init ( server_stub_t *wb, int *argc, char ***argv )
     }
 
     // wb->the_end/active_threads
-    wb->the_end        = 0 ; // false
-    wb->active_threads = 0 ;
+    wb->the_end = 0 ; // false
 
     // Return OK
     return 0 ;
@@ -109,10 +75,6 @@ int serverstub_init ( server_stub_t *wb, int *argc, char ***argv )
 int serverstub_finalize ( server_stub_t *wb )
 {
     int ret ;
-
-    // Wait for active requests...
-    fprintf(stdout, "INFO: Server[%d] wait for threads...\n", wb->rank) ;
-    th_wait(wb) ;
 
     // Close port
     MPI_Close_port(wb->port_name) ;
@@ -128,32 +90,32 @@ int serverstub_finalize ( server_stub_t *wb )
     return 0 ;
 }
 
-int serverstub_is_the_end ( server_stub_t *wb )
+int serverstub_get_theend ( server_stub_t *wb )
 {
     return (0 == wb->the_end) ;
 }
 
+int serverstub_set_theend ( server_stub_t *wb, int value )
+{
+    wb->the_end = value ;
+}
+
 int serverstub_accept ( server_stub_t *ab, server_stub_t *wb )
 {
+    int ret ;
+
     // *ab = *wb ;
     memmove(ab, wb, sizeof(server_stub_t)) ;
 
-    fprintf(stdout, "INFO: Server[%d] accepting...\n", wb->rank);
-    MPI_Comm_accept(ab->port_name, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &(ab->client)) ;
+    // Accept
+    ret = MPI_Comm_accept(ab->port_name, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &(ab->client)) ;
+    if (MPI_SUCCESS != ret) {
+        fprintf(stderr, "ERROR: MPI_Comm_accept fails :-S") ;
+        return -1 ;
+    }
 
     // Return OK
     return 0 ;
-}
-
-int serverstub_do_request ( server_stub_t *ab, int (*do_srv)(server_stub_t *) )
-{
-    fprintf(stdout, "INFO: Server[%d] create new thread...\n", ab->rank) ;
-
-    th_inc(ab) ;
-    std::thread t1(do_srv, ab) ;
-    if (t1.joinable()) {
-        t1.detach() ;
-    }
 }
 
 int serverstub_request_recv ( server_stub_t *ab, int *req_action, int *req_id )
