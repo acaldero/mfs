@@ -24,7 +24,7 @@
 
     // Includes
     #include "mpi.h"
-    #include <mfs_lib.h>
+    #include "mfs_lib.h"
     
     
     // Datatypes

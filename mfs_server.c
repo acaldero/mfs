@@ -20,7 +20,7 @@
  */
 
 
-#include <mfs_server_stub.h>
+#include "mfs_server_stub.h"
 
 
 // to wait for copy arguments and for active threads...
@@ -30,18 +30,19 @@ pthread_mutex_t sync_mutex ;
 pthread_cond_t  sync_cond ;
 pthread_cond_t   end_cond ;
 
-pthread_attr_t attr ;
-pthread_t thid ;
-
 
 void *do_srv ( void *wb )
 {
     int again;
-    int req_action ;
-    int req_id ;
     server_stub_t ab ;
+    int buff_int[3] ;
+    MPI_Status status ;
+    int ret ;
+    char pathname[1024];
+    char buff_data[1024];
 
     // copy arguments and signal...
+    fprintf(stdout, "INFO: active_threads++\n") ;
     pthread_mutex_lock(&sync_mutex) ;
     ab = *((server_stub_t *)wb) ;
     sync_copied = 1 ;
@@ -50,12 +51,12 @@ void *do_srv ( void *wb )
     pthread_mutex_unlock(&sync_mutex) ;
 
     // request loop...
-    again = 1;
+    again = 1 ;
     while (again)
     {
-          printf("INFO: Server[%d] receiving...\n", ab.rank);
-          serverstub_request_recv(&ab, &req_action, &req_id) ;
-          switch (req_action)
+          printf("INFO: Server[%d] receiving...\n", ab.rank) ;
+          serverstub_request_recv(&ab, buff_int, 3) ;
+          switch (buff_int[0])
           {
               case REQ_ACTION_NONE:
 	           printf("INFO: None\n") ;
@@ -69,6 +70,9 @@ void *do_srv ( void *wb )
 
 	      case REQ_ACTION_OPEN:
 	           printf("INFO: Open\n") ;
+                   ret = MPI_Recv(pathname, buff_int[1], MPI_CHAR, 0, 2, ab.client, &status) ;
+		   // open(pathname, buff[2]==flags);
+		   // sendback internal fd
 	           break;
 
 	      case REQ_ACTION_CLOSE:
@@ -77,19 +81,27 @@ void *do_srv ( void *wb )
 
 	      case REQ_ACTION_READ:
 	           printf("INFO: Read\n") ;
+		   // buff_data = malloc(buff[2]);
+		   // read(buff[1]==fd, buff_data, buff[2]);
+                   ret = MPI_Send(buff_data, buff_int[2], MPI_CHAR, 0, 2, ab.client) ;
+		   // free(buff_data);
 	           break;
 
 	      case REQ_ACTION_WRITE:
-	           printf("INFO: Write: %d\n", req_id) ;
+	           printf("INFO: Write: %d\n", buff_int[1]) ;
+		   // buff_data = malloc(buff[2])
+                   ret = MPI_Recv(buff_data, buff_int[2], MPI_CHAR, 0, 2, ab.client, &status) ;
+		   // write(...);
+		   // free(buff_data);
 	           break;
 
               default:
-	           printf("ERROR: Unexpected message type: %d\n", req_action) ;
+	           printf("ERROR: Unexpected message type: %d\n", buff_int[0]) ;
           }
     }
 
     // active_thread--...
-    fprintf(stdout, "INFO: active_threads--\n");
+    fprintf(stdout, "INFO: active_threads--\n") ;
     pthread_mutex_lock(&sync_mutex) ;
     active_threads-- ;
     if (0 == active_threads) {
@@ -97,7 +109,8 @@ void *do_srv ( void *wb )
     }
     pthread_mutex_unlock(&sync_mutex) ;
 
-    return NULL;
+    // return
+    return NULL ;
 }
 
 
@@ -110,6 +123,8 @@ int main ( int argc, char **argv )
     int ret ;
     server_stub_t wb ;
     server_stub_t ab ;
+    pthread_attr_t attr ;
+    pthread_t thid ;
 
     // Welcome...
     fprintf(stdout, "\n"

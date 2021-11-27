@@ -20,15 +20,16 @@
  */
 
 
-#include <mfs_client_stub.h>
+#include "mfs_client_stub.h"
 
+#define STR_SIZE 1024
 
 int main ( int argc, char **argv )
 {
     client_stub_t wb ;
     int ret ;
     int i, fd ;
-    char str[1024] ;
+    char str[STR_SIZE] ;
 
     // Welcome...
     fprintf(stdout, "\n"
@@ -45,10 +46,10 @@ int main ( int argc, char **argv )
     }
 
     // Example
-    fd = clientstub_open(&wb, "test1.txt", 0x755) ;
     strcpy(str, "hello word") ;
+    fd = clientstub_open(&wb, "test1.txt", 0x755) ;
     clientstub_write(&wb, fd, str, strlen(str)) ;
-    clientstub_read( &wb, fd, str, strlen(str)) ;
+    clientstub_read( &wb, fd, str, STR_SIZE) ;
     clientstub_close(&wb, fd) ;
 
     // Finalize...

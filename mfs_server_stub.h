@@ -50,8 +50,8 @@
     int serverstub_set_theend   ( server_stub_t *wb, int value ) ;
 
     int serverstub_accept       ( server_stub_t *ab, server_stub_t *wb ) ;
-    int serverstub_request_recv ( server_stub_t *ab, int *req_action, int *req_id ) ;
-    int serverstub_request_send ( server_stub_t *ab, int  req_action, int  req_id ) ;
+    int serverstub_request_recv ( server_stub_t *ab, void *buff_int, int size ) ;
+    int serverstub_request_send ( server_stub_t *ab, void *buff_int, int size ) ;
 
 #endif
 

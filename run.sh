@@ -5,7 +5,6 @@ echo "./mfs_server &"
 mpirun -np 1 ./mfs_server &
 sleep 2
 
-
 for i in $(seq 1 1 3)
 do
    echo "./mfs_client...($i)"

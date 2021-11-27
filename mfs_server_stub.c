@@ -20,7 +20,7 @@
  */
 
 
-#include <mfs_server_stub.h>
+#include "mfs_server_stub.h"
 
 
 //
@@ -121,28 +121,22 @@ int serverstub_accept ( server_stub_t *ab, server_stub_t *wb )
     return 0 ;
 }
 
-int serverstub_request_recv ( server_stub_t *ab, int *req_action, int *req_id )
+int serverstub_request_recv ( server_stub_t *ab, void *buff_int, int size )
 {
     int ret ;
-    int buff[2] ;
     MPI_Status status;
 
-    ret = MPI_Recv(buff, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, ab->client, &status) ;
-    *req_action = buff[0] ;
-    *req_id     = buff[1] ;
+    ret = MPI_Recv(buff_int, size, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, ab->client, &status) ;
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;
 }
 
-int serverstub_request_send ( server_stub_t *ab, int req_action, int req_id )
+int serverstub_request_send ( server_stub_t *ab, void *buff_int, int size )
 {
     int ret ;
-    int buff[2] ;
 
-    buff[0] = req_action ;
-    buff[1] = req_id ;
-    ret = MPI_Send(buff, 2, MPI_INT, 0, 2, ab->client) ;
+    ret = MPI_Send(buff_int, size, MPI_INT, 0, 2, ab->client) ;
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;

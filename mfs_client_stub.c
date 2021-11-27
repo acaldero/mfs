@@ -20,7 +20,7 @@
  */
 
 
-#include <mfs_client_stub.h>
+#include "mfs_client_stub.h"
 
 
 int clientstub_init ( client_stub_t *wb, int *argc, char ***argv )
@@ -69,11 +69,12 @@ int clientstub_init ( client_stub_t *wb, int *argc, char ***argv )
 int clientstub_request ( client_stub_t *wb, int req_action, int req_id )
 {
     int ret ;
-    int buff[2] ;
+    int buff[3] ;
 
     buff[0] = req_action ;
     buff[1] = req_id ;
-    ret = MPI_Send(buff, 2, MPI_INT, 0, 2, wb->server) ;
+    buff[2] = 0 ;
+    ret = MPI_Send(buff, 3, MPI_INT, 0, 2, wb->server) ;
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;
@@ -130,50 +131,51 @@ int clientstub_open ( client_stub_t *wb, const char *pathname, int flags )
 int clientstub_close ( client_stub_t *wb, int fd )
 {
     int ret ;
-    int buff[3] ;
+    int buff_int[3] ;
 
     // Send close msg
-    buff[0] = REQ_ACTION_CLOSE ;
-    buff[1] = fd ;
+    buff_int[0] = REQ_ACTION_CLOSE ;
+    buff_int[1] = fd ;
+    buff_int[2] = 0 ;
 
-    ret = MPI_Send(buff, 2, MPI_INT, 0, 2, wb->server) ;
+    ret = MPI_Send(buff_int, 3, MPI_INT, 0, 2, wb->server) ;
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;
 }
 
-int clientstub_read ( client_stub_t *wb, int fd, void *buf, int count )
+int clientstub_read ( client_stub_t *wb, int fd, void *buff_char, int count )
 {
     int ret ;
-    int buff[3] ;
+    int buff_int[3] ;
     MPI_Status status ;
 
     // Send open msg
-    buff[0] = REQ_ACTION_READ ;
-    buff[1] = fd ;
-    buff[2] = count ;
+    buff_int[0] = REQ_ACTION_READ ;
+    buff_int[1] = fd ;
+    buff_int[2] = count ;
 
-        ret = MPI_Send(buff, 3,      MPI_INT, 0, 2, wb->server) ;
+        ret = MPI_Send(buff_int,      3,  MPI_INT, 0, 2, wb->server) ;
     if (MPI_SUCCESS == ret)
-	ret = MPI_Recv(buf,  count, MPI_CHAR, 0, 2, wb->server, &status) ;
+	ret = MPI_Recv(buff_char, count, MPI_CHAR, 0, 2, wb->server, &status) ;
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;
 }
 
-int clientstub_write ( client_stub_t *wb, int fd, void *buf, int count )
+int clientstub_write ( client_stub_t *wb, int fd, void *buff_char, int count )
 {
     int ret ;
-    int buff[3] ;
+    int buff_int[3] ;
 
     // Send open msg
-    buff[0] = REQ_ACTION_WRITE ;
-    buff[1] = fd ;
-    buff[2] = count ;
+    buff_int[0] = REQ_ACTION_WRITE ;
+    buff_int[1] = fd ;
+    buff_int[2] = count ;
 
-        ret = MPI_Send(buff, 3,      MPI_INT, 0, 2, wb->server) ;
+        ret = MPI_Send(buff_int,     3,   MPI_INT, 0, 2, wb->server) ;
     if (MPI_SUCCESS == ret)
-	ret = MPI_Send(buf,  count, MPI_CHAR, 0, 2, wb->server) ;
+	ret = MPI_Send(buff_char, count, MPI_CHAR, 0, 2, wb->server) ;
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;
