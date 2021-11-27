@@ -36,10 +36,9 @@ void *do_srv ( void *wb )
     int again;
     server_stub_t ab ;
     int buff_int[3] ;
-    MPI_Status status ;
     int ret ;
-    char pathname[1024];
-    char buff_data[1024];
+    char pathname[1024] ;
+    char *buff_data ;
 
     // copy arguments and signal...
     fprintf(stdout, "INFO: active_threads++\n") ;
@@ -55,7 +54,7 @@ void *do_srv ( void *wb )
     while (again)
     {
           printf("INFO: Server[%d] receiving...\n", ab.rank) ;
-          serverstub_request_recv(&ab, buff_int, 3) ;
+          serverstub_request_recv(&ab, buff_int, 3*sizeof(int)) ;
           switch (buff_int[0])
           {
               case REQ_ACTION_NONE:
@@ -69,30 +68,34 @@ void *do_srv ( void *wb )
 	           break;
 
 	      case REQ_ACTION_OPEN:
-	           printf("INFO: Open\n") ;
-                   ret = MPI_Recv(pathname, buff_int[1], MPI_CHAR, 0, 2, ab.client, &status) ;
-		   // open(pathname, buff[2]==flags);
+	           printf("INFO: Open('%s', %d)\n", "...",    buff_int[1]) ;
+                   ret = serverstub_request_recv(&ab, pathname, buff_int[1]) ;
+	           printf("INFO: Open('%s', %d)\n", pathname, buff_int[1]) ;
+		   // fd = open(pathname, buff_int[2]==flags);
 		   // sendback internal fd
 	           break;
 
 	      case REQ_ACTION_CLOSE:
-	           printf("INFO: Close\n") ;
+	           printf("INFO: Close(%d);\n", buff_int[1]) ;
+		   // close(fd);
 	           break;
 
 	      case REQ_ACTION_READ:
-	           printf("INFO: Read\n") ;
-		   // buff_data = malloc(buff[2]);
+	           printf("INFO: Read(%d, data, %d)\n", buff_int[1], buff_int[2]) ;
+		   buff_data = (char *)malloc(buff_int[2]) ;
+		   memset(buff_data, 0, buff_int[2]) ;
 		   // read(buff[1]==fd, buff_data, buff[2]);
-                   ret = MPI_Send(buff_data, buff_int[2], MPI_CHAR, 0, 2, ab.client) ;
-		   // free(buff_data);
+		   ret = serverstub_request_send(&ab, buff_data, buff_int[2]) ;
+		   free(buff_data) ;
 	           break;
 
 	      case REQ_ACTION_WRITE:
-	           printf("INFO: Write: %d\n", buff_int[1]) ;
-		   // buff_data = malloc(buff[2])
-                   ret = MPI_Recv(buff_data, buff_int[2], MPI_CHAR, 0, 2, ab.client, &status) ;
-		   // write(...);
-		   // free(buff_data);
+	           printf("INFO: Write(%d, data, %d)\n", buff_int[1], buff_int[2]) ;
+		   buff_data = (char *)malloc(buff_int[2]) ;
+		   memset(buff_data, 0, buff_int[2]) ;
+                   ret = serverstub_request_recv(&ab, buff_data, buff_int[2]) ;
+		   // write(buff[1]==fd, buff_data, buff[2]);
+		   free(buff_data) ;
 	           break;
 
               default:

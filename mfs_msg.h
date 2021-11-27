@@ -19,17 +19,20 @@
  *
  */
 
-#ifndef __MFS_LIB_H__
-#define __MFS_LIB_H__
+#ifndef __MFS_MSG_H__
+#define __MFS_MSG_H__
 
-  #include <stdlib.h>
-  #include <stdio.h>
-  #include <string.h>
-  #include <thread>
-  #include <condition_variable>
-  #include <chrono>
+  #include <mfs_lib.h>
   #include <mpi.h>
-  #include "mfs_msg.h"
+
+  // messages
+  #define REQ_ACTION_NONE       0
+  #define REQ_ACTION_DISCONNECT 1
+
+  #define REQ_ACTION_OPEN       10
+  #define REQ_ACTION_CLOSE      11
+  #define REQ_ACTION_READ       12
+  #define REQ_ACTION_WRITE      13
 
   // server_port
   int mfs_write_server_port ( char *port_name ) ;

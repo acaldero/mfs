@@ -65,8 +65,9 @@ int serverstub_init ( server_stub_t *wb, int *argc, char ***argv )
         return -1 ;
     }
 
-    // wb->the_end/active_threads
-    wb->the_end = 0 ; // false
+    // wb->the_end, client_rank
+    wb->the_end     = 0 ; // false
+    wb->client_rank = -1 ; // no rank
 
     // Return OK
     return 0 ;
@@ -121,22 +122,27 @@ int serverstub_accept ( server_stub_t *ab, server_stub_t *wb )
     return 0 ;
 }
 
-int serverstub_request_recv ( server_stub_t *ab, void *buff_int, int size )
+int serverstub_request_recv ( server_stub_t *ab, void *buff, int size )
 {
     int ret ;
     MPI_Status status;
 
-    ret = MPI_Recv(buff_int, size, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, ab->client, &status) ;
+    // Get CMD message
+    ret = MPI_Recv(buff, size, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, ab->client, &status) ;
+
+    // Get associate TAG to CMD message, to answer to this tag latter
+    ab->client_rank = status.MPI_TAG ;
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;
 }
 
-int serverstub_request_send ( server_stub_t *ab, void *buff_int, int size )
+int serverstub_request_send ( server_stub_t *ab, void *buff, int size )
 {
     int ret ;
 
-    ret = MPI_Send(buff_int, size, MPI_INT, 0, 2, ab->client) ;
+    // Send answer
+    ret = MPI_Send(buff, size, MPI_CHAR, 0, ab->client_rank, ab->client) ;
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;

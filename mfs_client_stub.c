@@ -74,7 +74,7 @@ int clientstub_request ( client_stub_t *wb, int req_action, int req_id )
     buff[0] = req_action ;
     buff[1] = req_id ;
     buff[2] = 0 ;
-    ret = MPI_Send(buff, 3, MPI_INT, 0, 2, wb->server) ;
+    ret = MPI_Send(buff, 3, MPI_INT, 0, wb->rank, wb->server) ;
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;
@@ -117,12 +117,12 @@ int clientstub_open ( client_stub_t *wb, const char *pathname, int flags )
 
     // Send open msg
     buff[0] = REQ_ACTION_OPEN ;
-    buff[1] = strlen(pathname) ;
+    buff[1] = strlen(pathname) + 1 ;
     buff[2] = flags ;
 
-        ret = MPI_Send(buff, 3, MPI_INT, 0, 2, wb->server) ;
+        ret = MPI_Send(buff, 3, MPI_INT, 0, wb->rank, wb->server) ;
     if (MPI_SUCCESS == ret)
-	ret = MPI_Send(pathname, buff[1], MPI_CHAR, 0, 2, wb->server) ;
+	ret = MPI_Send(pathname, buff[1], MPI_CHAR, 0, wb->rank, wb->server) ;
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;
@@ -138,7 +138,7 @@ int clientstub_close ( client_stub_t *wb, int fd )
     buff_int[1] = fd ;
     buff_int[2] = 0 ;
 
-    ret = MPI_Send(buff_int, 3, MPI_INT, 0, 2, wb->server) ;
+    ret = MPI_Send(buff_int, 3, MPI_INT, 0, wb->rank, wb->server) ;
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;
@@ -155,9 +155,9 @@ int clientstub_read ( client_stub_t *wb, int fd, void *buff_char, int count )
     buff_int[1] = fd ;
     buff_int[2] = count ;
 
-        ret = MPI_Send(buff_int,      3,  MPI_INT, 0, 2, wb->server) ;
+        ret = MPI_Send(buff_int,      3,  MPI_INT, 0, wb->rank, wb->server) ;
     if (MPI_SUCCESS == ret)
-	ret = MPI_Recv(buff_char, count, MPI_CHAR, 0, 2, wb->server, &status) ;
+	ret = MPI_Recv(buff_char, count, MPI_CHAR, 0, wb->rank, wb->server, &status) ;
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;
@@ -173,9 +173,9 @@ int clientstub_write ( client_stub_t *wb, int fd, void *buff_char, int count )
     buff_int[1] = fd ;
     buff_int[2] = count ;
 
-        ret = MPI_Send(buff_int,     3,   MPI_INT, 0, 2, wb->server) ;
+        ret = MPI_Send(buff_int,     3,   MPI_INT, 0, wb->rank, wb->server) ;
     if (MPI_SUCCESS == ret)
-	ret = MPI_Send(buff_char, count, MPI_CHAR, 0, 2, wb->server) ;
+	ret = MPI_Send(buff_char, count, MPI_CHAR, 0, wb->rank, wb->server) ;
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;

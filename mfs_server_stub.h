@@ -37,7 +37,10 @@
 
         // server activities
         int  the_end ;
+
+        // associated client
         MPI_Comm client ;
+        int      client_rank ;
 
     } server_stub_t ;
     
