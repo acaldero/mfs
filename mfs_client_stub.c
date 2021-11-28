@@ -26,6 +26,7 @@
 int clientstub_init ( client_stub_t *wb, int *argc, char ***argv )
 {
     int ret ;
+    MPI_Status status ;
 
     // Read server port...
     ret = mfs_read_server_port(wb->port_name) ;
@@ -56,28 +57,42 @@ int clientstub_init ( client_stub_t *wb, int *argc, char ***argv )
     }
 
     // Connect...
-    ret = MPI_Comm_connect(wb->port_name, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &(wb->server)) ;
+    ret = MPI_Comm_connect(wb->port_name, MPI_INFO_NULL, 0, MPI_COMM_SELF, &(wb->server)) ;
     if (MPI_SUCCESS != ret) {
         fprintf(stderr, "ERROR: MPI_Comm_connect fails :-S") ;
         return -1 ;
     }
 
+    // recv tag_id
+    ret = MPI_Recv(&(wb->tag_id), 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, wb->server, &status) ;
+    if (MPI_SUCCESS != ret) {
+        fprintf(stderr, "ERROR: MPI_Recv fails :-S") ;
+        return -1 ;
+    }
+
     // Return OK
-    return 0 ;
+    return 1 ;
 }
 
-int clientstub_request ( client_stub_t *wb, int req_action, int req_id )
+int clientstub_request ( client_stub_t *wb, int req_action, int req_arg1, int req_arg2 )
 {
     int ret ;
     int buff[3] ;
 
+    // pack msg fields
     buff[0] = req_action ;
-    buff[1] = req_id ;
-    buff[2] = 0 ;
-    ret = MPI_Send(buff, 3, MPI_INT, 0, wb->rank, wb->server) ;
+    buff[1] = req_arg1 ;
+    buff[2] = req_arg2 ;
+
+    // send msg
+    ret = MPI_Send(buff, 3, MPI_INT, 0, wb->tag_id, wb->server) ;
+    if (MPI_SUCCESS != ret) {
+        fprintf(stderr, "ERROR: MPI_Send fails :-S") ;
+        return -1 ;
+    }
 
     // Return OK/KO
-    return (MPI_SUCCESS == ret) ;
+    return ret ;
 }
 
 int clientstub_finalize ( client_stub_t *wb )
@@ -85,7 +100,10 @@ int clientstub_finalize ( client_stub_t *wb )
     int ret ;
 
     // Remote disconnect...
-    clientstub_request(wb, REQ_ACTION_DISCONNECT, 0) ;
+    ret = clientstub_request(wb, REQ_ACTION_DISCONNECT, 0, 0) ;
+    if (MPI_SUCCESS != ret) {
+        return -1 ;
+    }
 
     // Disconnect...
     ret = MPI_Comm_disconnect(&(wb->server)) ;
@@ -102,7 +120,7 @@ int clientstub_finalize ( client_stub_t *wb )
     }
 
     // Return OK
-    return 0 ;
+    return 1 ;
 }
 
 
@@ -113,16 +131,19 @@ int clientstub_finalize ( client_stub_t *wb )
 int clientstub_open ( client_stub_t *wb, const char *pathname, int flags )
 {
     int ret ;
-    int buff[3] ;
 
     // Send open msg
-    buff[0] = REQ_ACTION_OPEN ;
-    buff[1] = strlen(pathname) + 1 ;
-    buff[2] = flags ;
+    ret = clientstub_request(wb, REQ_ACTION_OPEN, strlen(pathname) + 1, flags) ;
+    if (MPI_SUCCESS != ret) {
+        return -1 ;
+    }
 
-        ret = MPI_Send(buff, 3, MPI_INT, 0, wb->rank, wb->server) ;
-    if (MPI_SUCCESS == ret)
-	ret = MPI_Send(pathname, buff[1], MPI_CHAR, 0, wb->rank, wb->server) ;
+    // Send pathname
+    ret = MPI_Send(pathname, strlen(pathname) + 1, MPI_CHAR, 0, wb->tag_id, wb->server) ;
+    if (MPI_SUCCESS != ret) {
+        fprintf(stderr, "ERROR: MPI_Send fails :-S") ;
+        return -1 ;
+    }
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;
@@ -131,14 +152,12 @@ int clientstub_open ( client_stub_t *wb, const char *pathname, int flags )
 int clientstub_close ( client_stub_t *wb, int fd )
 {
     int ret ;
-    int buff_int[3] ;
 
     // Send close msg
-    buff_int[0] = REQ_ACTION_CLOSE ;
-    buff_int[1] = fd ;
-    buff_int[2] = 0 ;
-
-    ret = MPI_Send(buff_int, 3, MPI_INT, 0, wb->rank, wb->server) ;
+    ret = clientstub_request(wb, REQ_ACTION_CLOSE, fd, 0) ;
+    if (MPI_SUCCESS != ret) {
+        return -1 ;
+    }
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;
@@ -147,17 +166,20 @@ int clientstub_close ( client_stub_t *wb, int fd )
 int clientstub_read ( client_stub_t *wb, int fd, void *buff_char, int count )
 {
     int ret ;
-    int buff_int[3] ;
     MPI_Status status ;
 
-    // Send open msg
-    buff_int[0] = REQ_ACTION_READ ;
-    buff_int[1] = fd ;
-    buff_int[2] = count ;
+    // Send read msg
+    ret = clientstub_request(wb, REQ_ACTION_READ, fd, count) ;
+    if (MPI_SUCCESS != ret) {
+        return -1 ;
+    }
 
-        ret = MPI_Send(buff_int,      3,  MPI_INT, 0, wb->rank, wb->server) ;
-    if (MPI_SUCCESS == ret)
-	ret = MPI_Recv(buff_char, count, MPI_CHAR, 0, wb->rank, wb->server, &status) ;
+    // Receive data
+    ret = MPI_Recv(buff_char, count, MPI_CHAR, 0, wb->tag_id, wb->server, &status) ;
+    if (MPI_SUCCESS != ret) {
+        fprintf(stderr, "ERROR: MPI_Recv fails :-S") ;
+        return -1 ;
+    }
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;
@@ -166,16 +188,19 @@ int clientstub_read ( client_stub_t *wb, int fd, void *buff_char, int count )
 int clientstub_write ( client_stub_t *wb, int fd, void *buff_char, int count )
 {
     int ret ;
-    int buff_int[3] ;
 
-    // Send open msg
-    buff_int[0] = REQ_ACTION_WRITE ;
-    buff_int[1] = fd ;
-    buff_int[2] = count ;
+    // Send write msg
+    ret = clientstub_request(wb, REQ_ACTION_WRITE, fd, count) ;
+    if (MPI_SUCCESS != ret) {
+        return -1 ;
+    }
 
-        ret = MPI_Send(buff_int,     3,   MPI_INT, 0, wb->rank, wb->server) ;
-    if (MPI_SUCCESS == ret)
-	ret = MPI_Send(buff_char, count, MPI_CHAR, 0, wb->rank, wb->server) ;
+    // Send data
+    ret = MPI_Send(buff_char, count, MPI_CHAR, 0, wb->tag_id, wb->server) ;
+    if (MPI_SUCCESS != ret) {
+        fprintf(stderr, "ERROR: MPI_Send fails :-S") ;
+        return -1 ;
+    }
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;

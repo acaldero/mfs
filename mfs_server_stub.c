@@ -23,10 +23,6 @@
 #include "mfs_server_stub.h"
 
 
-//
-// Server stub
-//
-
 int serverstub_init ( server_stub_t *wb, int *argc, char ***argv )
 {
     int ret ;
@@ -65,9 +61,8 @@ int serverstub_init ( server_stub_t *wb, int *argc, char ***argv )
         return -1 ;
     }
 
-    // wb->the_end, client_rank
-    wb->the_end     = 0 ; // false
-    wb->client_rank = -1 ; // no rank
+    // wb->the_end, tag_id
+    wb->tag_id = 1 ; // initial tag_id, autoincrement latter
 
     // Return OK
     return 0 ;
@@ -91,30 +86,25 @@ int serverstub_finalize ( server_stub_t *wb )
     return 0 ;
 }
 
-int serverstub_get_theend ( server_stub_t *wb )
-{
-    return (0 == wb->the_end) ;
-}
-
-int serverstub_set_theend ( server_stub_t *wb, int value )
-{
-    wb->the_end = value ;
-
-    // Return OK
-    return 0 ;
-}
-
 int serverstub_accept ( server_stub_t *ab, server_stub_t *wb )
 {
     int ret ;
 
     // *ab = *wb ;
+    wb->tag_id = wb->tag_id + 1 ;
     memmove(ab, wb, sizeof(server_stub_t)) ;
 
     // Accept
-    ret = MPI_Comm_accept(ab->port_name, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &(ab->client)) ;
+    ret = MPI_Comm_accept(ab->port_name, MPI_INFO_NULL, 0, MPI_COMM_SELF, &(ab->client)) ;
     if (MPI_SUCCESS != ret) {
         fprintf(stderr, "ERROR: MPI_Comm_accept fails :-S") ;
+        return -1 ;
+    }
+
+    // send tag_id
+    ret = MPI_Send(&(ab->tag_id), 1, MPI_INT, 0, 0, ab->client) ;
+    if (MPI_SUCCESS != ret) {
+        fprintf(stderr, "ERROR: MPI_Send fails :-S") ;
         return -1 ;
     }
 
@@ -122,27 +112,24 @@ int serverstub_accept ( server_stub_t *ab, server_stub_t *wb )
     return 0 ;
 }
 
-int serverstub_request_recv ( server_stub_t *ab, void *buff, int size )
+int serverstub_request_recv ( server_stub_t *ab, void *buff, int size, int datatype )
 {
     int ret ;
     MPI_Status status;
 
     // Get CMD message
-    ret = MPI_Recv(buff, size, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, ab->client, &status) ;
-
-    // Get associate TAG to CMD message, to answer to this tag latter
-    ab->client_rank = status.MPI_TAG ;
+    ret = MPI_Recv(buff, size, datatype, MPI_ANY_SOURCE, ab->tag_id, ab->client, &status) ;
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;
 }
 
-int serverstub_request_send ( server_stub_t *ab, void *buff, int size )
+int serverstub_request_send ( server_stub_t *ab, void *buff, int size, int datatype )
 {
     int ret ;
 
     // Send answer
-    ret = MPI_Send(buff, size, MPI_CHAR, 0, ab->client_rank, ab->client) ;
+    ret = MPI_Send(buff, size, datatype, 0, ab->tag_id, ab->client) ;
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;

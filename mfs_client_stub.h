@@ -37,6 +37,7 @@
         // client identification
         int  size ;
         int  rank ;
+        int  tag_id ;
     
     } client_stub_t ;
     

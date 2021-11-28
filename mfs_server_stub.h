@@ -35,12 +35,9 @@
         int  rank ;
         char port_name[MPI_MAX_PORT_NAME] ;
 
-        // server activities
-        int  the_end ;
-
         // associated client
         MPI_Comm client ;
-        int      client_rank ;
+        int      tag_id ;
 
     } server_stub_t ;
     
@@ -49,12 +46,9 @@
     int serverstub_init         ( server_stub_t *wb, int *argc, char ***argv ) ;
     int serverstub_finalize     ( server_stub_t *wb ) ;
 
-    int serverstub_get_theend   ( server_stub_t *wb ) ;
-    int serverstub_set_theend   ( server_stub_t *wb, int value ) ;
-
     int serverstub_accept       ( server_stub_t *ab, server_stub_t *wb ) ;
-    int serverstub_request_recv ( server_stub_t *ab, void *buff_int, int size ) ;
-    int serverstub_request_send ( server_stub_t *ab, void *buff_int, int size ) ;
+    int serverstub_request_recv ( server_stub_t *ab, void *buff, int size, int datatype ) ;
+    int serverstub_request_send ( server_stub_t *ab, void *buff, int size, int datatype ) ;
 
 #endif
 

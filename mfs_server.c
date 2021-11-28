@@ -26,6 +26,7 @@
 // to wait for copy arguments and for active threads...
 int sync_copied    = 0 ;
 int active_threads = 0 ;
+int the_end        = 0 ;
 pthread_mutex_t sync_mutex ;
 pthread_cond_t  sync_cond ;
 pthread_cond_t   end_cond ;
@@ -53,53 +54,52 @@ void *do_srv ( void *wb )
     again = 1 ;
     while (again)
     {
-          printf("INFO: Server[%d] receiving...\n", ab.rank) ;
-          serverstub_request_recv(&ab, buff_int, 3*sizeof(int)) ;
+          fprintf(stdout, "INFO: Server[%d] receiving...\n", ab.rank) ;
+          serverstub_request_recv(&ab, buff_int, 3, MPI_INT) ;
           switch (buff_int[0])
           {
               case REQ_ACTION_NONE:
-	           printf("INFO: None\n") ;
+	           fprintf(stdout, "INFO: None\n") ;
 	           break;
 
               case REQ_ACTION_DISCONNECT:
-	           printf("INFO: Disconnect\n") ;
-	           MPI_Comm_disconnect(&(ab.client)) ;
+	           fprintf(stdout, "INFO: Disconnect\n") ;
 	           again = 0 ;
 	           break;
 
 	      case REQ_ACTION_OPEN:
-	           printf("INFO: Open('%s', %d)\n", "...",    buff_int[1]) ;
-                   ret = serverstub_request_recv(&ab, pathname, buff_int[1]) ;
-	           printf("INFO: Open('%s', %d)\n", pathname, buff_int[1]) ;
+	           fprintf(stdout, "INFO: Open('%s', %d)\n", "...",    buff_int[1]) ;
+                   ret = serverstub_request_recv(&ab, pathname, buff_int[1], MPI_CHAR) ;
+	           fprintf(stdout, "INFO: Open('%s', %d)\n", pathname, buff_int[1]) ;
 		   // fd = open(pathname, buff_int[2]==flags);
 		   // sendback internal fd
 	           break;
 
 	      case REQ_ACTION_CLOSE:
-	           printf("INFO: Close(%d);\n", buff_int[1]) ;
+	           fprintf(stdout, "INFO: Close(%d);\n", buff_int[1]) ;
 		   // close(fd);
 	           break;
 
 	      case REQ_ACTION_READ:
-	           printf("INFO: Read(%d, data, %d)\n", buff_int[1], buff_int[2]) ;
+	           fprintf(stdout, "INFO: Read(%d, data, %d)\n", buff_int[1], buff_int[2]) ;
 		   buff_data = (char *)malloc(buff_int[2]) ;
 		   memset(buff_data, 0, buff_int[2]) ;
 		   // read(buff[1]==fd, buff_data, buff[2]);
-		   ret = serverstub_request_send(&ab, buff_data, buff_int[2]) ;
+		   ret = serverstub_request_send(&ab, buff_data, buff_int[2], MPI_CHAR) ;
 		   free(buff_data) ;
 	           break;
 
 	      case REQ_ACTION_WRITE:
-	           printf("INFO: Write(%d, data, %d)\n", buff_int[1], buff_int[2]) ;
+	           fprintf(stdout, "INFO: Write(%d, data, %d)\n", buff_int[1], buff_int[2]) ;
 		   buff_data = (char *)malloc(buff_int[2]) ;
 		   memset(buff_data, 0, buff_int[2]) ;
-                   ret = serverstub_request_recv(&ab, buff_data, buff_int[2]) ;
+                   ret = serverstub_request_recv(&ab, buff_data, buff_int[2], MPI_CHAR) ;
 		   // write(buff[1]==fd, buff_data, buff[2]);
 		   free(buff_data) ;
 	           break;
 
               default:
-	           printf("ERROR: Unexpected message type: %d\n", buff_int[0]) ;
+	           fprintf(stdout, "ERROR: Unexpected message type: %d\n", buff_int[0]) ;
           }
     }
 
@@ -111,6 +111,9 @@ void *do_srv ( void *wb )
         pthread_cond_signal(&end_cond) ;
     }
     pthread_mutex_unlock(&sync_mutex) ;
+
+    // serverstub_request_disconnect(...)
+    MPI_Comm_disconnect(&(ab.client)) ;
 
     // return
     return NULL ;
@@ -154,7 +157,7 @@ int main ( int argc, char **argv )
     // To serve requests...
     fprintf(stdout, "INFO: Server[%d] accepting...\n", wb.rank) ;
     serverstub_accept(&ab, &wb) ;
-    while (serverstub_get_theend(&ab))
+    while (0 == the_end)
     {
 	// new thread...
 	fprintf(stdout, "INFO: Server[%d] create new thread...\n", ab.rank) ;
