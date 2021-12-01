@@ -25,13 +25,19 @@
 
 int serverstub_init ( server_stub_t *wb, int *argc, char ***argv )
 {
-    int ret ;
+    int ret, claimed, provided ;
 
     // MPI_Init
-    ret = MPI_Init(argc, argv);
+    //ret = MPI_Init(argc, argv);
+    ret = MPI_Init_thread(argc, argv, MPI_THREAD_MULTIPLE, &provided);
     if (MPI_SUCCESS != ret) {
         fprintf(stderr, "ERROR: MPI_Init fails :-S");
         return -1 ;
+    }
+
+    MPI_Query_thread(&claimed) ;
+    if (claimed != provided) {
+        fprintf(stderr, "WARNING: MPI_Init_thread with only %s :-S", provided);
     }
 
     // wb->size = comm_size()
