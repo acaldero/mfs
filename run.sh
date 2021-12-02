@@ -9,7 +9,7 @@ echo "............................."
 echo "./mfs_server &"
 echo "sleep 3"
 echo "............................."
-mpirun -np 1 ./mfs_server &
+mpirun -np 2 ./mfs_server &
 sleep 3
 
 # run clients...
@@ -19,7 +19,7 @@ do
    echo "./mfs_client...(test $i)"
    echo "sleep 2"
    echo "............................."
-   mpirun -np 1 ./mfs_client
+   mpirun -np 2 ./mfs_client
    echo "............................."
    sleep 2
 done

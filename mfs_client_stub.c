@@ -28,15 +28,7 @@ int clientstub_init ( client_stub_t *wb, int *argc, char ***argv )
     int ret, claimed, provided ;
     MPI_Status status ;
 
-    // Read server port...
-    ret = mfs_read_server_port(wb->port_name) ;
-    if (ret < 0) {
-        fprintf(stderr, "ERROR: server port name required in the 'mfs_server.port' file.\n");
-        return -1 ;
-    }
-
     // MPI_Init
-    // ret = MPI_Init(argc, argv);
     ret = MPI_Init_thread(argc, argv, MPI_THREAD_MULTIPLE, &provided);
     if (MPI_SUCCESS != ret) {
         fprintf(stderr, "ERROR: MPI_Init fails :-S");
@@ -59,6 +51,13 @@ int clientstub_init ( client_stub_t *wb, int *argc, char ***argv )
     ret = MPI_Comm_rank(MPI_COMM_WORLD, &(wb->rank));
     if (MPI_SUCCESS != ret) {
         fprintf(stderr, "ERROR: MPI_Comm_rank fails :-S");
+        return -1 ;
+    }
+
+    // Read server port...
+    ret = mfs_read_server_port(wb->port_name, 0) ;
+    if (ret < 0) {
+        fprintf(stderr, "ERROR: server port name required in the 'mfs_server.port' file.\n");
         return -1 ;
     }
 

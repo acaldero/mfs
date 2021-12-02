@@ -32,8 +32,8 @@
   #include "mfs_msg.h"
 
   // server_port
-  int mfs_write_server_port ( char *port_name ) ;
-  int mfs_read_server_port  ( char *port_name ) ;
+  int mfs_write_server_port ( char *port_name, int rank ) ;
+  int mfs_read_server_port  ( char *port_name, int rank ) ;
 
 #endif
 

@@ -34,9 +34,5 @@
   #define REQ_ACTION_READ       12
   #define REQ_ACTION_WRITE      13
 
-  // server_port
-  int mfs_write_server_port ( char *port_name ) ;
-  int mfs_read_server_port  ( char *port_name ) ;
-
 #endif
 

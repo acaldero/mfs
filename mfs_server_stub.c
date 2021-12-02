@@ -28,7 +28,6 @@ int serverstub_init ( server_stub_t *wb, int *argc, char ***argv )
     int ret, claimed, provided ;
 
     // MPI_Init
-    //ret = MPI_Init(argc, argv);
     ret = MPI_Init_thread(argc, argv, MPI_THREAD_MULTIPLE, &provided);
     if (MPI_SUCCESS != ret) {
         fprintf(stderr, "ERROR: MPI_Init fails :-S");
@@ -62,7 +61,7 @@ int serverstub_init ( server_stub_t *wb, int *argc, char ***argv )
     }
 
     // Write server port...
-    ret = mfs_write_server_port(wb->port_name) ;
+    ret = mfs_write_server_port(wb->port_name, wb->rank) ;
     if (ret < 0) {
         return -1 ;
     }

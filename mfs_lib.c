@@ -26,12 +26,17 @@
 // Server port
 //
 
-int mfs_write_server_port ( char *port_name )
+int mfs_write_server_port ( char *port_name, int rank )
 {
+    char file_name[1024] ;
+
+    // File name
+    sprintf(file_name, "mfs_server.port.%d", rank) ;
+
     // Write server port...
-    FILE *fd = fopen("mfs_server.port", "w") ;
+    FILE *fd = fopen(file_name, "w") ;
     if (fd == NULL) {
-        fprintf(stderr, "ERROR: fopen fails :-S") ;
+        fprintf(stderr, "ERROR: fopen fails for %s :-S", file_name) ;
         return -1 ;
     }
     fprintf(fd, "%s\n", port_name) ;
@@ -41,12 +46,17 @@ int mfs_write_server_port ( char *port_name )
     return 0 ;
 }
 
-int mfs_read_server_port ( char *port_name )
+int mfs_read_server_port ( char *port_name, int rank )
 {
+    char file_name[1024] ;
+
+    // File name
+    sprintf(file_name, "mfs_server.port.%d", rank) ;
+
     // Read server port...
-    FILE *fd = fopen("mfs_server.port", "r");
+    FILE *fd = fopen(file_name, "r") ;
     if (fd == NULL) {
-        fprintf(stderr, "ERROR: fopen fails :-S");
+        fprintf(stderr, "ERROR: fopen fails for %s :-S", file_name) ;
         return -1 ;
     }
     fgets(port_name, MPI_MAX_PORT_NAME, fd) ;
