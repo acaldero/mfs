@@ -21,7 +21,6 @@
 
 
 #include "mfs_server_stub.h"
-#include "mfs_files.h"
 
 
 // to wait for copy arguments and for active threads...
@@ -33,9 +32,6 @@ pthread_cond_t  sync_cond ;
 pthread_cond_t   end_cond ;
 
 
-#define MFS_DATA_PREFIX "./data/"
-
-
 void *do_srv ( void *wb )
 {
     int again;
@@ -43,8 +39,6 @@ void *do_srv ( void *wb )
     int buff_int[3] ;
     int ret ;
     int fd ;
-    int   buff_data_len ;
-    char *buff_data ;
 
     // copy arguments and signal...
     pthread_mutex_lock(&sync_mutex) ;
@@ -74,39 +68,23 @@ void *do_srv ( void *wb )
 
 	      case REQ_ACTION_OPEN:
 	           mfs_print(DBG_INFO, "Server[%d]: request 'open' for a filename of %d chars\n", ab.rank, buff_int[1]) ;
-		     buff_data_len = strlen(MFS_DATA_PREFIX) + buff_int[1] + 1 ;
-		     buff_data     = (char *)malloc(buff_data_len) ;
-		     memset(buff_data, 0, buff_data_len) ;
-		     strcpy(buff_data, MFS_DATA_PREFIX) ;
-                   ret = serverstub_request_recv(&ab, buff_data + strlen(MFS_DATA_PREFIX), buff_int[1], MPI_CHAR) ;
-	           mfs_print(DBG_INFO, "Server[%d]: request 'open' for filename %s\n", ab.rank, buff_data) ;
-                   fd = server_files_open(buff_data, buff_int[2]) ;
-	           mfs_print(DBG_INFO, "Server[%d]: File[%d]: open(flags=%d)\n", ab.rank, fd, buff_int[2]) ;
-		   ret = serverstub_request_send(&ab, &fd, 1, MPI_INT) ;
-		     free(buff_data) ;
+                   fd = serverstub_open(&ab, buff_int[1], buff_int[2]) ;
+                   mfs_print(DBG_INFO, "Server[%d]: File[%d]: open(flags=%d)\n", ab.rank, fd, buff_int[2]) ;
 	           break;
 
 	      case REQ_ACTION_CLOSE:
 	           mfs_print(DBG_INFO, "Server[%d]: File[%d]: close()\n", ab.rank, buff_int[1]) ;
-                   server_files_close(fd) ;
+                   serverstub_close(&ab, buff_int[1]) ;
 	           break;
 
 	      case REQ_ACTION_READ:
 	           mfs_print(DBG_INFO, "Server[%d]: File[%d]: read(bytes=%d)\n", ab.rank, buff_int[1], buff_int[2]) ;
-		   buff_data = (char *)malloc(buff_int[2]) ;
-		   memset(buff_data, 0, buff_int[2]) ;
-                   server_files_read(buff_int[1], buff_data, buff_int[2]) ;
-		   ret = serverstub_request_send(&ab, buff_data, buff_int[2], MPI_CHAR) ;
-		   free(buff_data) ;
+                   ret = serverstub_read(&ab, buff_int[1], buff_int[2]) ;
 	           break;
 
 	      case REQ_ACTION_WRITE:
 	           mfs_print(DBG_INFO, "Server[%d]: File[%d]: write(bytes=%d)\n", ab.rank, buff_int[1], buff_int[2]) ;
-		   buff_data = (char *)malloc(buff_int[2]) ;
-		   memset(buff_data, 0, buff_int[2]) ;
-                   ret = serverstub_request_recv(&ab, buff_data, buff_int[2], MPI_CHAR) ;
-                   server_files_write(buff_int[1], buff_data, buff_int[2]) ;
-		   free(buff_data) ;
+                   ret = serverstub_write(&ab, buff_int[1], buff_int[2]) ;
 	           break;
 
               default:
@@ -123,8 +101,8 @@ void *do_srv ( void *wb )
     pthread_mutex_unlock(&sync_mutex) ;
     mfs_print(DBG_INFO, "Server[%d]: active_threads--\n", ab.rank) ;
 
-    // serverstub_request_disconnect(...)
-    MPI_Comm_disconnect(&(ab.client)) ;
+    // disconnect from server
+    serverstub_disconnect(&ab) ;
 
     // return
     return NULL ;

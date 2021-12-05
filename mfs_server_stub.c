@@ -117,6 +117,17 @@ int serverstub_accept ( server_stub_t *ab, server_stub_t *wb )
     return 0 ;
 }
 
+int serverstub_disconnect ( server_stub_t *ab )
+{
+    int ret ;
+
+    // Disconnect
+    ret = MPI_Comm_disconnect(&(ab->client)) ;
+
+    // Return OK/KO
+    return (MPI_SUCCESS == ret) ;
+}
+
 int serverstub_request_recv ( server_stub_t *ab, void *buff, int size, int datatype )
 {
     int ret ;
@@ -144,5 +155,118 @@ int serverstub_request_send ( server_stub_t *ab, void *buff, int size, int datat
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;
+}
+
+
+/*
+ *  File System API
+ */
+
+int serverstub_open ( server_stub_t *ab, int pathname_length, int flags )
+{
+    int   ret, fd ;
+    int   buff_data_len ;
+    char *buff_data ;
+    MPI_Status status;
+
+    // prepare filename buffer
+    buff_data_len = strlen(MFS_DATA_PREFIX) + pathname_length + 1 ;
+    buff_data     = (char *)malloc(buff_data_len) ;
+    if (NULL == buff_data) {
+        mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", ab->rank, buff_data_len) ;
+	return -1 ;
+    }
+
+    // read filename
+    memset(buff_data, 0, buff_data_len) ;
+    strcpy(buff_data, MFS_DATA_PREFIX) ;
+    ret = MPI_Recv(buff_data + strlen(MFS_DATA_PREFIX), pathname_length, MPI_CHAR, MPI_ANY_SOURCE, ab->tag_id, ab->client, &status) ;
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_WARNING, "Server[%d]: MPI_Recv fails :-(", ab->rank) ;
+    }
+
+    // open file
+    mfs_print(DBG_INFO, "Server[%d]: request 'open' for filename %s\n", ab->rank, buff_data) ;
+    fd = server_files_open(buff_data, flags) ;
+
+    // send back file descriptor
+    ret = MPI_Send(&fd, 1, MPI_INT, 0, ab->tag_id, ab->client) ;
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_WARNING, "Server[%d]: MPI_Send fails :-(", ab->rank) ;
+    }
+
+    // free filename buffer
+    free(buff_data) ;
+
+    // Return OK/KO
+    return fd ;
+}
+
+int serverstub_close ( server_stub_t *ab, int fd )
+{
+    // close file
+    server_files_close(fd) ;
+
+    // Return OK/KO
+    return fd ;
+}
+
+int serverstub_read ( server_stub_t *ab, int fd, int count )
+{
+    int   ret ;
+    char *buff_data ;
+
+    // prepare data buffer
+    buff_data = (char *)malloc(count) ;
+    if (NULL == buff_data) {
+        mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", ab->rank, count) ;
+	return -1 ;
+    }
+
+    // read data
+    memset(buff_data, 0, count) ;
+    server_files_read(fd, buff_data, count) ;
+
+    // send data
+    ret = MPI_Send(buff_data, count, MPI_CHAR, 0, ab->tag_id, ab->client) ;
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_WARNING, "Server[%d]: MPI_Send fails :-(", ab->rank) ;
+    }
+
+    // free data buffer
+    free(buff_data) ;
+
+    // Return OK/KO
+    return ret ;
+}
+
+int serverstub_write ( server_stub_t *ab, int fd, int count )
+{
+    int   ret ;
+    char *buff_data ;
+    MPI_Status status;
+
+    // prepare data buffer
+    buff_data = (char *)malloc(count) ;
+    if (NULL == buff_data) {
+        mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", ab->rank, count) ;
+	return -1 ;
+    }
+
+    // receive data
+    memset(buff_data, 0, count) ;
+    ret = MPI_Recv(buff_data, count, MPI_CHAR, MPI_ANY_SOURCE, ab->tag_id, ab->client, &status) ;
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_WARNING, "Server[%d]: MPI_Recv fails :-(", ab->rank) ;
+    }
+
+    // write data
+    server_files_write(fd, buff_data, count) ;
+
+    // free data buffer
+    free(buff_data) ;
+
+    // Return OK/KO
+    return ret ;
 }
 

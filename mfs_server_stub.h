@@ -25,7 +25,10 @@
     // Includes
     #include "mpi.h"
     #include "mfs_lib.h"
+    #include "mfs_files.h"
     
+    // Const
+    #define MFS_DATA_PREFIX "./data/"
     
     // Datatypes
     typedef struct
@@ -42,13 +45,19 @@
     } server_stub_t ;
     
     
-    // API
+    // General API
     int serverstub_init         ( server_stub_t *wb, int *argc, char ***argv ) ;
     int serverstub_finalize     ( server_stub_t *wb ) ;
-
     int serverstub_accept       ( server_stub_t *ab, server_stub_t *wb ) ;
+    int serverstub_disconnect   ( server_stub_t *ab ) ;
     int serverstub_request_recv ( server_stub_t *ab, void *buff, int size, int datatype ) ;
     int serverstub_request_send ( server_stub_t *ab, void *buff, int size, int datatype ) ;
+
+    // File System API
+    int serverstub_open  ( server_stub_t *ab, int pathname_length, int flags ) ;
+    int serverstub_close ( server_stub_t *ab, int fd ) ;
+    int serverstub_read  ( server_stub_t *ab, int fd, int count ) ;
+    int serverstub_write ( server_stub_t *ab, int fd, int count ) ;
 
 #endif
 
