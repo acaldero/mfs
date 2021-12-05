@@ -33,15 +33,18 @@ pthread_cond_t  sync_cond ;
 pthread_cond_t   end_cond ;
 
 
+#define MFS_DATA_PREFIX "./data/"
+
+
 void *do_srv ( void *wb )
 {
     int again;
     server_stub_t ab ;
     int buff_int[3] ;
     int ret ;
-    char pathname[1024] ;
-    char *buff_data ;
     int fd ;
+    int   buff_data_len ;
+    char *buff_data ;
 
     // copy arguments and signal...
     pthread_mutex_lock(&sync_mutex) ;
@@ -71,11 +74,16 @@ void *do_srv ( void *wb )
 
 	      case REQ_ACTION_OPEN:
 	           mfs_print(DBG_INFO, "Server[%d]: request 'open' for a filename of %d chars\n", ab.rank, buff_int[1]) ;
-                   ret = serverstub_request_recv(&ab, pathname, buff_int[1], MPI_CHAR) ;
-	           mfs_print(DBG_INFO, "Server[%d]: request 'open' for filename %s\n", ab.rank, pathname) ;
-                   fd = server_files_open(pathname, buff_int[2]) ;
+		     buff_data_len = strlen(MFS_DATA_PREFIX) + buff_int[1] + 1 ;
+		     buff_data     = (char *)malloc(buff_data_len) ;
+		     memset(buff_data, 0, buff_data_len) ;
+		     strcpy(buff_data, MFS_DATA_PREFIX) ;
+                   ret = serverstub_request_recv(&ab, buff_data + strlen(MFS_DATA_PREFIX), buff_int[1], MPI_CHAR) ;
+	           mfs_print(DBG_INFO, "Server[%d]: request 'open' for filename %s\n", ab.rank, buff_data) ;
+                   fd = server_files_open(buff_data, buff_int[2]) ;
 	           mfs_print(DBG_INFO, "Server[%d]: File[%d]: open(flags=%d)\n", ab.rank, fd, buff_int[2]) ;
 		   ret = serverstub_request_send(&ab, &fd, 1, MPI_INT) ;
+		     free(buff_data) ;
 	           break;
 
 	      case REQ_ACTION_CLOSE:

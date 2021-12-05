@@ -72,7 +72,7 @@ int mfs_write_server_port ( char *port_name, int rank )
     char file_name[1024] ;
 
     // File name
-    sprintf(file_name, "mfs_server.port.%d", rank) ;
+    sprintf(file_name, "conf/mfs_server.port.%d", rank) ;
 
     // Write server port...
     FILE *fd = fopen(file_name, "w") ;
@@ -92,7 +92,7 @@ int mfs_read_server_port ( char *port_name, int rank )
     char file_name[1024] ;
 
     // File name
-    sprintf(file_name, "mfs_server.port.%d", rank) ;
+    sprintf(file_name, "conf/mfs_server.port.%d", rank) ;
 
     // Read server port...
     FILE *fd = fopen(file_name, "r") ;
