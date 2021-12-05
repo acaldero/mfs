@@ -21,6 +21,7 @@
 
 
 #include "mfs_server_stub.h"
+#include "mfs_files.h"
 
 
 // to wait for copy arguments and for active threads...
@@ -40,9 +41,10 @@ void *do_srv ( void *wb )
     int ret ;
     char pathname[1024] ;
     char *buff_data ;
+    int fd ;
 
     // copy arguments and signal...
-    fprintf(stdout, "INFO: active_threads++\n") ;
+    mfs_print(stdout, "INFO: active_threads++\n") ;
     pthread_mutex_lock(&sync_mutex) ;
     ab = *((server_stub_t *)wb) ;
     sync_copied = 1 ;
@@ -54,57 +56,57 @@ void *do_srv ( void *wb )
     again = 1 ;
     while (again)
     {
-          fprintf(stdout, "INFO: Server[%d] receiving...\n", ab.rank) ;
+          mfs_print(stdout, "INFO: Server[%d] receiving...\n", ab.rank) ;
           serverstub_request_recv(&ab, buff_int, 3, MPI_INT) ;
           switch (buff_int[0])
           {
               case REQ_ACTION_NONE:
-	           fprintf(stdout, "INFO: None\n") ;
+	           mfs_print(stdout, "INFO: None\n") ;
 	           break;
 
               case REQ_ACTION_DISCONNECT:
-	           fprintf(stdout, "INFO: Disconnect\n") ;
+	           mfs_print(stdout, "INFO: Disconnect\n") ;
 	           again = 0 ;
 	           break;
 
 	      case REQ_ACTION_OPEN:
-	           fprintf(stdout, "INFO: Open('%s', %d)\n", "...",    buff_int[1]) ;
+	           mfs_print(stdout, "INFO: Open a filename of %d chars\n", buff_int[1]) ;
                    ret = serverstub_request_recv(&ab, pathname, buff_int[1], MPI_CHAR) ;
-	           fprintf(stdout, "INFO: Open('%s', %d)\n", pathname, buff_int[1]) ;
-		   // fd = open(pathname, buff_int[2]==flags);
-		   // sendback internal fd
+	           mfs_print(stdout, "INFO: Open('%s', %d)\n", pathname, buff_int[2]) ;
+                   fd = server_files_open(pathname, buff_int[2]) ;
+		   ret = serverstub_request_send(&ab, &fd, 1, MPI_INT) ;
 	           break;
 
 	      case REQ_ACTION_CLOSE:
-	           fprintf(stdout, "INFO: Close(%d);\n", buff_int[1]) ;
-		   // close(fd);
+	           mfs_print(stdout, "INFO: Close(%d);\n", buff_int[1]) ;
+                   server_files_close(fd) ;
 	           break;
 
 	      case REQ_ACTION_READ:
-	           fprintf(stdout, "INFO: Read(%d, data, %d)\n", buff_int[1], buff_int[2]) ;
+	           mfs_print(stdout, "INFO: Read(%d, data, %d)\n", buff_int[1], buff_int[2]) ;
 		   buff_data = (char *)malloc(buff_int[2]) ;
 		   memset(buff_data, 0, buff_int[2]) ;
-		   // read(buff[1]==fd, buff_data, buff[2]);
+                   server_files_read(buff_int[1], buff_data, buff_int[2]) ;
 		   ret = serverstub_request_send(&ab, buff_data, buff_int[2], MPI_CHAR) ;
 		   free(buff_data) ;
 	           break;
 
 	      case REQ_ACTION_WRITE:
-	           fprintf(stdout, "INFO: Write(%d, data, %d)\n", buff_int[1], buff_int[2]) ;
+	           mfs_print(stdout, "INFO: Write(%d, data, %d)\n", buff_int[1], buff_int[2]) ;
 		   buff_data = (char *)malloc(buff_int[2]) ;
 		   memset(buff_data, 0, buff_int[2]) ;
                    ret = serverstub_request_recv(&ab, buff_data, buff_int[2], MPI_CHAR) ;
-		   // write(buff[1]==fd, buff_data, buff[2]);
+                   server_files_write(buff_int[1], buff_data, buff_int[2]) ;
 		   free(buff_data) ;
 	           break;
 
               default:
-	           fprintf(stdout, "ERROR: Unexpected message type: %d\n", buff_int[0]) ;
+	           mfs_print(stdout, "ERROR: Unexpected message type: %d\n", buff_int[0]) ;
           }
     }
 
     // active_thread--...
-    fprintf(stdout, "INFO: active_threads--\n") ;
+    mfs_print(stdout, "INFO: active_threads--\n") ;
     pthread_mutex_lock(&sync_mutex) ;
     active_threads-- ;
     if (0 == active_threads) {
@@ -134,15 +136,15 @@ int main ( int argc, char **argv )
 
     // Welcome...
     fprintf(stdout, "\n"
- 		    " mfs_server (0.5)\n"
+ 		    " mfs_server (0.7)\n"
 		    " ----------------\n"
 		    "\n");
 
     // Initialize...
-    fprintf(stdout, "INFO: Server initializing...\n") ;
+    mfs_print(stdout, "INFO: Server initializing...\n") ;
     ret = serverstub_init(&wb, &argc, &argv) ;
     if (ret < 0) {
-        fprintf(stderr, "ERROR: serverstub_init fails :-S") ;
+        mfs_print(stderr, "ERROR: serverstub_init fails :-S") ;
         return -1 ;
     }
 
@@ -155,12 +157,12 @@ int main ( int argc, char **argv )
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) ;
 
     // To serve requests...
-    fprintf(stdout, "INFO: Server[%d] accepting...\n", wb.rank) ;
+    mfs_print(stdout, "INFO: Server[%d] accepting...\n", wb.rank) ;
     serverstub_accept(&ab, &wb) ;
     while (0 == the_end)
     {
 	// new thread...
-	fprintf(stdout, "INFO: Server[%d] create new thread...\n", ab.rank) ;
+	mfs_print(stdout, "INFO: Server[%d] create new thread...\n", ab.rank) ;
 	pthread_create(&thid, &attr, do_srv, (void *)&ab) ;
 
 	// wait to copy arguments + active_thread++...
@@ -172,12 +174,12 @@ int main ( int argc, char **argv )
         pthread_mutex_unlock(&sync_mutex) ;
 
 	// To serve next request...
-        fprintf(stdout, "INFO: Server[%d] accepting...\n", wb.rank) ;
+        mfs_print(stdout, "INFO: Server[%d] accepting...\n", wb.rank) ;
         serverstub_accept(&ab, &wb) ;
     }
 
     // Wait for active_thread...
-    fprintf(stdout, "INFO: Server[%d] wait for threads...\n", wb.rank) ;
+    mfs_print(stdout, "INFO: Server[%d] wait for threads...\n", wb.rank) ;
     pthread_mutex_lock(&sync_mutex) ;
     while (active_threads != 0) {
            pthread_cond_wait(&end_cond, &sync_mutex) ;
@@ -185,7 +187,7 @@ int main ( int argc, char **argv )
     pthread_mutex_unlock(&sync_mutex) ;
 
     // Finalize...
-    fprintf(stdout, "INFO: Server[%d] ends.\n", wb.rank) ;
+    mfs_print(stdout, "INFO: Server[%d] ends.\n", wb.rank) ;
     serverstub_finalize(&wb) ;
 
     return 0 ;

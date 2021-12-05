@@ -23,6 +23,25 @@
 
 
 //
+// Print for debug
+//
+
+int mfs_print ( FILE *fd, char *fmt_str, ... )
+{
+   va_list valist ;
+   int ret ;
+
+   va_start(valist, fmt_str) ;
+#ifdef DEBUG
+   ret = vfprintf(fd, fmt_str, valist) ;
+#endif
+   va_end(valist);
+
+   return ret ;
+}
+
+
+//
 // Server port
 //
 

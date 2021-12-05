@@ -38,17 +38,21 @@ int main ( int argc, char **argv )
 		    "\n");
 
     // Initialize...
-    fprintf(stdout, "INFO: Client initializing...\n") ;
+    mfs_print(stdout, "INFO: Client initializing...\n") ;
     ret = clientstub_init(&wb, &argc, &argv) ;
     if (ret < 0) {
-        fprintf(stderr, "ERROR: clientstub_init fails :-S") ;
+        mfs_print(stderr, "ERROR: clientstub_init fails :-S") ;
         return -1 ;
     }
 
     // Example
     strcpy(str, "hello word") ;
-    fd = clientstub_open(&wb, "test1.txt", 0x755) ;
+
+    fd = clientstub_open(&wb, "test1.txt", O_WRONLY | O_CREAT | O_TRUNC) ;
     clientstub_write(&wb, fd, str, strlen(str)) ;
+    clientstub_close(&wb, fd) ;
+
+    fd = clientstub_open(&wb, "test1.txt", O_RDONLY) ;
     clientstub_read( &wb, fd, str, STR_SIZE) ;
     clientstub_close(&wb, fd) ;
 

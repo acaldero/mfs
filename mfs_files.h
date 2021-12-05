@@ -19,26 +19,25 @@
  *
  */
 
-#ifndef __MFS_LIB_H__
-#define __MFS_LIB_H__
+#ifndef __MFS_FILES_H__
+#define __MFS_FILES_H__
 
-  #include <stdlib.h>
-  #include <stdio.h>
-  #include <string.h>
-  #include <stdarg.h>
-  #include <fcntl.h>
-  #include <thread>
-  #include <chrono>
-  #include <mpi.h>
-  #include "mfs_msg.h"
+    // Includes
+    #include "mpi.h"
+    #include "mfs_lib.h"
 
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+    #include <sys/stat.h>
+    #include <fcntl.h>
+    
 
-  // print for debug
-  int mfs_print ( FILE *fd, char *fmt_str, ... ) ;
-
-  // server_port
-  int mfs_write_server_port ( char *port_name, int rank ) ;
-  int mfs_read_server_port  ( char *port_name, int rank ) ;
+    // API
+    int server_files_open  ( const char *pathname, int flags ) ;
+    int server_files_close ( int fd ) ;
+    int server_files_read  ( int fd, void *buff_char, int count ) ;
+    int server_files_write ( int fd, void *buff_char, int count ) ;
 
 #endif
 
