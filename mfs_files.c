@@ -34,7 +34,7 @@ int server_files_open ( const char *pathname, int flags )
     // open file
     fd = open(pathname, flags, 0755) ;
     if (fd < 0) {
-	mfs_print(stdout, "ERROR: on open(pathname='%s', flags=%d, mode=0755)\n", pathname, flags) ;
+	mfs_print(DBG_INFO, "ERROR: on open(pathname='%s', flags=%d, mode=0755)\n", pathname, flags) ;
     }
 
     // Return file_descriptor
@@ -57,7 +57,7 @@ int server_files_read ( int fd, void *buff_data, int count )
     // read data
     ret = read(fd, buff_data, count) ;
     if (ret < 0) {
-	mfs_print(stdout, "ERROR: read %d bytes from file '%d'\n", count, fd) ;
+	mfs_print(DBG_INFO, "ERROR: read %d bytes from file '%d'\n", count, fd) ;
     }
 
     // Return number_bytes readed
@@ -71,7 +71,7 @@ int server_files_write ( int fd, void *buff_data, int count )
     // write data
     ret = write(fd, buff_data, count) ;
     if (ret < 0) {
-	mfs_print(stdout, "ERROR: write %d bytes from file '%d'\n", count, fd) ;
+	mfs_print(DBG_INFO, "ERROR: write %d bytes from file '%d'\n", count, fd) ;
     }
 
     // Return number_bytes / KO

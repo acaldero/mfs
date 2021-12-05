@@ -28,35 +28,35 @@ int serverstub_init ( server_stub_t *wb, int *argc, char ***argv )
     int ret, claimed, provided ;
 
     // MPI_Init
-    ret = MPI_Init_thread(argc, argv, MPI_THREAD_MULTIPLE, &provided);
+    ret = MPI_Init_thread(argc, argv, MPI_THREAD_MULTIPLE, &provided) ;
     if (MPI_SUCCESS != ret) {
-        mfs_print(stderr, "ERROR: MPI_Init fails :-S");
-        return -1 ;
-    }
-
-    MPI_Query_thread(&claimed) ;
-    if (claimed != provided) {
-        mfs_print(stderr, "WARNING: MPI_Init_thread with only %s :-S", provided);
-    }
-
-    // wb->size = comm_size()
-    ret = MPI_Comm_size(MPI_COMM_WORLD, &(wb->size));
-    if (MPI_SUCCESS != ret) {
-        mfs_print(stderr, "ERROR: MPI_Comm_size fails :-S");
+        mfs_print(DBG_ERROR, "Server[%d]: MPI_Init fails :-(", -1) ;
         return -1 ;
     }
 
     // wb->rank = comm_rank()
     ret = MPI_Comm_rank(MPI_COMM_WORLD, &(wb->rank));
     if (MPI_SUCCESS != ret) {
-        mfs_print(stderr, "ERROR: MPI_Comm_rank fails :-S");
+        mfs_print(DBG_ERROR, "Server[%d]: MPI_Comm_rank fails :-(", wb->rank) ;
+        return -1 ;
+    }
+
+    MPI_Query_thread(&claimed) ;
+    if (claimed != provided) {
+        mfs_print(DBG_WARNING, "Server[%d]: MPI_Init_thread with only %s :-/", wb->rank, provided) ;
+    }
+
+    // wb->size = comm_size()
+    ret = MPI_Comm_size(MPI_COMM_WORLD, &(wb->size));
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_ERROR, "Server[%d]: MPI_Comm_size fails :-(", wb->rank) ;
         return -1 ;
     }
 
     // Open server port...
     ret = MPI_Open_port(MPI_INFO_NULL, wb->port_name);
     if (MPI_SUCCESS != ret) {
-        mfs_print(stderr, "ERROR: MPI_Open_port fails :-S");
+        mfs_print(DBG_ERROR, "Server[%d]: MPI_Open_port fails :-(", wb->rank) ;
         return -1 ;
     }
 
@@ -83,7 +83,7 @@ int serverstub_finalize ( server_stub_t *wb )
     // Finalize
     ret = MPI_Finalize() ;
     if (MPI_SUCCESS != ret) {
-        mfs_print(stderr, "ERROR: MPI_Finalize fails :-S") ;
+        mfs_print(DBG_ERROR, "Server[%d]: MPI_Finalize fails :-(", wb->rank) ;
         return -1 ;
     }
 
@@ -102,14 +102,14 @@ int serverstub_accept ( server_stub_t *ab, server_stub_t *wb )
     // Accept
     ret = MPI_Comm_accept(ab->port_name, MPI_INFO_NULL, 0, MPI_COMM_SELF, &(ab->client)) ;
     if (MPI_SUCCESS != ret) {
-        mfs_print(stderr, "ERROR: MPI_Comm_accept fails :-S") ;
+        mfs_print(DBG_ERROR, "Server[%d]: MPI_Comm_accept fails :-(", ab->rank) ;
         return -1 ;
     }
 
     // send tag_id
     ret = MPI_Send(&(ab->tag_id), 1, MPI_INT, 0, 0, ab->client) ;
     if (MPI_SUCCESS != ret) {
-        mfs_print(stderr, "ERROR: MPI_Send fails :-S") ;
+        mfs_print(DBG_ERROR, "Server[%d]: MPI_Send fails :-(", ab->rank) ;
         return -1 ;
     }
 
@@ -124,6 +124,9 @@ int serverstub_request_recv ( server_stub_t *ab, void *buff, int size, int datat
 
     // Get CMD message
     ret = MPI_Recv(buff, size, datatype, MPI_ANY_SOURCE, ab->tag_id, ab->client, &status) ;
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_WARNING, "Server[%d]: MPI_Recv fails :-(", ab->rank) ;
+    }
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;
@@ -135,6 +138,9 @@ int serverstub_request_send ( server_stub_t *ab, void *buff, int size, int datat
 
     // Send answer
     ret = MPI_Send(buff, size, datatype, 0, ab->tag_id, ab->client) ;
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_WARNING, "Server[%d]: MPI_Send fails :-(", ab->rank) ;
+    }
 
     // Return OK/KO
     return (MPI_SUCCESS == ret) ;

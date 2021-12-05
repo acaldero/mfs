@@ -34,7 +34,12 @@
 
 
   // print for debug
-  int mfs_print ( FILE *fd, char *fmt_str, ... ) ;
+  #define DBG_ERROR    1, __FILE__, __LINE__, stderr
+  #define DBG_WARNING  2, __FILE__, __LINE__, stderr
+  #define DBG_INFO     3, __FILE__, __LINE__, stdout
+
+  int mfs_print ( int src_type, char *src_fname, long src_line, FILE *fd, char *msg_fmt, ... ) ;
+
 
   // server_port
   int mfs_write_server_port ( char *port_name, int rank ) ;

@@ -32,31 +32,34 @@ int main ( int argc, char **argv )
     char str[STR_SIZE] ;
 
     // Welcome...
-    fprintf(stdout, "\n"
- 		    " mfs_client\n"
-		    " ----------\n"
-		    "\n");
+    mfs_print(DBG_INFO, "\n"
+ 		        " mfs_client\n"
+		        " ----------\n"
+		        "\n");
 
     // Initialize...
-    mfs_print(stdout, "INFO: Client initializing...\n") ;
+    mfs_print(DBG_INFO, "Client[%d]: initializing...\n", -1) ;
     ret = clientstub_init(&wb, &argc, &argv) ;
     if (ret < 0) {
-        mfs_print(stderr, "ERROR: clientstub_init fails :-S") ;
+        mfs_print(DBG_ERROR, "Client[%d]: clientstub_init fails :-(", -1) ;
         return -1 ;
     }
 
     // Example
     strcpy(str, "hello word") ;
 
+    mfs_print(DBG_INFO, "Client[%d]: creat(...) + write(...) + close(...)\n", wb.rank) ;
     fd = clientstub_open(&wb, "test1.txt", O_WRONLY | O_CREAT | O_TRUNC) ;
     clientstub_write(&wb, fd, str, strlen(str)) ;
     clientstub_close(&wb, fd) ;
 
+    mfs_print(DBG_INFO, "Client[%d]: open(...) + read(...) + close(...)\n", wb.rank) ;
     fd = clientstub_open(&wb, "test1.txt", O_RDONLY) ;
     clientstub_read( &wb, fd, str, STR_SIZE) ;
     clientstub_close(&wb, fd) ;
 
     // Finalize...
+    mfs_print(DBG_INFO, "Client[%d]: finalize...\n", wb.rank) ;
     clientstub_finalize(&wb) ;
 
     return 0;

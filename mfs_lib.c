@@ -26,15 +26,37 @@
 // Print for debug
 //
 
-int mfs_print ( FILE *fd, char *fmt_str, ... )
+int mfs_print ( int src_type, char *src_fname, long src_line, FILE *fd, char *msg_fmt, ... )
 {
    va_list valist ;
    int ret ;
 
-   va_start(valist, fmt_str) ;
+   va_start(valist, msg_fmt) ;
+   switch (src_type)
+   {
+        case  3:
+              fprintf(fd, "[%s:%4ld] [INFO] ", src_fname, src_line) ;
+              ret = vfprintf(fd, msg_fmt, valist) ;
+     	      break;
+
+        case  2:
 #ifdef DEBUG
-   ret = vfprintf(fd, fmt_str, valist) ;
+              fprintf(fd, "[%s:%4ld] [WARN] ", src_fname, src_line) ;
+              ret = vfprintf(fd, msg_fmt, valist) ;
 #endif
+     	      break;
+
+        case  1:
+#ifdef DEBUG
+              fprintf(fd, "[%s:%4ld] [ERROR] ", src_fname, src_line) ;
+              ret = vfprintf(fd, msg_fmt, valist) ;
+#endif
+     	      break;
+
+        default:
+              ret = vfprintf(fd, msg_fmt, valist) ;
+	      break;
+   }
    va_end(valist);
 
    return ret ;
@@ -55,7 +77,7 @@ int mfs_write_server_port ( char *port_name, int rank )
     // Write server port...
     FILE *fd = fopen(file_name, "w") ;
     if (fd == NULL) {
-        fprintf(stderr, "ERROR: fopen fails for %s :-S", file_name) ;
+        fprintf(stderr, "ERROR: fopen fails for %s :-(", file_name) ;
         return -1 ;
     }
     fprintf(fd, "%s\n", port_name) ;
@@ -75,7 +97,7 @@ int mfs_read_server_port ( char *port_name, int rank )
     // Read server port...
     FILE *fd = fopen(file_name, "r") ;
     if (fd == NULL) {
-        fprintf(stderr, "ERROR: fopen fails for %s :-S", file_name) ;
+        fprintf(stderr, "ERROR: fopen fails for %s :-(", file_name) ;
         return -1 ;
     }
     fgets(port_name, MPI_MAX_PORT_NAME, fd) ;

@@ -18,12 +18,12 @@ Make
 <html>
  <table>
   <tr>
-  <th>Server</th>
-  <th>Client</th>
+  <th>Server(s)</th>
+  <th>Client(s)</th>
   </tr>
   <tr>
   <td>
-  mpirun -np 1 ./mfs_server &<br>
+  mpirun -np 2 ./mfs_server &<br>
   </td>
   <td>
   &nbsp;
@@ -34,7 +34,7 @@ Make
   &nbsp;
   </td>
   <td>
-  mpirun -np 1 ./mfs_client
+  mpirun -np 2 ./mfs_client
   </td>
   </tr>
   </table>
