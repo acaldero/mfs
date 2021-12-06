@@ -25,5 +25,8 @@ do
 done
 
 # stop server...
+echo "sleep 1"
+echo "kill <mfs_server>"
+sleep 1
 kill -- -$$
 

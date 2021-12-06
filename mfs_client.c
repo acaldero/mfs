@@ -20,6 +20,7 @@
  */
 
 
+#include <stdio.h>
 #include "mfs_client_stub.h"
 
 #define STR_SIZE 1024
@@ -32,10 +33,10 @@ int main ( int argc, char **argv )
     char str[STR_SIZE] ;
 
     // Welcome...
-    mfs_print(DBG_INFO, "\n"
- 		        " mfs_client\n"
-		        " ----------\n"
-		        "\n");
+    printf("\n"
+ 	   " mfs_client\n"
+	   " ----------\n"
+	   "\n") ;
 
     // Initialize...
     mfs_print(DBG_INFO, "Client[%d]: initializing...\n", -1) ;

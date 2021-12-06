@@ -64,6 +64,22 @@ int mfs_print ( int src_type, char *src_fname, long src_line, FILE *fd, char *ms
 
 
 //
+// Time
+//
+
+long mfs_get_time ( void )
+{
+    struct timeval timenow ;
+
+    // get timestamp
+    gettimeofday(&timenow, NULL) ;
+
+    // return timestamp
+    return (long)timenow.tv_sec * 1000 + (long)timenow.tv_usec / 1000 ;
+}
+
+
+//
 // Server port
 //
 

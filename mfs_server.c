@@ -20,6 +20,8 @@
  */
 
 
+#include <signal.h>
+#include <pthread.h>
 #include "mfs_server_stub.h"
 
 
@@ -31,6 +33,24 @@ pthread_mutex_t sync_mutex ;
 pthread_cond_t  sync_cond ;
 pthread_cond_t   end_cond ;
 
+// stats
+long   t1 = 0L ;
+char *ver = "0.7" ;
+
+
+void do_stats_ctrc ( int sigid )
+{
+    long t2 = mfs_get_time() ;
+
+    printf("INFO:\n") ;
+    printf("INFO: Threads:\n") ;
+    printf("INFO: + active threads=%ld\n", active_threads) ;
+    printf("INFO: Time:\n") ;
+    printf("INFO: + running time=%lf seconds.\n", (t2-t1)/1000.0) ;
+    printf("INFO: Version:\n") ;
+    printf("INFO: + server=%s\n", ver) ;
+    printf("INFO:\n") ;
+}
 
 void *do_srv ( void *wb )
 {
@@ -122,12 +142,12 @@ int main ( int argc, char **argv )
     pthread_t thid ;
 
     // Welcome...
-    mfs_print(DBG_INFO, "\n"
- 		        " mfs_server (0.7)\n"
-		        " ----------------\n"
-		        "\n");
+    printf("\n"
+ 	   " mfs_server\n"
+	   " ----------\n"
+	   "\n") ;
 
-    // Initialize...
+    // Initialize stub...
     mfs_print(DBG_INFO, "Server[%d]: initializing...\n", -1) ;
     ret = serverstub_init(&wb, &argc, &argv) ;
     if (ret < 0) {
@@ -135,6 +155,7 @@ int main ( int argc, char **argv )
         return -1 ;
     }
 
+    // Initialize global variables
     active_threads = 0 ;
     sync_copied    = 0 ;
     pthread_mutex_init(&sync_mutex, NULL) ;
@@ -142,6 +163,9 @@ int main ( int argc, char **argv )
     pthread_cond_init(&end_cond, NULL) ;
     pthread_attr_init(&attr) ;
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) ;
+
+    signal(SIGUSR1, do_stats_ctrc) ;
+    t1 = mfs_get_time() ;
 
     // To serve requests...
     mfs_print(DBG_INFO, "Server[%d]: accepting...\n", wb.rank) ;

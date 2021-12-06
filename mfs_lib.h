@@ -22,13 +22,13 @@
 #ifndef __MFS_LIB_H__
 #define __MFS_LIB_H__
 
-  #include <stdlib.h>
   #include <stdio.h>
+  #include <stdlib.h>
   #include <string.h>
   #include <stdarg.h>
+  #include <sys/time.h>
   #include <fcntl.h>
-  #include <thread>
-  #include <chrono>
+  #include <unistd.h>
   #include <mpi.h>
   #include "mfs_msg.h"
 
@@ -38,8 +38,11 @@
   #define DBG_WARNING  2, __FILE__, __LINE__, stderr
   #define DBG_INFO     3, __FILE__, __LINE__, stdout
 
+  // debug
   int mfs_print ( int src_type, char *src_fname, long src_line, FILE *fd, char *msg_fmt, ... ) ;
 
+  // time
+  long mfs_get_time ( void ) ;
 
   // server_port
   int mfs_write_server_port ( char *port_name, int rank ) ;
