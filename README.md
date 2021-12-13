@@ -1,16 +1,16 @@
 # MPI_PFS (v0.7)
-Proof of concept + prototype of MPI_PFS
+Prototype of MPI_PFS
 
 ## Prerequisites
 
- * MPICH 
+ * MPICH 3.3.x
 
 ## Getting MPI_PFS
 
 ```
 git clone https://github.com/acaldero/mpi_pfs.git
 cd mpi_pfs
-Make
+make
 ```
 
 ## Example of work session
@@ -18,12 +18,13 @@ Make
 <html>
  <table>
   <tr>
-  <th>Server(s)</th>
-  <th>Client(s)</th>
+  <th>Server (IP1)</th>
+  <th>Client (IP2)</th>
   </tr>
   <tr>
   <td>
-  mpirun -np 2 ./mfs_server &<br>
+  hydra_nameserver & <br>
+  mpirun -np 2 -nameserver IP1 ./mfs_server &<br>
   </td>
   <td>
   &nbsp;
@@ -34,7 +35,7 @@ Make
   &nbsp;
   </td>
   <td>
-  mpirun -np 2 ./mfs_client
+  mpirun -np 2 -nameserver IP1 ./mfs_client
   </td>
   </tr>
   </table>
