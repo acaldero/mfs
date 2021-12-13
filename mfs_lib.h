@@ -33,20 +33,19 @@
   #include "mfs_msg.h"
 
 
-  // print for debug
+  // publish name prefix
+  #define MFS_SERVER_STUB_PNAME    "mfs_server_v1"
+
+  // debug: levels
   #define DBG_ERROR    1, __FILE__, __LINE__, stderr
   #define DBG_WARNING  2, __FILE__, __LINE__, stderr
   #define DBG_INFO     3, __FILE__, __LINE__, stdout
 
-  // debug
+  // debug: API
   int mfs_print ( int src_type, char *src_fname, long src_line, FILE *fd, char *msg_fmt, ... ) ;
 
-  // time
+  // time: API
   long mfs_get_time ( void ) ;
-
-  // server_port
-  int mfs_write_server_port ( char *port_name, int rank ) ;
-  int mfs_read_server_port  ( char *port_name, int rank ) ;
 
 #endif
 

@@ -54,18 +54,11 @@ int clientstub_init ( client_stub_t *wb, int *argc, char ***argv )
         return -1 ;
     }
 
-/*
-    // Read server port...
-    ret = mfs_read_server_port(wb->port_name, 0) ;
-    if (ret < 0) {
-        mfs_print(DBG_ERROR, "Client[%d]: server port name required in the 'mfs_server.port' file.\n", wb->rank) ;
-        return -1 ;
-    }
-*/
-
 //!!!!!!!!!!!!!!!!!
     // Lookup port name
-    ret = MPI_Lookup_name("mfs_server_stub_v1", MPI_INFO_NULL, wb->port_name) ;
+    sprintf(wb->srv_name, "%s.%d", MFS_SERVER_STUB_PNAME, wb->rank) ;
+
+    ret = MPI_Lookup_name(wb->srv_name, MPI_INFO_NULL, wb->port_name) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "Server[%d]: MPI_Lookup_name fails :-(", wb->rank) ;
         return -1 ;

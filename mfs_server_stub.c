@@ -63,23 +63,18 @@ int serverstub_init ( server_stub_t *wb, int *argc, char ***argv )
 
 //!!!!!!!!!!!!!!!!!
     // Publish port name
+    sprintf(wb->srv_name, "%s.%d", MFS_SERVER_STUB_PNAME, wb->rank) ;
+
     MPI_Info info ;
     MPI_Info_create(&info) ;
     MPI_Info_set(info, "ompi_global_scope", "true") ;
-    ret = MPI_Publish_name("mfs_server_stub_v1", info, wb->port_name) ;
+
+    ret = MPI_Publish_name(wb->srv_name, info, wb->port_name) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "Server[%d]: MPI_Publish_name fails :-(", wb->rank) ;
         return -1 ;
     }
 //!!!!!!!!!!!!!!!!!
-
-/*
-    // Write server port...
-    ret = mfs_write_server_port(wb->port_name, wb->rank) ;
-    if (ret < 0) {
-        return -1 ;
-    }
-*/
 
     // wb->tag_id: 1 initially, autoincrement latter
     wb->tag_id = 1 ;
@@ -97,7 +92,7 @@ int serverstub_finalize ( server_stub_t *wb )
 
 //!!!!!!!!!!!!!!!!!
     // Unpublish port name
-    ret = MPI_Unpublish_name("mfs_server_stub_v1", MPI_INFO_NULL, wb->port_name) ;
+    ret = MPI_Unpublish_name(wb->srv_name, MPI_INFO_NULL, wb->port_name) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "Server[%d]: MPI_Unpublish_name fails :-(", wb->rank) ;
         return -1 ;

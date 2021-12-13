@@ -27,6 +27,5 @@ mfs_server: mfs_server.o mfs_server_stub.o mfs_files.o mfs_lib.o
 
 clean:
 	rm -f *.o $(BIN_FILES)
-	rm -fr conf/mfs_server.port.*
 	rm -fr data/test1.txt
 

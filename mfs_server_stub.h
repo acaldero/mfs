@@ -37,6 +37,7 @@
         int  size ;
         int  rank ;
         char port_name[MPI_MAX_PORT_NAME] ;
+        char  srv_name[MPI_MAX_PORT_NAME] ;
 
         // associated client
         MPI_Comm client ;
