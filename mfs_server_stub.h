@@ -41,7 +41,6 @@
 
         // associated client
         MPI_Comm client ;
-        int      tag_id ;
 
     } server_stub_t ;
     

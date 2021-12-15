@@ -61,7 +61,6 @@ int serverstub_init ( server_stub_t *wb, int *argc, char ***argv )
     }
 
 
-//!!!!!!!!!!!!!!!!!
     // Publish port name
     sprintf(wb->srv_name, "%s.%d", MFS_SERVER_STUB_PNAME, wb->rank) ;
 
@@ -74,10 +73,6 @@ int serverstub_init ( server_stub_t *wb, int *argc, char ***argv )
         mfs_print(DBG_ERROR, "Server[%d]: MPI_Publish_name fails :-(", wb->rank) ;
         return -1 ;
     }
-//!!!!!!!!!!!!!!!!!
-
-    // wb->tag_id: 1 initially, autoincrement latter
-    wb->tag_id = 1 ;
 
     // Return OK
     return 0 ;
@@ -90,14 +85,12 @@ int serverstub_finalize ( server_stub_t *wb )
     // Close port
     MPI_Close_port(wb->port_name) ;
 
-//!!!!!!!!!!!!!!!!!
     // Unpublish port name
     ret = MPI_Unpublish_name(wb->srv_name, MPI_INFO_NULL, wb->port_name) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "Server[%d]: MPI_Unpublish_name fails :-(", wb->rank) ;
         return -1 ;
     }
-//!!!!!!!!!!!!!!!!!
 
     // Finalize
     ret = MPI_Finalize() ;
@@ -115,20 +108,12 @@ int serverstub_accept ( server_stub_t *ab, server_stub_t *wb )
     int ret ;
 
     // *ab = *wb ;
-    wb->tag_id = wb->tag_id + 1 ;
     memmove(ab, wb, sizeof(server_stub_t)) ;
 
     // Accept
     ret = MPI_Comm_accept(ab->port_name, MPI_INFO_NULL, 0, MPI_COMM_SELF, &(ab->client)) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "Server[%d]: MPI_Comm_accept fails :-(", ab->rank) ;
-        return -1 ;
-    }
-
-    // send tag_id
-    ret = MPI_Send(&(ab->tag_id), 1, MPI_INT, 0, 0, ab->client) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "Server[%d]: MPI_Send fails :-(", ab->rank) ;
         return -1 ;
     }
 
@@ -153,7 +138,7 @@ int serverstub_request_recv ( server_stub_t *ab, void *buff, int size, int datat
     MPI_Status status;
 
     // Get CMD message
-    ret = MPI_Recv(buff, size, datatype, MPI_ANY_SOURCE, ab->tag_id, ab->client, &status) ;
+    ret = MPI_Recv(buff, size, datatype, MPI_ANY_SOURCE, 0, ab->client, &status) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_WARNING, "Server[%d]: MPI_Recv fails :-(", ab->rank) ;
     }
@@ -167,7 +152,7 @@ int serverstub_request_send ( server_stub_t *ab, void *buff, int size, int datat
     int ret ;
 
     // Send answer
-    ret = MPI_Send(buff, size, datatype, 0, ab->tag_id, ab->client) ;
+    ret = MPI_Send(buff, size, datatype, 0, 0, ab->client) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_WARNING, "Server[%d]: MPI_Send fails :-(", ab->rank) ;
     }
@@ -199,7 +184,7 @@ int serverstub_open ( server_stub_t *ab, int pathname_length, int flags )
     // read filename
     memset(buff_data, 0, buff_data_len) ;
     strcpy(buff_data, MFS_DATA_PREFIX) ;
-    ret = MPI_Recv(buff_data + strlen(MFS_DATA_PREFIX), pathname_length, MPI_CHAR, MPI_ANY_SOURCE, ab->tag_id, ab->client, &status) ;
+    ret = MPI_Recv(buff_data + strlen(MFS_DATA_PREFIX), pathname_length, MPI_CHAR, MPI_ANY_SOURCE, 0, ab->client, &status) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_WARNING, "Server[%d]: MPI_Recv fails :-(", ab->rank) ;
     }
@@ -209,7 +194,7 @@ int serverstub_open ( server_stub_t *ab, int pathname_length, int flags )
     fd = server_files_open(buff_data, flags) ;
 
     // send back file descriptor
-    ret = MPI_Send(&fd, 1, MPI_INT, 0, ab->tag_id, ab->client) ;
+    ret = MPI_Send(&fd, 1, MPI_INT, 0, 0, ab->client) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_WARNING, "Server[%d]: MPI_Send fails :-(", ab->rank) ;
     }
@@ -247,7 +232,7 @@ int serverstub_read ( server_stub_t *ab, int fd, int count )
     server_files_read(fd, buff_data, count) ;
 
     // send data
-    ret = MPI_Send(buff_data, count, MPI_CHAR, 0, ab->tag_id, ab->client) ;
+    ret = MPI_Send(buff_data, count, MPI_CHAR, 0, 0, ab->client) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_WARNING, "Server[%d]: MPI_Send fails :-(", ab->rank) ;
     }
@@ -274,7 +259,7 @@ int serverstub_write ( server_stub_t *ab, int fd, int count )
 
     // receive data
     memset(buff_data, 0, count) ;
-    ret = MPI_Recv(buff_data, count, MPI_CHAR, MPI_ANY_SOURCE, ab->tag_id, ab->client, &status) ;
+    ret = MPI_Recv(buff_data, count, MPI_CHAR, MPI_ANY_SOURCE, 0, ab->client, &status) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_WARNING, "Server[%d]: MPI_Recv fails :-(", ab->rank) ;
     }

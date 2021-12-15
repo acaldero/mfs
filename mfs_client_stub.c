@@ -54,7 +54,6 @@ int clientstub_init ( client_stub_t *wb, int *argc, char ***argv )
         return -1 ;
     }
 
-//!!!!!!!!!!!!!!!!!
     // Lookup port name
     sprintf(wb->srv_name, "%s.%d", MFS_SERVER_STUB_PNAME, wb->rank) ;
 
@@ -63,19 +62,11 @@ int clientstub_init ( client_stub_t *wb, int *argc, char ***argv )
         mfs_print(DBG_ERROR, "Server[%d]: MPI_Lookup_name fails :-(", wb->rank) ;
         return -1 ;
     }
-//!!!!!!!!!!!!!!!!!
 
     // Connect...
     ret = MPI_Comm_connect(wb->port_name, MPI_INFO_NULL, 0, MPI_COMM_SELF, &(wb->server)) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "Client[%d]: MPI_Comm_connect fails :-(", wb->rank) ;
-        return -1 ;
-    }
-
-    // recv tag_id
-    ret = MPI_Recv(&(wb->tag_id), 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, wb->server, &status) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "Client[%d]: MPI_Recv fails :-(", wb->rank) ;
         return -1 ;
     }
 
@@ -94,7 +85,7 @@ int clientstub_request ( client_stub_t *wb, int req_action, int req_arg1, int re
     buff[2] = req_arg2 ;
 
     // send msg
-    ret = MPI_Send(buff, 3, MPI_INT, 0, wb->tag_id, wb->server) ;
+    ret = MPI_Send(buff, 3, MPI_INT, 0, 0, wb->server) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "Client[%d]: MPI_Send fails :-(", wb->rank) ;
         return -1 ;
@@ -149,14 +140,14 @@ int clientstub_open ( client_stub_t *wb, const char *pathname, int flags )
     }
 
     // Send pathname
-    ret = MPI_Send(pathname, strlen(pathname) + 1, MPI_CHAR, 0, wb->tag_id, wb->server) ;
+    ret = MPI_Send(pathname, strlen(pathname) + 1, MPI_CHAR, 0, 0, wb->server) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "Client[%d]: MPI_Send fails :-(", wb->rank) ;
         return -1 ;
     }
 
     // Receive descriptor
-    ret = MPI_Recv(&fd, 1, MPI_INT, 0, wb->tag_id, wb->server, &status) ;
+    ret = MPI_Recv(&fd, 1, MPI_INT, 0, 0, wb->server, &status) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "Client[%d]: MPI_Recv fails :-(", wb->rank) ;
         return -1 ;
@@ -192,7 +183,7 @@ int clientstub_read ( client_stub_t *wb, int fd, void *buff_char, int count )
     }
 
     // Receive data
-    ret = MPI_Recv(buff_char, count, MPI_CHAR, 0, wb->tag_id, wb->server, &status) ;
+    ret = MPI_Recv(buff_char, count, MPI_CHAR, 0, 0, wb->server, &status) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "Client[%d]: MPI_Recv fails :-(", wb->rank) ;
         return -1 ;
@@ -213,7 +204,7 @@ int clientstub_write ( client_stub_t *wb, int fd, void *buff_char, int count )
     }
 
     // Send data
-    ret = MPI_Send(buff_char, count, MPI_CHAR, 0, wb->tag_id, wb->server) ;
+    ret = MPI_Send(buff_char, count, MPI_CHAR, 0, 0, wb->server) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "Client[%d]: MPI_Send fails :-(", wb->rank) ;
         return -1 ;
