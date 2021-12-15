@@ -7,6 +7,10 @@
 HOSTNAME=$(hostname)
 SERVER_NP=2
 CLIENT_NP=2
+N_TESTS=2
+
+# just in case, create data directory
+mkdir -p ./data
 
 # https://stackoverflow.com/questions/360201/how-do-i-kill-background-processes-jobs-when-my-shell-script-exits
 trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
@@ -34,7 +38,7 @@ sleep 3
 #
 # run client...
 #
-for i in $(seq 1 1 2)
+for i in $(seq 1 1 $N_TESTS)
 do
    echo "............................."
    echo "./mfs_client...(test $i)"
