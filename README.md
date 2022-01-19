@@ -6,7 +6,7 @@ Prototype of MPI_PFS
 ### Install prerequisites
 
 ```
-sudo apt-get install -y build-essential
+sudo apt-get install -y build-essential cmake
 sudo apt-get install -y flex libtool
 sudo apt-get install -y mpich mpich-doc
 ```
@@ -21,6 +21,8 @@ cd mpi_pfs
 ### Compile MPI_PFS
 
 ```
+cmake .
+cmake --build . 
 make clean
 make
 ```
