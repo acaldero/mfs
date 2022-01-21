@@ -55,6 +55,12 @@ int clientstub_init ( client_stub_t *wb, int *argc, char ***argv )
     }
 
     // Lookup port name
+    ret = mfs_comm_connect(wb->srv_name, wb->port_name, &(wb->server)) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: connection fails :-(", wb->rank) ;
+        return -1 ;
+    }
+
     sprintf(wb->srv_name, "%s.%d", MFS_SERVER_STUB_PNAME, wb->rank) ;
 
     ret = MPI_Lookup_name(wb->srv_name, MPI_INFO_NULL, wb->port_name) ;

@@ -32,12 +32,14 @@
   #include <mpi.h>
   #include "mfs_msg.h"
 
-  int mfs_comm_request_send      ( MPI_Comm server, int rank, int req_action, int req_arg1, int req_arg2 ) ;
-  int mfs_comm_request_receive   ( MPI_Comm server, int *req_action, int *req_arg1, int *req_arg2 ) ;
+  int mfs_comm_connect           ( char *srv_name, char *port_name, MPI_Comm *server ) ;
 
-  int mfs_comm_send_data_to      ( MPI_Comm client, int rank, void *buff, int size, int datatype ) ;
-  int mfs_comm_recv_data_fromany ( MPI_Comm client, void *buff, int size, int datatype ) ;
-  int mfs_comm_recv_data_from    ( MPI_Comm client, int rank, void *buff, int size, int datatype ) ;
+  int mfs_comm_request_send      ( MPI_Comm local,  int rank, int  req_action, int  req_arg1, int  req_arg2 ) ;
+  int mfs_comm_request_receive   ( MPI_Comm local,            int *req_action, int *req_arg1, int *req_arg2 ) ;
+
+  int mfs_comm_send_data_to      ( MPI_Comm remote,   int rank, void *buff, int size, int datatype ) ;
+  int mfs_comm_recv_data_fromany ( MPI_Comm remote, void *buff,   int size, int datatype ) ;
+  int mfs_comm_recv_data_from    ( MPI_Comm remote,   int rank, void *buff, int size, int datatype ) ;
 
 #endif
 
