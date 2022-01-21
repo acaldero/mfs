@@ -74,7 +74,7 @@ void *do_srv ( void *wb )
     while (again)
     {
           mfs_print(DBG_INFO, "Server[%d]: receiving...\n", ab.rank) ;
-          serverstub_request_recv(&ab, buff_int, 3, MPI_INT) ;
+          mfs_comm_request_receive(ab.client, &(buff_int[0]), &(buff_int[1]), &(buff_int[2])) ;
           switch (buff_int[0])
           {
               case REQ_ACTION_NONE:

@@ -74,33 +74,12 @@ int clientstub_init ( client_stub_t *wb, int *argc, char ***argv )
     return 1 ;
 }
 
-int clientstub_request ( client_stub_t *wb, int req_action, int req_arg1, int req_arg2 )
-{
-    int ret ;
-    int buff[3] ;
-
-    // pack msg fields
-    buff[0] = req_action ;
-    buff[1] = req_arg1 ;
-    buff[2] = req_arg2 ;
-
-    // send msg
-    ret = MPI_Send(buff, 3, MPI_INT, 0, 0, wb->server) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "Client[%d]: MPI_Send fails :-(", wb->rank) ;
-        return -1 ;
-    }
-
-    // Return OK/KO
-    return ret ;
-}
-
 int clientstub_finalize ( client_stub_t *wb )
 {
     int ret ;
 
     // Remote disconnect...
-    ret = clientstub_request(wb, REQ_ACTION_DISCONNECT, 0, 0) ;
+    ret = mfs_comm_request_send(wb->server, 0, REQ_ACTION_DISCONNECT, 0, 0) ;
     if (MPI_SUCCESS != ret) {
         return -1 ;
     }
@@ -134,22 +113,22 @@ int clientstub_open ( client_stub_t *wb, const char *pathname, int flags )
     MPI_Status status ;
 
     // Send open msg
-    ret = clientstub_request(wb, REQ_ACTION_OPEN, strlen(pathname) + 1, flags) ;
+    ret = mfs_comm_request_send(wb->server, 0, REQ_ACTION_OPEN, strlen(pathname) + 1, flags) ;
     if (MPI_SUCCESS != ret) {
         return -1 ;
     }
 
     // Send pathname
-    ret = MPI_Send(pathname, strlen(pathname) + 1, MPI_CHAR, 0, 0, wb->server) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "Client[%d]: MPI_Send fails :-(", wb->rank) ;
+    ret = mfs_comm_send_data_to(wb->server, 0, (void *)pathname, strlen(pathname) + 1, MPI_CHAR) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Client[%d]: pathname cannot be sent :-(", wb->rank) ;
         return -1 ;
     }
 
     // Receive descriptor
-    ret = MPI_Recv(&fd, 1, MPI_INT, 0, 0, wb->server, &status) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "Client[%d]: MPI_Recv fails :-(", wb->rank) ;
+    ret = mfs_comm_recv_data_from(wb->server, 0, &fd, 1, MPI_INT) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Client[%d]: file descriptor not received :-(", wb->rank) ;
         return -1 ;
     }
 
@@ -162,7 +141,7 @@ int clientstub_close ( client_stub_t *wb, int fd )
     int ret ;
 
     // Send close msg
-    ret = clientstub_request(wb, REQ_ACTION_CLOSE, fd, 0) ;
+    ret = mfs_comm_request_send(wb->server, 0, REQ_ACTION_CLOSE, fd, 0) ;
     if (MPI_SUCCESS != ret) {
         return -1 ;
     }
@@ -177,15 +156,15 @@ int clientstub_read ( client_stub_t *wb, int fd, void *buff_char, int count )
     MPI_Status status ;
 
     // Send read msg
-    ret = clientstub_request(wb, REQ_ACTION_READ, fd, count) ;
+    ret = mfs_comm_request_send(wb->server, 0, REQ_ACTION_READ, fd, count) ;
     if (MPI_SUCCESS != ret) {
         return -1 ;
     }
 
     // Receive data
-    ret = MPI_Recv(buff_char, count, MPI_CHAR, 0, 0, wb->server, &status) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "Client[%d]: MPI_Recv fails :-(", wb->rank) ;
+    ret = mfs_comm_recv_data_from(wb->server, 0, buff_char, count, MPI_CHAR) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Client[%d]: data not received :-(", wb->rank) ;
         return -1 ;
     }
 
@@ -198,15 +177,15 @@ int clientstub_write ( client_stub_t *wb, int fd, void *buff_char, int count )
     int ret ;
 
     // Send write msg
-    ret = clientstub_request(wb, REQ_ACTION_WRITE, fd, count) ;
+    ret = mfs_comm_request_send(wb->server, 0, REQ_ACTION_WRITE, fd, count) ;
     if (MPI_SUCCESS != ret) {
         return -1 ;
     }
 
     // Send data
-    ret = MPI_Send(buff_char, count, MPI_CHAR, 0, 0, wb->server) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "Client[%d]: MPI_Send fails :-(", wb->rank) ;
+    ret = mfs_comm_send_data_to(wb->server, 0, buff_char, count, MPI_CHAR) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Client[%d]: data cannot be sent :-(", wb->rank) ;
         return -1 ;
     }
 

@@ -132,35 +132,6 @@ int serverstub_disconnect ( server_stub_t *ab )
     return (MPI_SUCCESS == ret) ;
 }
 
-int serverstub_request_recv ( server_stub_t *ab, void *buff, int size, int datatype )
-{
-    int ret ;
-    MPI_Status status;
-
-    // Get CMD message
-    ret = MPI_Recv(buff, size, datatype, MPI_ANY_SOURCE, 0, ab->client, &status) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_WARNING, "Server[%d]: MPI_Recv fails :-(", ab->rank) ;
-    }
-
-    // Return OK/KO
-    return (MPI_SUCCESS == ret) ;
-}
-
-int serverstub_request_send ( server_stub_t *ab, void *buff, int size, int datatype )
-{
-    int ret ;
-
-    // Send answer
-    ret = MPI_Send(buff, size, datatype, 0, 0, ab->client) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_WARNING, "Server[%d]: MPI_Send fails :-(", ab->rank) ;
-    }
-
-    // Return OK/KO
-    return (MPI_SUCCESS == ret) ;
-}
-
 
 /*
  *  File System API
@@ -184,9 +155,9 @@ int serverstub_open ( server_stub_t *ab, int pathname_length, int flags )
     // read filename
     memset(buff_data, 0, buff_data_len) ;
     strcpy(buff_data, MFS_DATA_PREFIX) ;
-    ret = MPI_Recv(buff_data + strlen(MFS_DATA_PREFIX), pathname_length, MPI_CHAR, MPI_ANY_SOURCE, 0, ab->client, &status) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_WARNING, "Server[%d]: MPI_Recv fails :-(", ab->rank) ;
+    ret = mfs_comm_recv_data_from(ab->client, MPI_ANY_SOURCE, buff_data + strlen(MFS_DATA_PREFIX), pathname_length, MPI_CHAR) ;
+    if (ret < 0) {
+        mfs_print(DBG_WARNING, "Server[%d]: file name not received :-(", ab->rank) ;
     }
 
     // open file
@@ -194,9 +165,9 @@ int serverstub_open ( server_stub_t *ab, int pathname_length, int flags )
     fd = server_files_open(buff_data, flags) ;
 
     // send back file descriptor
-    ret = MPI_Send(&fd, 1, MPI_INT, 0, 0, ab->client) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_WARNING, "Server[%d]: MPI_Send fails :-(", ab->rank) ;
+    ret = mfs_comm_send_data_to(ab->client, 0, &fd, 1, MPI_INT) ;
+    if (ret < 0) {
+        mfs_print(DBG_WARNING, "Server[%d]: file descriptor cannot be sent :-(", ab->rank) ;
     }
 
     // free filename buffer
@@ -232,9 +203,9 @@ int serverstub_read ( server_stub_t *ab, int fd, int count )
     server_files_read(fd, buff_data, count) ;
 
     // send data
-    ret = MPI_Send(buff_data, count, MPI_CHAR, 0, 0, ab->client) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_WARNING, "Server[%d]: MPI_Send fails :-(", ab->rank) ;
+    ret = mfs_comm_send_data_to(ab->client, 0, buff_data, count, MPI_CHAR) ;
+    if (ret < 0) {
+        mfs_print(DBG_WARNING, "Server[%d]: data cannot be sent fails :-(", ab->rank) ;
     }
 
     // free data buffer
@@ -259,9 +230,9 @@ int serverstub_write ( server_stub_t *ab, int fd, int count )
 
     // receive data
     memset(buff_data, 0, count) ;
-    ret = MPI_Recv(buff_data, count, MPI_CHAR, MPI_ANY_SOURCE, 0, ab->client, &status) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_WARNING, "Server[%d]: MPI_Recv fails :-(", ab->rank) ;
+    ret = mfs_comm_recv_data_from(ab->client, MPI_ANY_SOURCE, buff_data, count, MPI_CHAR) ;
+    if (ret < 0) {
+        mfs_print(DBG_WARNING, "Server[%d]: data not received :-(", ab->rank) ;
     }
 
     // write data

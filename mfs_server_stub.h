@@ -25,6 +25,7 @@
     // Includes
     #include "mpi.h"
     #include "mfs_lib.h"
+    #include "mfs_comm.h"
     #include "mfs_files.h"
     
     // Const
@@ -50,8 +51,6 @@
     int serverstub_finalize     ( server_stub_t *wb ) ;
     int serverstub_accept       ( server_stub_t *ab, server_stub_t *wb ) ;
     int serverstub_disconnect   ( server_stub_t *ab ) ;
-    int serverstub_request_recv ( server_stub_t *ab, void *buff, int size, int datatype ) ;
-    int serverstub_request_send ( server_stub_t *ab, void *buff, int size, int datatype ) ;
 
     // File System API
     int serverstub_open  ( server_stub_t *ab, int pathname_length, int flags ) ;
