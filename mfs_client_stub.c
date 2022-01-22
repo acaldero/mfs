@@ -89,42 +89,35 @@ int clientstub_open ( comm_t *wb, const char *pathname, int flags )
 {
     int      ret, fd ;
     msg_t    msg ;
-    buffer_t info ;
+    buffer_t info[3] ;
 
-    // Send open msg
+    // Send open request
     msg.req_action = REQ_ACTION_OPEN ;
     msg.req_arg1   = strlen(pathname) + 1 ;
     msg.req_arg2   = flags ;
 
-    ret = mfs_protocol_request_send(wb, 0, &msg) ;
-    if (ret < 0) {
-        mfs_print(DBG_ERROR, "Client[%d]: open request cannot be sent :-(", wb->rank) ;
-        return -1 ;
-    }
+    info[0].buff        = (void *)&msg ;
+    info[0].size        = 3 ;
+    info[0].datatype    = MPI_INT ;
+    info[0].err_msg     = "Client[%d]: open request cannot be sent :-(" ;
+    info[0].comm_action = COM_SEND_DATA_TO ;
 
     // Send pathname
-    info.buff        = (void *)pathname ;
-    info.size        = strlen(pathname) + 1 ;
-    info.datatype    = MPI_CHAR ;
-    info.err_msg     = "Client[%d]: pathname cannot be sent :-(" ;
-    info.comm_action = COM_SEND_DATA_TO ;
-
-    ret = mfs_comm_send_data_to(wb, 0, info.buff, info.size, info.datatype) ;
-    if (ret < 0) {
-        mfs_print(DBG_ERROR, info.err_msg, wb->rank) ;
-        return -1 ;
-    }
+    info[1].buff        = (void *)pathname ;
+    info[1].size        = strlen(pathname) + 1 ;
+    info[1].datatype    = MPI_CHAR ;
+    info[1].err_msg     = "Client[%d]: pathname cannot be sent :-(" ;
+    info[1].comm_action = COM_SEND_DATA_TO ;
 
     // Receive descriptor
-    info.buff        = (void *)&fd ;
-    info.size        = 1 ;
-    info.datatype    = MPI_INT ;
-    info.err_msg     = "Client[%d]: file descriptor not received :-(" ;
-    info.comm_action = COM_RECV_DATA_FROM ;
+    info[2].buff        = (void *)&fd ;
+    info[2].size        = 1 ;
+    info[2].datatype    = MPI_INT ;
+    info[2].err_msg     = "Client[%d]: file descriptor not received :-(" ;
+    info[2].comm_action = COM_RECV_DATA_FROM ;
 
-    ret = mfs_comm_recv_data_from(wb, 0, info.buff, info.size, info.datatype) ;
+    ret = mfs_protocol_request_do(wb, info, 3) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, info.err_msg, wb->rank) ;
         return -1 ;
     }
 
@@ -136,13 +129,20 @@ int clientstub_close ( comm_t *wb, int fd )
 {
     int      ret ;
     msg_t    msg ;
+    buffer_t info[1] ;
 
-    // Send close msg
+    // Send close request
     msg.req_action = REQ_ACTION_CLOSE ;
     msg.req_arg1   = fd ;
     msg.req_arg2   = 0 ;
 
-    ret = mfs_protocol_request_send(wb, 0, &msg) ;
+    info[0].buff        = (void *)&msg ;
+    info[0].size        = 3 ;
+    info[0].datatype    = MPI_INT ;
+    info[0].err_msg     = "Client[%d]: close request cannot be sent :-(" ;
+    info[0].comm_action = COM_SEND_DATA_TO ;
+
+    ret = mfs_protocol_request_do(wb, info, 1) ;
     if (ret < 0) {
         return -1 ;
     }
@@ -155,28 +155,28 @@ int clientstub_read ( comm_t *wb, int fd, void *buff_char, int count )
 {
     int      ret ;
     msg_t    msg ;
-    buffer_t info ;
+    buffer_t info[2] ;
 
     // Send read msg
     msg.req_action = REQ_ACTION_READ ;
     msg.req_arg1   = fd ;
     msg.req_arg2   = count ;
 
-    ret = mfs_protocol_request_send(wb, 0, &msg) ;
-    if (ret < 0) {
-        return -1 ;
-    }
+    info[0].buff        = (void *)&msg ;
+    info[0].size        = 3 ;
+    info[0].datatype    = MPI_INT ;
+    info[0].err_msg     = "Client[%d]: read request cannot be sent :-(" ;
+    info[0].comm_action = COM_SEND_DATA_TO ;
 
     // Receive data
-    info.buff        = buff_char ;
-    info.size        = count ;
-    info.datatype    = MPI_CHAR ;
-    info.err_msg     = "Client[%d]: data not received :-(" ;
-    info.comm_action = COM_RECV_DATA_FROM ;
+    info[1].buff        = buff_char ;
+    info[1].size        = count ;
+    info[1].datatype    = MPI_CHAR ;
+    info[1].err_msg     = "Client[%d]: data not received :-(" ;
+    info[1].comm_action = COM_RECV_DATA_FROM ;
 
-    ret = mfs_comm_recv_data_from(wb, 0, info.buff, info.size, info.datatype) ;
+    ret = mfs_protocol_request_do(wb, info, 2) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, info.err_msg, wb->rank) ;
         return -1 ;
     }
 
@@ -188,28 +188,28 @@ int clientstub_write ( comm_t *wb, int fd, void *buff_char, int count )
 {
     int      ret ;
     msg_t    msg ;
-    buffer_t info ;
+    buffer_t info[2] ;
 
     // Send write msg
     msg.req_action = REQ_ACTION_WRITE ;
     msg.req_arg1   = fd ;
     msg.req_arg2   = count ;
 
-    ret = mfs_protocol_request_send(wb, 0, &msg) ;
-    if (ret < 0) {
-        return -1 ;
-    }
+    info[0].buff        = (void *)&msg ;
+    info[0].size        = 3 ;
+    info[0].datatype    = MPI_INT ;
+    info[0].err_msg     = "Client[%d]: write request cannot be sent :-(" ;
+    info[0].comm_action = COM_SEND_DATA_TO ;
 
     // Send data
-    info.buff        = buff_char ;
-    info.size        = count ;
-    info.datatype    = MPI_CHAR ;
-    info.err_msg     = "Client[%d]: data not sent :-(" ;
-    info.comm_action = COM_SEND_DATA_TO ;
+    info[1].buff        = buff_char ;
+    info[1].size        = count ;
+    info[1].datatype    = MPI_CHAR ;
+    info[1].err_msg     = "Client[%d]: data not sent :-(" ;
+    info[1].comm_action = COM_SEND_DATA_TO ;
 
-    ret = mfs_comm_send_data_to(wb, 0, info.buff, info.size, info.datatype) ;
+    ret = mfs_protocol_request_do(wb, info, 2) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, info.err_msg, wb->rank) ;
         return -1 ;
     }
 

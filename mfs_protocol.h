@@ -39,6 +39,7 @@
     // Comm action
     #define COM_RECV_DATA_FROM     10
     #define COM_SEND_DATA_TO       20
+    #define COM_REQ_ACTION         30
 
 
     // Datatypes
