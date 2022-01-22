@@ -22,7 +22,7 @@
 
 #include <signal.h>
 #include <pthread.h>
-#include "mfs_comm.h"
+#include "mfs_protocol.h"
 #include "mfs_server_stub.h"
 
 
@@ -36,7 +36,7 @@ pthread_cond_t   end_cond ;
 
 // stats
 long   t1 = 0L ;
-char *ver = "0.7" ;
+char *ver = "0.8" ;
 
 
 void do_stats_ctrc ( int sigid )
@@ -57,7 +57,7 @@ void *do_srv ( void *wb )
 {
     int again;
     comm_t ab ;
-    int buff_int[3] ;
+    msg_t msg ;
     int ret ;
     int fd ;
 
@@ -75,8 +75,8 @@ void *do_srv ( void *wb )
     while (again)
     {
           mfs_print(DBG_INFO, "Server[%d]: receiving...\n", ab.rank) ;
-          mfs_comm_request_receive(&ab, &(buff_int[0]), &(buff_int[1]), &(buff_int[2])) ;
-          switch (buff_int[0])
+          mfs_protocol_request_receive(&ab, &msg) ;
+          switch (msg.req_action)
           {
               case REQ_ACTION_NONE:
 	           mfs_print(DBG_INFO, "Server[%d]: request 'none'\n", ab.rank) ;
@@ -88,28 +88,28 @@ void *do_srv ( void *wb )
 	           break;
 
 	      case REQ_ACTION_OPEN:
-	           mfs_print(DBG_INFO, "Server[%d]: request 'open' for a filename of %d chars\n", ab.rank, buff_int[1]) ;
-                   fd = serverstub_open(&ab, buff_int[1], buff_int[2]) ;
-                   mfs_print(DBG_INFO, "Server[%d]: File[%d]: open(flags=%d)\n", ab.rank, fd, buff_int[2]) ;
+	           mfs_print(DBG_INFO, "Server[%d]: request 'open' for a filename of %d chars\n", ab.rank, msg.req_action) ;
+                   fd = serverstub_open(&ab, msg.req_arg1, msg.req_arg2) ;
+                   mfs_print(DBG_INFO, "Server[%d]: File[%d]: open(flags=%d)\n", ab.rank, fd, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_CLOSE:
-	           mfs_print(DBG_INFO, "Server[%d]: File[%d]: close()\n", ab.rank, buff_int[1]) ;
-                   serverstub_close(&ab, buff_int[1]) ;
+	           mfs_print(DBG_INFO, "Server[%d]: File[%d]: close()\n", ab.rank, msg.req_arg1) ;
+                   serverstub_close(&ab, msg.req_arg1) ;
 	           break;
 
 	      case REQ_ACTION_READ:
-	           mfs_print(DBG_INFO, "Server[%d]: File[%d]: read(bytes=%d)\n", ab.rank, buff_int[1], buff_int[2]) ;
-                   ret = serverstub_read(&ab, buff_int[1], buff_int[2]) ;
+	           mfs_print(DBG_INFO, "Server[%d]: File[%d]: read(bytes=%d)\n", ab.rank, msg.req_arg1, msg.req_arg2) ;
+                   ret = serverstub_read(&ab, msg.req_arg1, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_WRITE:
-	           mfs_print(DBG_INFO, "Server[%d]: File[%d]: write(bytes=%d)\n", ab.rank, buff_int[1], buff_int[2]) ;
-                   ret = serverstub_write(&ab, buff_int[1], buff_int[2]) ;
+	           mfs_print(DBG_INFO, "Server[%d]: File[%d]: write(bytes=%d)\n", ab.rank, msg.req_arg1, msg.req_arg2) ;
+                   ret = serverstub_write(&ab, msg.req_arg1, msg.req_arg2) ;
 	           break;
 
               default:
-	           mfs_print(DBG_ERROR, "Server[%d]: unexpected message type: %d\n", ab.rank, buff_int[0]) ;
+	           mfs_print(DBG_ERROR, "Server[%d]: unexpected message type: %d\n", ab.rank, msg.req_action) ;
           }
     }
 
@@ -170,7 +170,10 @@ int main ( int argc, char **argv )
 
     // To serve requests...
     mfs_print(DBG_INFO, "Server[%d]: accepting...\n", wb.rank) ;
-    serverstub_accept(&ab, &wb) ;
+    ret = serverstub_accept(&ab, &wb) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: accept fails :-(", -1) ;
+    }
     while (0 == the_end)
     {
 	// new thread...
@@ -187,7 +190,10 @@ int main ( int argc, char **argv )
 
 	// To serve next request...
         mfs_print(DBG_INFO, "Server[%d]: accepting...\n", wb.rank) ;
-        serverstub_accept(&ab, &wb) ;
+        ret = serverstub_accept(&ab, &wb) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Server[%d]: accept fails :-(", -1) ;
+        }
     }
 
     // Wait for active_thread...

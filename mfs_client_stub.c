@@ -50,9 +50,14 @@ int clientstub_init ( comm_t *wb, int *argc, char ***argv )
 int clientstub_finalize ( comm_t *wb )
 {
     int ret ;
+    msg_t msg ;
 
     // Remote disconnect...
-    ret = mfs_comm_request_send(wb, 0, REQ_ACTION_DISCONNECT, 0, 0) ;
+    msg.req_action = REQ_ACTION_DISCONNECT ;
+    msg.req_arg1   = 0 ;
+    msg.req_arg2   = 0 ;
+
+    ret = mfs_protocol_request_send(wb, 0, &msg) ;
     if (ret < 0) {
         return -1 ;
     }
@@ -83,9 +88,14 @@ int clientstub_finalize ( comm_t *wb )
 int clientstub_open ( comm_t *wb, const char *pathname, int flags )
 {
     int ret, fd ;
+    msg_t msg ;
 
     // Send open msg
-    ret = mfs_comm_request_send(wb, 0, REQ_ACTION_OPEN, strlen(pathname) + 1, flags) ;
+    msg.req_action = REQ_ACTION_OPEN ;
+    msg.req_arg1   = strlen(pathname) + 1 ;
+    msg.req_arg2   = flags ;
+
+    ret = mfs_protocol_request_send(wb, 0, &msg) ;
     if (ret < 0) {
         return -1 ;
     }
@@ -111,9 +121,14 @@ int clientstub_open ( comm_t *wb, const char *pathname, int flags )
 int clientstub_close ( comm_t *wb, int fd )
 {
     int ret ;
+    msg_t msg ;
 
     // Send close msg
-    ret = mfs_comm_request_send(wb, 0, REQ_ACTION_CLOSE, fd, 0) ;
+    msg.req_action = REQ_ACTION_CLOSE ;
+    msg.req_arg1   = fd ;
+    msg.req_arg2   = 0 ;
+
+    ret = mfs_protocol_request_send(wb, 0, &msg) ;
     if (ret < 0) {
         return -1 ;
     }
@@ -125,9 +140,14 @@ int clientstub_close ( comm_t *wb, int fd )
 int clientstub_read ( comm_t *wb, int fd, void *buff_char, int count )
 {
     int ret ;
+    msg_t msg ;
 
     // Send read msg
-    ret = mfs_comm_request_send(wb, 0, REQ_ACTION_READ, fd, count) ;
+    msg.req_action = REQ_ACTION_READ ;
+    msg.req_arg1   = fd ;
+    msg.req_arg2   = count ;
+
+    ret = mfs_protocol_request_send(wb, 0, &msg) ;
     if (ret < 0) {
         return -1 ;
     }
@@ -146,9 +166,14 @@ int clientstub_read ( comm_t *wb, int fd, void *buff_char, int count )
 int clientstub_write ( comm_t *wb, int fd, void *buff_char, int count )
 {
     int ret ;
+    msg_t msg ;
 
     // Send write msg
-    ret = mfs_comm_request_send(wb, 0, REQ_ACTION_WRITE, fd, count) ;
+    msg.req_action = REQ_ACTION_WRITE ;
+    msg.req_arg1   = fd ;
+    msg.req_arg2   = count ;
+
+    ret = mfs_protocol_request_send(wb, 0, &msg) ;
     if (ret < 0) {
         return -1 ;
     }

@@ -25,7 +25,8 @@
     // Includes
     #include "mpi.h"
     #include "mfs_lib.h"
-    #include "mfs_comm.h"
+    #include "mfs_protocol.h"
+
 
     // File System API
     int clientstub_init     ( comm_t *wb, int *argc, char ***argv ) ;

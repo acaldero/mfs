@@ -1,4 +1,4 @@
-# MPI_PFS (v0.7)
+# MPI_PFS (v0.8)
 Prototype of MPI_PFS
 
 ## Getting started

@@ -21,6 +21,7 @@
 
 
 #include <stdio.h>
+#include "mfs_protocol.h"
 #include "mfs_client_stub.h"
 
 #define STR_SIZE 1024

@@ -19,32 +19,40 @@
  *
  */
 
-#ifndef __MFS_LIB_H__
-#define __MFS_LIB_H__
-
-  #include <stdio.h>
-  #include <stdlib.h>
-  #include <string.h>
-  #include <stdarg.h>
-  #include <sys/time.h>
-  #include <fcntl.h>
-  #include <unistd.h>
-  #include <mpi.h>
+#include "mfs_protocol.h"
 
 
-  // publish name prefix
-  #define MFS_SERVER_STUB_PNAME    "mfs_server_v1"
+//
+// Send request "header"
+//
 
-  // debug: levels
-  #define DBG_ERROR    1, __FILE__, __LINE__, stderr
-  #define DBG_WARNING  2, __FILE__, __LINE__, stderr
-  #define DBG_INFO     3, __FILE__, __LINE__, stdout
+int mfs_protocol_request_send ( comm_t *cb, int rank, msg_t *msg )
+{
+    int ret ;
 
-  // debug: API
-  int mfs_print ( int src_type, char *src_fname, long src_line, FILE *fd, char *msg_fmt, ... ) ;
+    // Send msg
+    ret = mfs_comm_send_data_to(cb, rank, msg, 3, MPI_INT) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "[PROTOCOL]: MPI_Send fails :-(") ;
+        return -1 ;
+    }
 
-  // time: API
-  long mfs_get_time ( void ) ;
+    // Return OK/KO
+    return ret ;
+}
 
-#endif
+int mfs_protocol_request_receive ( comm_t *cb, msg_t *msg )
+{
+    int ret ;
+
+    // Receive msg
+    ret = mfs_comm_recv_data_from(cb, MPI_ANY_SOURCE, msg, 3, MPI_INT) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "[PROTOCOL]: MPI_Recv fails :-(") ;
+        return -1 ;
+    }
+
+    // Return OK/KO
+    return ret ;
+}
 

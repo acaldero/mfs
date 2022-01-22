@@ -19,20 +19,36 @@
  *
  */
 
-#ifndef __MFS_MSG_H__
-#define __MFS_MSG_H__
+#ifndef __MFS_PROTOCOL_H__
+#define __MFS_PROTOCOL_H__
 
-  #include <mfs_lib.h>
-  #include <mpi.h>
+    // Includes
+    #include "mfs_lib.h"
+    #include "mfs_comm.h"
 
-  // messages
-  #define REQ_ACTION_NONE       0
-  #define REQ_ACTION_DISCONNECT 1
 
-  #define REQ_ACTION_OPEN       10
-  #define REQ_ACTION_CLOSE      11
-  #define REQ_ACTION_READ       12
-  #define REQ_ACTION_WRITE      13
+    // Messages
+    #define REQ_ACTION_NONE       0
+    #define REQ_ACTION_DISCONNECT 1
+
+    #define REQ_ACTION_OPEN       10
+    #define REQ_ACTION_CLOSE      11
+    #define REQ_ACTION_READ       12
+    #define REQ_ACTION_WRITE      13
+
+
+    // Datatypes
+    typedef struct
+    {
+        int  req_action ;
+        int  req_arg1 ;
+        int  req_arg2 ;
+    } msg_t ;
+
+
+    // Communications
+    int mfs_protocol_request_send    ( comm_t *cb, int rank, msg_t *msg ) ;
+    int mfs_protocol_request_receive ( comm_t *cb,           msg_t *msg ) ;
 
 #endif
 

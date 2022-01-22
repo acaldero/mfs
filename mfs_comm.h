@@ -31,7 +31,7 @@
     #include <fcntl.h>
     #include <unistd.h>
     #include <mpi.h>
-    #include "mfs_msg.h"
+    #include "mfs_lib.h"
 
 
     // Datatypes
