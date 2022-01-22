@@ -22,25 +22,51 @@
 #ifndef __MFS_COMM_H__
 #define __MFS_COMM_H__
 
-  #include <stdio.h>
-  #include <stdlib.h>
-  #include <string.h>
-  #include <stdarg.h>
-  #include <sys/time.h>
-  #include <fcntl.h>
-  #include <unistd.h>
-  #include <mpi.h>
-  #include "mfs_msg.h"
+    // Includes
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <stdarg.h>
+    #include <sys/time.h>
+    #include <fcntl.h>
+    #include <unistd.h>
+    #include <mpi.h>
+    #include "mfs_msg.h"
 
-  int mfs_comm_connect           ( char *srv_name, char *port_name, MPI_Comm *server ) ;
 
-  int mfs_comm_request_send      ( MPI_Comm local,  int rank, int  req_action, int  req_arg1, int  req_arg2 ) ;
-  int mfs_comm_request_receive   ( MPI_Comm local,            int *req_action, int *req_arg1, int *req_arg2 ) ;
+    // Datatypes
+    typedef struct
+    {
+        // server port and name
+        char port_name[MPI_MAX_PORT_NAME] ;
+        char  srv_name[MPI_MAX_PORT_NAME] ;
 
-  int mfs_comm_send_data_to      ( MPI_Comm remote,   int rank, void *buff, int size, int datatype ) ;
-  int mfs_comm_recv_data_fromany ( MPI_Comm remote, void *buff,   int size, int datatype ) ;
-  int mfs_comm_recv_data_from    ( MPI_Comm remote,   int rank, void *buff, int size, int datatype ) ;
+        // destination
+        MPI_Comm endpoint ;
+
+        // local identification
+        int  size ;
+        int  rank ;
+
+    } comm_t ;
+
+
+    // Communications
+    int mfs_comm_init     ( comm_t *cb, int *argc, char ***argv ) ;
+    int mfs_comm_finalize ( comm_t *cb ) ;
+
+    int mfs_comm_register   ( comm_t *cb ) ;
+    int mfs_comm_unregister ( comm_t *cb ) ;
+
+    int mfs_comm_accept     ( comm_t *ab, comm_t *wb ) ;
+    int mfs_comm_connect    ( comm_t *cb ) ;
+    int mfs_comm_disconnect ( comm_t *cb ) ;
+
+    int mfs_comm_request_send    ( comm_t *cb, int rank, int  req_action, int  req_arg1, int  req_arg2 ) ;
+    int mfs_comm_request_receive ( comm_t *cb,           int *req_action, int *req_arg1, int *req_arg2 ) ;
+
+    int mfs_comm_recv_data_from    ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
+    int mfs_comm_send_data_to      ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
 
 #endif
-
 

@@ -31,32 +31,17 @@
     // Const
     #define MFS_DATA_PREFIX "./data/"
     
-    // Datatypes
-    typedef struct
-    {
-        // server identification
-        int  size ;
-        int  rank ;
-        char port_name[MPI_MAX_PORT_NAME] ;
-        char  srv_name[MPI_MAX_PORT_NAME] ;
-
-        // associated client
-        MPI_Comm client ;
-
-    } server_stub_t ;
-    
-    
     // General API
-    int serverstub_init         ( server_stub_t *wb, int *argc, char ***argv ) ;
-    int serverstub_finalize     ( server_stub_t *wb ) ;
-    int serverstub_accept       ( server_stub_t *ab, server_stub_t *wb ) ;
-    int serverstub_disconnect   ( server_stub_t *ab ) ;
+    int serverstub_init         ( comm_t *wb, int *argc, char ***argv ) ;
+    int serverstub_finalize     ( comm_t *wb ) ;
+    int serverstub_accept       ( comm_t *ab, comm_t *wb ) ;
+    int serverstub_disconnect   ( comm_t *ab ) ;
 
     // File System API
-    int serverstub_open  ( server_stub_t *ab, int pathname_length, int flags ) ;
-    int serverstub_close ( server_stub_t *ab, int fd ) ;
-    int serverstub_read  ( server_stub_t *ab, int fd, int count ) ;
-    int serverstub_write ( server_stub_t *ab, int fd, int count ) ;
+    int serverstub_open  ( comm_t *ab, int pathname_length, int flags ) ;
+    int serverstub_close ( comm_t *ab, int fd ) ;
+    int serverstub_read  ( comm_t *ab, int fd, int count ) ;
+    int serverstub_write ( comm_t *ab, int fd, int count ) ;
 
 #endif
 

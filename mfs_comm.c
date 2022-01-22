@@ -23,24 +23,136 @@
 
 
 //
-// Connect and Disconnect
+// Init, Finalize
 //
 
-int mfs_comm_connect ( char *srv_name, char *port_name, MPI_Comm *server )
+int mfs_comm_init ( comm_t *cb, int *argc, char ***argv )
+{
+    int ret, claimed, provided ;
+
+    // MPI_Init
+    ret = MPI_Init_thread(argc, argv, MPI_THREAD_MULTIPLE, &provided) ;
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_ERROR, "[COMM]: MPI_Init fails :-(") ;
+        return -1 ;
+    }
+
+    // cb->rank = comm_rank()
+    ret = MPI_Comm_rank(MPI_COMM_WORLD, &(cb->rank));
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_rank fails :-(") ;
+        return -1 ;
+    }
+
+    MPI_Query_thread(&claimed) ;
+    if (claimed != provided) {
+        mfs_print(DBG_WARNING, "[COMM]: MPI_Init_thread with only %s :-/", provided) ;
+    }
+
+    // cb->size = comm_size()
+    ret = MPI_Comm_size(MPI_COMM_WORLD, &(cb->size));
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_size fails :-(") ;
+        return -1 ;
+    }
+
+    // Return OK
+    return 0 ;
+}
+
+int mfs_comm_finalize ( comm_t *cb )
 {
     int ret ;
 
-    // Lookup port name
-    sprintf(srv_name, "%s.%d", MFS_SERVER_STUB_PNAME, rank) ;
+    // Finalize
+    ret = MPI_Finalize() ;
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_ERROR, "[COMM]: MPI_Finalize fails :-(") ;
+        return -1 ;
+    }
 
-    ret = MPI_Lookup_name(srv_name, MPI_INFO_NULL, port_name) ;
+    // Return OK
+    return 0 ;
+}
+
+
+//
+// Register, unregister, connect, disconnect
+//
+
+int mfs_comm_register ( comm_t *cb )
+{
+    int ret ;
+
+    // Open server port...
+    ret = MPI_Open_port(MPI_INFO_NULL, cb->port_name);
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_ERROR, "[COMM]: MPI_Open_port fails :-(") ;
+        return -1 ;
+    }
+
+    MPI_Info info ;
+    MPI_Info_create(&info) ;
+    MPI_Info_set(info, "ompi_global_scope", "true") ;
+
+    ret = MPI_Publish_name(cb->srv_name, info, cb->port_name) ;
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_ERROR, "[COMM]: MPI_Publish_name fails :-(") ;
+        return -1 ;
+    }
+
+    // Return OK
+    return 0 ;
+}
+
+int mfs_comm_unregister ( comm_t *cb )
+{
+    int ret ;
+
+    // Unpublish port name
+    ret = MPI_Unpublish_name(cb->srv_name, MPI_INFO_NULL, cb->port_name) ;
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_ERROR, "[COMM]: MPI_Unpublish_name fails :-(") ;
+        return -1 ;
+    }
+
+    // Close port
+    MPI_Close_port(cb->port_name) ;
+
+    // Return OK
+    return 0 ;
+}
+
+int mfs_comm_accept ( comm_t *ab, comm_t *wb )
+{
+    int ret ;
+
+    // *ab = *wb ;
+    memmove(ab, wb, sizeof(comm_t)) ;
+
+    // Accept
+    ret = MPI_Comm_accept(ab->port_name, MPI_INFO_NULL, 0, MPI_COMM_SELF, &(ab->endpoint)) ;
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_accept fails :-(") ;
+        return -1 ;
+    }
+
+    // Return OK
+    return 0 ;
+}
+
+int mfs_comm_connect ( comm_t *cb )
+{
+    int ret ;
+
+    ret = MPI_Lookup_name(cb->srv_name, MPI_INFO_NULL, cb->port_name) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "[COMM]: MPI_Lookup_name fails :-(") ;
         return -1 ;
     }
 
     // Connect...
-    ret = MPI_Comm_connect(port_name, MPI_INFO_NULL, 0, MPI_COMM_SELF, server) ;
+    ret = MPI_Comm_connect(cb->port_name, MPI_INFO_NULL, 0, MPI_COMM_SELF, &(cb->endpoint)) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_connect fails :-(") ;
         return -1 ;
@@ -50,8 +162,19 @@ int mfs_comm_connect ( char *srv_name, char *port_name, MPI_Comm *server )
     return 1 ;
 }
 
-int mfs_comm_disconnect ( void )
+int mfs_comm_disconnect ( comm_t *cb )
 {
+    int ret ;
+
+    // Disconnect...
+    ret = MPI_Comm_disconnect(&(cb->endpoint)) ;
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_disconnect fails :-(") ;
+        return -1 ;
+    }
+
+    // Return OK
+    return 1 ;
 }
 
 
@@ -59,7 +182,7 @@ int mfs_comm_disconnect ( void )
 // Send request "header"
 //
 
-int mfs_comm_request_send ( MPI_Comm local, int rank, int req_action, int req_arg1, int req_arg2 )
+int mfs_comm_request_send ( comm_t *cb, int rank, int req_action, int req_arg1, int req_arg2 )
 {
     int ret ;
     int buff[3] ;
@@ -70,7 +193,7 @@ int mfs_comm_request_send ( MPI_Comm local, int rank, int req_action, int req_ar
     buff[2] = req_arg2 ;
 
     // send msg
-    ret = MPI_Send(buff, 3, MPI_INT, rank, 0, local) ;
+    ret = MPI_Send(buff, 3, MPI_INT, rank, 0, cb->endpoint) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "[COMM]: MPI_Send fails :-(") ;
         return -1 ;
@@ -80,13 +203,13 @@ int mfs_comm_request_send ( MPI_Comm local, int rank, int req_action, int req_ar
     return ret ;
 }
 
-int mfs_comm_request_receive ( MPI_Comm local, int *req_action, int *req_arg1, int *req_arg2 )
+int mfs_comm_request_receive ( comm_t *cb, int *req_action, int *req_arg1, int *req_arg2 )
 {
     int ret ;
     int buff[3] ;
 
     // receive msg
-    ret = mfs_comm_recv_data_from(local, MPI_ANY_SOURCE, buff, 3, MPI_INT) ;
+    ret = mfs_comm_recv_data_from(cb, MPI_ANY_SOURCE, buff, 3, MPI_INT) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "[COMM]: MPI_Recv fails :-(") ;
         return -1 ;
@@ -106,13 +229,13 @@ int mfs_comm_request_receive ( MPI_Comm local, int *req_action, int *req_arg1, i
 // Send/Receive buffer of data
 //
 
-int mfs_comm_recv_data_fromany ( MPI_Comm remote, void *buff, int size, int datatype )
+int mfs_comm_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype )
 {
     int ret ;
     MPI_Status status;
 
     // Get CMD message
-    ret = MPI_Recv(buff, size, datatype, MPI_ANY_SOURCE, 0, remote, &status) ;
+    ret = MPI_Recv(buff, size, datatype, rank, 0, cb->endpoint, &status) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_WARNING, "[COMM]: MPI_Recv fails :-(") ;
         return -1 ;
@@ -122,28 +245,12 @@ int mfs_comm_recv_data_fromany ( MPI_Comm remote, void *buff, int size, int data
     return 1 ;
 }
 
-int mfs_comm_recv_data_from ( MPI_Comm remote, int rank, void *buff, int size, int datatype )
-{
-    int ret ;
-    MPI_Status status;
-
-    // Get CMD message
-    ret = MPI_Recv(buff, size, datatype, rank, 0, remote, &status) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_WARNING, "[COMM]: MPI_Recv fails :-(") ;
-        return -1 ;
-    }
-
-    // Return OK
-    return 1 ;
-}
-
-int mfs_comm_send_data_to  ( MPI_Comm remote, int rank, void *buff, int size, int datatype )
+int mfs_comm_send_data_to  ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype )
 {
     int ret ;
 
     // Send answer
-    ret = MPI_Send(buff, size, datatype, rank, 0, remote) ;
+    ret = MPI_Send(buff, size, datatype, rank, 0, cb->endpoint) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_WARNING, "[COMM]: MPI_Send fails :-(") ;
         return -1 ;

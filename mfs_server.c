@@ -22,6 +22,7 @@
 
 #include <signal.h>
 #include <pthread.h>
+#include "mfs_comm.h"
 #include "mfs_server_stub.h"
 
 
@@ -55,14 +56,14 @@ void do_stats_ctrc ( int sigid )
 void *do_srv ( void *wb )
 {
     int again;
-    server_stub_t ab ;
+    comm_t ab ;
     int buff_int[3] ;
     int ret ;
     int fd ;
 
     // copy arguments and signal...
     pthread_mutex_lock(&sync_mutex) ;
-    ab = *((server_stub_t *)wb) ;
+    ab = *((comm_t *)wb) ;
     sync_copied = 1 ;
     active_threads++ ;
     pthread_cond_signal(&sync_cond) ;
@@ -74,7 +75,7 @@ void *do_srv ( void *wb )
     while (again)
     {
           mfs_print(DBG_INFO, "Server[%d]: receiving...\n", ab.rank) ;
-          mfs_comm_request_receive(ab.client, &(buff_int[0]), &(buff_int[1]), &(buff_int[2])) ;
+          mfs_comm_request_receive(&ab, &(buff_int[0]), &(buff_int[1]), &(buff_int[2])) ;
           switch (buff_int[0])
           {
               case REQ_ACTION_NONE:
@@ -136,8 +137,8 @@ void *do_srv ( void *wb )
 int main ( int argc, char **argv )
 {
     int ret ;
-    server_stub_t wb ;
-    server_stub_t ab ;
+    comm_t wb ;
+    comm_t ab ;
     pthread_attr_t attr ;
     pthread_t thid ;
 

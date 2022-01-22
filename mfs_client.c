@@ -27,7 +27,7 @@
 
 int main ( int argc, char **argv )
 {
-    client_stub_t wb ;
+    comm_t wb ;
     int ret ;
     int i, fd ;
     char str[STR_SIZE] ;

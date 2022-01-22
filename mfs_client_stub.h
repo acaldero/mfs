@@ -26,31 +26,15 @@
     #include "mpi.h"
     #include "mfs_lib.h"
     #include "mfs_comm.h"
-    
-    
-    // Datatypes
-    typedef struct
-    {
-        // server port and comm
-        char port_name[MPI_MAX_PORT_NAME] ;
-        char  srv_name[MPI_MAX_PORT_NAME] ;
-        MPI_Comm server ;
-    
-        // client identification
-        int  size ;
-        int  rank ;
-    
-    } client_stub_t ;
-    
-    
-    // File System API
-    int clientstub_init     ( client_stub_t *wb, int *argc, char ***argv ) ;
-    int clientstub_finalize ( client_stub_t *wb ) ;
 
-    int clientstub_open  ( client_stub_t *wb, const char *pathname, int flags ) ;
-    int clientstub_close ( client_stub_t *wb, int fd ) ;
-    int clientstub_read  ( client_stub_t *wb, int fd, void *buf, int count ) ;
-    int clientstub_write ( client_stub_t *wb, int fd, void *buf, int count ) ;
+    // File System API
+    int clientstub_init     ( comm_t *wb, int *argc, char ***argv ) ;
+    int clientstub_finalize ( comm_t *wb ) ;
+
+    int clientstub_open  ( comm_t *wb, const char *pathname, int flags ) ;
+    int clientstub_close ( comm_t *wb, int fd ) ;
+    int clientstub_read  ( comm_t *wb, int fd, void *buf, int count ) ;
+    int clientstub_write ( comm_t *wb, int fd, void *buf, int count ) ;
 
 #endif
 

@@ -23,54 +23,23 @@
 #include "mfs_server_stub.h"
 
 
-int serverstub_init ( server_stub_t *wb, int *argc, char ***argv )
+int serverstub_init ( comm_t *wb, int *argc, char ***argv )
 {
-    int ret, claimed, provided ;
+    int ret ;
 
-    // MPI_Init
-    ret = MPI_Init_thread(argc, argv, MPI_THREAD_MULTIPLE, &provided) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "Server[%d]: MPI_Init fails :-(", -1) ;
+    // Initialize
+    ret = mfs_comm_init(wb, argc, argv) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: initialization fails :-(", -1) ;
         return -1 ;
     }
 
-    // wb->rank = comm_rank()
-    ret = MPI_Comm_rank(MPI_COMM_WORLD, &(wb->rank));
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "Server[%d]: MPI_Comm_rank fails :-(", wb->rank) ;
-        return -1 ;
-    }
-
-    MPI_Query_thread(&claimed) ;
-    if (claimed != provided) {
-        mfs_print(DBG_WARNING, "Server[%d]: MPI_Init_thread with only %s :-/", wb->rank, provided) ;
-    }
-
-    // wb->size = comm_size()
-    ret = MPI_Comm_size(MPI_COMM_WORLD, &(wb->size));
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "Server[%d]: MPI_Comm_size fails :-(", wb->rank) ;
-        return -1 ;
-    }
-
-    // Open server port...
-    ret = MPI_Open_port(MPI_INFO_NULL, wb->port_name);
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "Server[%d]: MPI_Open_port fails :-(", wb->rank) ;
-        return -1 ;
-    }
-
-
-    // Publish port name
+    // Register service
     sprintf(wb->srv_name, "%s.%d", MFS_SERVER_STUB_PNAME, wb->rank) ;
 
-    MPI_Info info ;
-    MPI_Info_create(&info) ;
-    MPI_Info_set(info, "ompi_global_scope", "true") ;
-
-    ret = MPI_Publish_name(wb->srv_name, info, wb->port_name) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "Server[%d]: MPI_Publish_name fails :-(", wb->rank) ;
+    ret = mfs_comm_register(wb) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: port registration fails :-(", wb->rank) ;
         return -1 ;
     }
 
@@ -78,24 +47,21 @@ int serverstub_init ( server_stub_t *wb, int *argc, char ***argv )
     return 0 ;
 }
 
-int serverstub_finalize ( server_stub_t *wb )
+int serverstub_finalize ( comm_t *wb )
 {
     int ret ;
 
-    // Close port
-    MPI_Close_port(wb->port_name) ;
-
-    // Unpublish port name
-    ret = MPI_Unpublish_name(wb->srv_name, MPI_INFO_NULL, wb->port_name) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "Server[%d]: MPI_Unpublish_name fails :-(", wb->rank) ;
+    // UnRegister
+    ret = mfs_comm_unregister(wb) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: port unregistration fails :-(", wb->rank) ;
         return -1 ;
     }
 
     // Finalize
-    ret = MPI_Finalize() ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "Server[%d]: MPI_Finalize fails :-(", wb->rank) ;
+    ret = mfs_comm_finalize(wb) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: finalization fails :-(", wb->rank) ;
         return -1 ;
     }
 
@@ -103,17 +69,14 @@ int serverstub_finalize ( server_stub_t *wb )
     return 0 ;
 }
 
-int serverstub_accept ( server_stub_t *ab, server_stub_t *wb )
+int serverstub_accept ( comm_t *ab, comm_t *wb )
 {
     int ret ;
 
-    // *ab = *wb ;
-    memmove(ab, wb, sizeof(server_stub_t)) ;
-
-    // Accept
-    ret = MPI_Comm_accept(ab->port_name, MPI_INFO_NULL, 0, MPI_COMM_SELF, &(ab->client)) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "Server[%d]: MPI_Comm_accept fails :-(", ab->rank) ;
+    // Accept connections...
+    ret = mfs_comm_accept(ab, wb) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: accept connections fails :-(", ab->rank) ;
         return -1 ;
     }
 
@@ -121,15 +84,19 @@ int serverstub_accept ( server_stub_t *ab, server_stub_t *wb )
     return 0 ;
 }
 
-int serverstub_disconnect ( server_stub_t *ab )
+int serverstub_disconnect ( comm_t *ab )
 {
     int ret ;
 
     // Disconnect
-    ret = MPI_Comm_disconnect(&(ab->client)) ;
+    ret = mfs_comm_disconnect(ab) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: disconnect fails :-(", ab->rank) ;
+        return -1 ;
+    }
 
     // Return OK/KO
-    return (MPI_SUCCESS == ret) ;
+    return ret ;
 }
 
 
@@ -137,12 +104,11 @@ int serverstub_disconnect ( server_stub_t *ab )
  *  File System API
  */
 
-int serverstub_open ( server_stub_t *ab, int pathname_length, int flags )
+int serverstub_open ( comm_t *ab, int pathname_length, int flags )
 {
     int   ret, fd ;
     int   buff_data_len ;
     char *buff_data ;
-    MPI_Status status;
 
     // prepare filename buffer
     buff_data_len = strlen(MFS_DATA_PREFIX) + pathname_length + 1 ;
@@ -155,7 +121,7 @@ int serverstub_open ( server_stub_t *ab, int pathname_length, int flags )
     // read filename
     memset(buff_data, 0, buff_data_len) ;
     strcpy(buff_data, MFS_DATA_PREFIX) ;
-    ret = mfs_comm_recv_data_from(ab->client, MPI_ANY_SOURCE, buff_data + strlen(MFS_DATA_PREFIX), pathname_length, MPI_CHAR) ;
+    ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_data + strlen(MFS_DATA_PREFIX), pathname_length, MPI_CHAR) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: file name not received :-(", ab->rank) ;
     }
@@ -165,7 +131,7 @@ int serverstub_open ( server_stub_t *ab, int pathname_length, int flags )
     fd = server_files_open(buff_data, flags) ;
 
     // send back file descriptor
-    ret = mfs_comm_send_data_to(ab->client, 0, &fd, 1, MPI_INT) ;
+    ret = mfs_comm_send_data_to(ab, 0, &fd, 1, MPI_INT) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: file descriptor cannot be sent :-(", ab->rank) ;
     }
@@ -177,7 +143,7 @@ int serverstub_open ( server_stub_t *ab, int pathname_length, int flags )
     return fd ;
 }
 
-int serverstub_close ( server_stub_t *ab, int fd )
+int serverstub_close ( comm_t *ab, int fd )
 {
     // close file
     server_files_close(fd) ;
@@ -186,7 +152,7 @@ int serverstub_close ( server_stub_t *ab, int fd )
     return fd ;
 }
 
-int serverstub_read ( server_stub_t *ab, int fd, int count )
+int serverstub_read ( comm_t *ab, int fd, int count )
 {
     int   ret ;
     char *buff_data ;
@@ -203,7 +169,7 @@ int serverstub_read ( server_stub_t *ab, int fd, int count )
     server_files_read(fd, buff_data, count) ;
 
     // send data
-    ret = mfs_comm_send_data_to(ab->client, 0, buff_data, count, MPI_CHAR) ;
+    ret = mfs_comm_send_data_to(ab, 0, buff_data, count, MPI_CHAR) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: data cannot be sent fails :-(", ab->rank) ;
     }
@@ -215,11 +181,10 @@ int serverstub_read ( server_stub_t *ab, int fd, int count )
     return ret ;
 }
 
-int serverstub_write ( server_stub_t *ab, int fd, int count )
+int serverstub_write ( comm_t *ab, int fd, int count )
 {
     int   ret ;
     char *buff_data ;
-    MPI_Status status;
 
     // prepare data buffer
     buff_data = (char *)malloc(count) ;
@@ -230,7 +195,7 @@ int serverstub_write ( server_stub_t *ab, int fd, int count )
 
     // receive data
     memset(buff_data, 0, count) ;
-    ret = mfs_comm_recv_data_from(ab->client, MPI_ANY_SOURCE, buff_data, count, MPI_CHAR) ;
+    ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_data, count, MPI_CHAR) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: data not received :-(", ab->rank) ;
     }
