@@ -87,8 +87,9 @@ int clientstub_finalize ( comm_t *wb )
 
 int clientstub_open ( comm_t *wb, const char *pathname, int flags )
 {
-    int ret, fd ;
-    msg_t msg ;
+    int      ret, fd ;
+    msg_t    msg ;
+    buffer_t info ;
 
     // Send open msg
     msg.req_action = REQ_ACTION_OPEN ;
@@ -97,20 +98,33 @@ int clientstub_open ( comm_t *wb, const char *pathname, int flags )
 
     ret = mfs_protocol_request_send(wb, 0, &msg) ;
     if (ret < 0) {
+        mfs_print(DBG_ERROR, "Client[%d]: open request cannot be sent :-(", wb->rank) ;
         return -1 ;
     }
 
     // Send pathname
-    ret = mfs_comm_send_data_to(wb, 0, (void *)pathname, strlen(pathname) + 1, MPI_CHAR) ;
+    info.buff        = (void *)pathname ;
+    info.size        = strlen(pathname) + 1 ;
+    info.datatype    = MPI_CHAR ;
+    info.err_msg     = "Client[%d]: pathname cannot be sent :-(" ;
+    info.comm_action = COM_SEND_DATA_TO ;
+
+    ret = mfs_comm_send_data_to(wb, 0, info.buff, info.size, info.datatype) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Client[%d]: pathname cannot be sent :-(", wb->rank) ;
+        mfs_print(DBG_ERROR, info.err_msg, wb->rank) ;
         return -1 ;
     }
 
     // Receive descriptor
-    ret = mfs_comm_recv_data_from(wb, 0, &fd, 1, MPI_INT) ;
+    info.buff        = (void *)&fd ;
+    info.size        = 1 ;
+    info.datatype    = MPI_INT ;
+    info.err_msg     = "Client[%d]: file descriptor not received :-(" ;
+    info.comm_action = COM_RECV_DATA_FROM ;
+
+    ret = mfs_comm_recv_data_from(wb, 0, info.buff, info.size, info.datatype) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Client[%d]: file descriptor not received :-(", wb->rank) ;
+        mfs_print(DBG_ERROR, info.err_msg, wb->rank) ;
         return -1 ;
     }
 
@@ -120,8 +134,8 @@ int clientstub_open ( comm_t *wb, const char *pathname, int flags )
 
 int clientstub_close ( comm_t *wb, int fd )
 {
-    int ret ;
-    msg_t msg ;
+    int      ret ;
+    msg_t    msg ;
 
     // Send close msg
     msg.req_action = REQ_ACTION_CLOSE ;
@@ -139,8 +153,9 @@ int clientstub_close ( comm_t *wb, int fd )
 
 int clientstub_read ( comm_t *wb, int fd, void *buff_char, int count )
 {
-    int ret ;
-    msg_t msg ;
+    int      ret ;
+    msg_t    msg ;
+    buffer_t info ;
 
     // Send read msg
     msg.req_action = REQ_ACTION_READ ;
@@ -153,9 +168,15 @@ int clientstub_read ( comm_t *wb, int fd, void *buff_char, int count )
     }
 
     // Receive data
-    ret = mfs_comm_recv_data_from(wb, 0, buff_char, count, MPI_CHAR) ;
+    info.buff        = buff_char ;
+    info.size        = count ;
+    info.datatype    = MPI_CHAR ;
+    info.err_msg     = "Client[%d]: data not received :-(" ;
+    info.comm_action = COM_RECV_DATA_FROM ;
+
+    ret = mfs_comm_recv_data_from(wb, 0, info.buff, info.size, info.datatype) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Client[%d]: data not received :-(", wb->rank) ;
+        mfs_print(DBG_ERROR, info.err_msg, wb->rank) ;
         return -1 ;
     }
 
@@ -165,8 +186,9 @@ int clientstub_read ( comm_t *wb, int fd, void *buff_char, int count )
 
 int clientstub_write ( comm_t *wb, int fd, void *buff_char, int count )
 {
-    int ret ;
-    msg_t msg ;
+    int      ret ;
+    msg_t    msg ;
+    buffer_t info ;
 
     // Send write msg
     msg.req_action = REQ_ACTION_WRITE ;
@@ -179,9 +201,15 @@ int clientstub_write ( comm_t *wb, int fd, void *buff_char, int count )
     }
 
     // Send data
-    ret = mfs_comm_send_data_to(wb, 0, buff_char, count, MPI_CHAR) ;
+    info.buff        = buff_char ;
+    info.size        = count ;
+    info.datatype    = MPI_CHAR ;
+    info.err_msg     = "Client[%d]: data not sent :-(" ;
+    info.comm_action = COM_SEND_DATA_TO ;
+
+    ret = mfs_comm_send_data_to(wb, 0, info.buff, info.size, info.datatype) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Client[%d]: data cannot be sent :-(", wb->rank) ;
+        mfs_print(DBG_ERROR, info.err_msg, wb->rank) ;
         return -1 ;
     }
 

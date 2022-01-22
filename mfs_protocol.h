@@ -36,6 +36,10 @@
     #define REQ_ACTION_READ       12
     #define REQ_ACTION_WRITE      13
 
+    // Comm action
+    #define COM_RECV_DATA_FROM     10
+    #define COM_SEND_DATA_TO       20
+
 
     // Datatypes
     typedef struct
@@ -45,10 +49,21 @@
         int  req_arg2 ;
     } msg_t ;
 
+    typedef struct
+    {
+	void        *buff ;
+	int          size ;
+	MPI_Datatype datatype ;
+	int          comm_action ;
+	char        *err_msg ;
+    } buffer_t ;
+
 
     // Communications
     int mfs_protocol_request_send    ( comm_t *cb, int rank, msg_t *msg ) ;
     int mfs_protocol_request_receive ( comm_t *cb,           msg_t *msg ) ;
+
+    int mfs_protocol_request_do      ( comm_t *wb, buffer_t *info, int neltos ) ;
 
 #endif
 

@@ -56,3 +56,24 @@ int mfs_protocol_request_receive ( comm_t *cb, msg_t *msg )
     return ret ;
 }
 
+int mfs_protocol_request_do ( comm_t *wb, buffer_t *info, int neltos )
+{
+    int ret ;
+
+    ret = 1 ;
+    for (int i=0; i<neltos; i++)
+    {
+	 if (COM_SEND_DATA_TO == info.comm_action)
+             ret =   mfs_comm_send_data_to(wb, 0, info[i].buff, info[i].size, info[i].datatype) ;
+	 if (COM_RECV_DATA_FROM == info.comm_action)
+	     ret = mfs_comm_recv_data_from(wb, 0, info[i].buff, info[i].size, info[i].datatype) ;
+
+	 if (ret < 0) {
+	     mfs_print(DBG_ERROR, info[i].err_msg, wb->rank) ;
+	     return -1 ;
+	 }
+    }
+
+    // Return OK/KO
+    return ret ;
+}
