@@ -186,23 +186,28 @@ int serverstub_read2 ( comm_t *ab, int fd, int count )
     int          ret ;
     char        *buff_data ;
     struct stat  fdstat ;
+    off_t        offset ;
+
+    // prepare st_size and offset
+    fstat(fd, &fdstat) ;
+    offset = lseek(fd, 0L, SEEK_CUR) ;
 
     // prepare data buffer
-    fstat(fd, &fdstat) ;
-    buff_data = server_files_mmap(NULL, fdstat.st_size, PROT_READ, MAP_SHARED, fd, 0) ;
+    buff_data = (char *)server_files_mmap(NULL, fdstat.st_size, PROT_READ, MAP_SHARED, fd, 0) ;
     if (NULL == buff_data) {
         mfs_print(DBG_ERROR, "Server[%d]: mmap(%d, ... %d) fails :-(", ab->rank, fd, count) ;
 	return -1 ;
     }
 
     // send data
-    ret = mfs_comm_send_data_to(ab, 0, buff_data, count, MPI_CHAR) ;
+    ret = mfs_comm_send_data_to(ab, 0, buff_data+offset, count, MPI_CHAR) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: data cannot be sent fails :-(", ab->rank) ;
     }
 
     // free data buffer
     server_files_munmap(buff_data, fdstat.st_size) ;
+    lseek(fd, count, SEEK_CUR) ;
 
     // Return OK/KO
     return ret ;

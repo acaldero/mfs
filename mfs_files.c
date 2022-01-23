@@ -82,7 +82,7 @@ void * server_files_mmap ( void *addr, size_t size, int protect, int flags, int 
 {
     void *ptr ;
 
-    ptr = mmap(addr, length, protect, flags, filedes, offset) ;
+    ptr = mmap(addr, size, protect, flags, filedes, offset) ;
     if (ptr == MAP_FAILED) {
 	mfs_print(DBG_INFO, "ERROR: mapping failed\n") ;
         return NULL ;
