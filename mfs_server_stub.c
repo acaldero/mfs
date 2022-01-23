@@ -294,53 +294,6 @@ int serverstub_write ( comm_t *ab, int fd, int count )
  *  File System API (2)
  */
 
-int serverstub_write2 ( comm_t *ab, int fd, int count )
-{
-    int ret ;
-    buffer_t info[4] ;
-
-    // Prepare data buffer
-    info[0].buff        = &(info[0].buff) ; // TODO
-    info[0].size        = count ;
-    info[0].datatype    = MPI_CHAR ;
-    info[0].remote      = 0 ;
-    info[0].err_msg     = "Server[%d]: malloc(%d) fails :-(" ;
-    info[0].comm_action = COM_MALLOC ;
-
-    // Receive data
-    info[1].buff        = &(info[0].buff) ; // TODO
-    info[1].size        = count ;
-    info[1].datatype    = MPI_CHAR ;
-    info[1].remote      = MPI_ANY_SOURCE ;
-    info[1].err_msg     = "Server[%d]: data not received :-(" ;
-    info[1].comm_action = COM_RECV_DATA_FROM ;
-
-    // Write data
-    info[2].buff        = &(info[0].buff) ; // TODO
-    info[2].size        = count ;
-    info[2].datatype    = MPI_CHAR ;
-    info[2].remote      = fd ;
-    info[2].err_msg     = "Server[%d]: data not written :-(" ;
-    info[2].comm_action = COM_FILE_WRITE ; // server_files_write(fd, buff, count) ;
-
-    // Free data buffer
-    info[3].buff        = &(info[0].buff) ; // TODO
-    info[3].size        = 0 ;
-    info[3].datatype    = MPI_CHAR ;
-    info[3].remote      = 0 ;
-    info[3].err_msg     = "Server[%d]: problem on free :-(" ;
-    info[3].comm_action = COM_FREE ; // mfs_free(&buff_data) ;
-
-    // Return OK/KO
-    ret = mfs_protocol_request_do(ab, info, 4) ;
-    if (ret < 0) {
-        return -1 ;
-    }
-
-    // Return OK/KO
-    return info[2].size ;
-}
-
 int serverstub_read2 ( comm_t *ab, int fd, int count )
 {
     int          ret ;
