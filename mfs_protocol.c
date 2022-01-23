@@ -63,14 +63,18 @@ int mfs_protocol_request_do ( comm_t *wb, buffer_t *info, int neltos )
     ret = 1 ;
     for (int i=0; i<neltos; i++)
     {
-	 if (COM_REQ_ACTION == info[i].comm_action) {
-             ret =   mfs_comm_send_data_to(wb, 0, info[i].buff, info[i].size, info[i].datatype) ;
-         }
 	 if (COM_SEND_DATA_TO == info[i].comm_action) {
              ret =   mfs_comm_send_data_to(wb, 0, info[i].buff, info[i].size, info[i].datatype) ;
          }
 	 if (COM_RECV_DATA_FROM == info[i].comm_action) {
 	     ret = mfs_comm_recv_data_from(wb, 0, info[i].buff, info[i].size, info[i].datatype) ;
+         }
+
+	 if (COM_MALLOC == info[i].comm_action) {
+             ret = mfs_malloc(&(info[i].buff), info[i].size) ;
+         }
+	 if (COM_FREE   == info[i].comm_action) {
+             ret = mfs_free(&(info[i].buff)) ;
          }
 
 	 if (ret < 0) {

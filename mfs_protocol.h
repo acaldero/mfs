@@ -39,7 +39,8 @@
     // Comm action
     #define COM_RECV_DATA_FROM     10
     #define COM_SEND_DATA_TO       20
-    #define COM_REQ_ACTION         30
+    #define COM_MALLOC             30
+    #define COM_FREE               40
 
 
     // Datatypes
@@ -64,7 +65,8 @@
     int mfs_protocol_request_send    ( comm_t *cb, int rank, msg_t *msg ) ;
     int mfs_protocol_request_receive ( comm_t *cb,           msg_t *msg ) ;
 
-    int mfs_protocol_request_do      ( comm_t *wb, buffer_t *info, int neltos ) ;
+    // Array of actions
+    int mfs_protocol_request_do ( comm_t *wb, buffer_t *info, int neltos ) ;
 
 #endif
 
