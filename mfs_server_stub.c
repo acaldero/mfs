@@ -120,7 +120,7 @@ int serverstub_open ( comm_t *ab, int pathname_length, int flags )
     buff_data_len = strlen(MFS_DATA_PREFIX) + pathname_length + 1 ;
 
     // prepare filename buffer
-    if (ret >= 0)
+    // if (ret >= 0)
     {
         ret = mfs_malloc(&buff_data, buff_data_len) ;
         if (ret < 0) {
@@ -301,13 +301,30 @@ buffer_t info_write[] = {
                    { NULL, 0, MPI_CHAR, 0,              COM_FREE,           "Server[%d]: problem on free :-("   }
                         } ;
 
+int serverstub_close2 ( comm_t *ab, int fd )
+{
+    buffer_t info[1] ;
+
+    // close file
+    info[0].buff        = NULL ;
+    info[0].size        = 0 ;
+    info[0].datatype    = MPI_CHAR ;
+    info[0].remote      = fd ;
+    info[0].err_msg     = "Server[%d]: close(%d) fails :-(" ;
+    info[0].comm_action = COM_FILE_CLOSE ;
+
+    // Return OK/KO
+    return mfs_protocol_request_do(ab, info, 4) ;
+}
+
 int serverstub_write2 ( comm_t *ab, int fd, int count )
 {
     int ret ;
     buffer_t info[4] ;
+    char *ptr ;
 
     // Prepare data buffer
-    info[0].buff        = &(info[0].buff) ; // TODO
+    info[0].buff        = &ptr ;
     info[0].size        = count ;
     info[0].datatype    = MPI_CHAR ;
     info[0].remote      = 0 ;
@@ -315,15 +332,15 @@ int serverstub_write2 ( comm_t *ab, int fd, int count )
     info[0].comm_action = COM_MALLOC ;
 
     // Receive data
-    info[1].buff        = &(info[0].buff) ; // TODO
+    info[1].buff        = &ptr ;
     info[1].size        = count ;
     info[1].datatype    = MPI_CHAR ;
     info[1].remote      = MPI_ANY_SOURCE ;
     info[1].err_msg     = "Server[%d]: data not received :-(" ;
-    info[1].comm_action = COM_RECV_DATA_FROM ;
+    info[1].comm_action = COM_RECV_PTRDATA_FROM ;
 
     // Write data
-    info[2].buff        = &(info[0].buff) ; // TODO
+    info[2].buff        = &ptr ; // TODO
     info[2].size        = count ;
     info[2].datatype    = MPI_CHAR ;
     info[2].remote      = fd ;
@@ -331,14 +348,14 @@ int serverstub_write2 ( comm_t *ab, int fd, int count )
     info[2].comm_action = COM_FILE_WRITE ; // server_files_write(fd, buff, count) ;
 
     // Free data buffer
-    info[3].buff        = &(info[0].buff) ; // TODO
+    info[3].buff        = &ptr ;
     info[3].size        = 0 ;
     info[3].datatype    = MPI_CHAR ;
     info[3].remote      = 0 ;
     info[3].err_msg     = "Server[%d]: problem on free :-(" ;
     info[3].comm_action = COM_FREE ; // mfs_free(&buff_data) ;
 
-    // Return OK/KO
+    // Do requests
     ret = mfs_protocol_request_do(ab, info, 4) ;
     if (ret < 0) {
         return -1 ;
@@ -348,7 +365,7 @@ int serverstub_write2 ( comm_t *ab, int fd, int count )
     return info[2].size ;
 }
 
-int serverstub_read2 ( comm_t *ab, int fd, int count )
+int serverstub_read3 ( comm_t *ab, int fd, int count )
 {
     int          ret ;
     char        *buff_data ;

@@ -186,6 +186,40 @@ int clientstub_write ( comm_t *wb, int fd, void *buff_char, int count )
  *  File System API (2)
  */
 
+/*
+#define CLNT_API_OPEN	0
+#define CLNT_API_CLOSE	1
+#define CLNT_API_READ	2
+#define CLNT_API_WRITE	3
+
+buffer_t clnt_api[][] = {
+			  {
+			     // Send open request
+			     { NULL, 3, MPI_INT,  0, COM_SEND_DATA_TO,   "Client[%d]: open request cannot be sent :-(" },
+			     // Send pathname
+			     { NULL, 0, MPI_CHAR, 0, COM_SEND_DATA_TO,   "Client[%d]: pathname cannot be sent :-(" },
+			     // Receive descriptor
+			     { NULL, 1, MPI_INT,  0, COM_RECV_DATA_FROM, "Client[%d]: file descriptor not received :-(" }
+			  },
+		    	  {
+			     // Send close request
+			     { NULL, 3, MPI_INT,  0, COM_SEND_DATA_TO,   "Client[%d]: close request cannot be sent :-(" }
+			  },
+		    	  {
+			     // Send read request
+			     { NULL, 3, MPI_INT,  0, COM_SEND_DATA_TO,   "Client[%d]: read request cannot be sent :-(" },
+			     // Receive data
+			     { NULL, 0, MPI_CHAR, 0, COM_RECV_DATA_FROM, "Client[%d]: data not received :-(" }
+			  },
+		  	  {
+			     // Send write request
+			     { NULL, 3, MPI_INT,  0, COM_SEND_DATA_TO,   "Client[%d]: write request cannot be sent :-(" },
+			     // Send data
+			     { NULL, 0, MPI_CHAR, 0, COM_SEND_DATA_TO,   "Client[%d]: data not sent :-(" }
+		  	  }
+			} ;
+*/
+
 int clientstub_open2 ( comm_t *wb, const char *pathname, int flags )
 {
     int      ret, fd ;

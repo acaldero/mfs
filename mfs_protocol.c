@@ -74,10 +74,17 @@ int mfs_protocol_request_do ( comm_t *wb, buffer_t *info, int neltos )
                   break;
 
              case COM_MALLOC:
-                  ret = mfs_malloc((char **)&(info[i].buff), info[i].size) ;
+                  ret = mfs_malloc((char **)(info[i].buff), info[i].size) ;
                   break;
              case COM_FREE:
-                  ret = mfs_free((char **)&(info[i].buff)) ;
+                  ret =   mfs_free((char **)(info[i].buff)) ;
+                  break;
+
+             case COM_SEND_PTRDATA_TO:
+                  ret =   mfs_comm_send_data_to(wb, info[i].remote, *((void **)(info[i].buff)), info[i].size, info[i].datatype) ;
+                  break;
+             case COM_RECV_PTRDATA_FROM:
+	          ret = mfs_comm_recv_data_from(wb, info[i].remote, *((void **)(info[i].buff)), info[i].size, info[i].datatype) ;
                   break;
 
              case COM_FILE_OPEN:
@@ -85,10 +92,10 @@ int mfs_protocol_request_do ( comm_t *wb, buffer_t *info, int neltos )
              case COM_FILE_CLOSE:
                   break;
              case COM_FILE_WRITE:
-                  ret = server_files_write(info[i].remote, info[i].buff, info[i].size) ;
+                  info[i].size = server_files_write(info[i].remote, info[i].buff, info[i].size) ;
                   break;
              case COM_FILE_READ:
-                  ret =  server_files_read(info[i].remote, info[i].buff, info[i].size) ;
+                  info[i].size =  server_files_read(info[i].remote, info[i].buff, info[i].size) ;
                   break;
              default:
                   break;

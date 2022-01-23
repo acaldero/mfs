@@ -39,7 +39,9 @@
 
     // Comm action
     #define COM_RECV_DATA_FROM     10
-    #define COM_SEND_DATA_TO       20
+    #define COM_RECV_PTRDATA_FROM  20
+    #define COM_SEND_DATA_TO       30
+    #define COM_SEND_PTRDATA_TO    40
 
     #define COM_MALLOC            100
     #define COM_FREE              110
