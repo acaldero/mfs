@@ -71,10 +71,10 @@ int mfs_protocol_request_do ( comm_t *wb, buffer_t *info, int neltos )
          }
 
 	 if (COM_MALLOC == info[i].comm_action) {
-             ret = mfs_malloc(&(info[i].buff), info[i].size) ;
+             ret = mfs_malloc((char **)&(info[i].buff), info[i].size) ;
          }
 	 if (COM_FREE   == info[i].comm_action) {
-             ret = mfs_free(&(info[i].buff)) ;
+             ret = mfs_free((char **)&(info[i].buff)) ;
          }
 
 	 if (ret < 0) {
