@@ -56,6 +56,7 @@
 	void        *buff ;
 	int          size ;
 	MPI_Datatype datatype ;
+	int          remote ;
 	int          comm_action ;
 	char        *err_msg ;
     } buffer_t ;

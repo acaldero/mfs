@@ -99,6 +99,7 @@ int clientstub_open ( comm_t *wb, const char *pathname, int flags )
     info[0].buff        = (void *)&msg ;
     info[0].size        = 3 ;
     info[0].datatype    = MPI_INT ;
+    info[0].remote      = 0 ;
     info[0].err_msg     = "Client[%d]: open request cannot be sent :-(" ;
     info[0].comm_action = COM_SEND_DATA_TO ;
 
@@ -106,6 +107,7 @@ int clientstub_open ( comm_t *wb, const char *pathname, int flags )
     info[1].buff        = (void *)pathname ;
     info[1].size        = strlen(pathname) + 1 ;
     info[1].datatype    = MPI_CHAR ;
+    info[1].remote      = 0 ;
     info[1].err_msg     = "Client[%d]: pathname cannot be sent :-(" ;
     info[1].comm_action = COM_SEND_DATA_TO ;
 
@@ -113,6 +115,7 @@ int clientstub_open ( comm_t *wb, const char *pathname, int flags )
     info[2].buff        = (void *)&fd ;
     info[2].size        = 1 ;
     info[2].datatype    = MPI_INT ;
+    info[2].remote      = 0 ;
     info[2].err_msg     = "Client[%d]: file descriptor not received :-(" ;
     info[2].comm_action = COM_RECV_DATA_FROM ;
 
@@ -139,6 +142,7 @@ int clientstub_close ( comm_t *wb, int fd )
     info[0].buff        = (void *)&msg ;
     info[0].size        = 3 ;
     info[0].datatype    = MPI_INT ;
+    info[0].remote      = 0 ;
     info[0].err_msg     = "Client[%d]: close request cannot be sent :-(" ;
     info[0].comm_action = COM_SEND_DATA_TO ;
 
@@ -165,6 +169,7 @@ int clientstub_read ( comm_t *wb, int fd, void *buff_char, int count )
     info[0].buff        = (void *)&msg ;
     info[0].size        = 3 ;
     info[0].datatype    = MPI_INT ;
+    info[0].remote      = 0 ;
     info[0].err_msg     = "Client[%d]: read request cannot be sent :-(" ;
     info[0].comm_action = COM_SEND_DATA_TO ;
 
@@ -172,6 +177,7 @@ int clientstub_read ( comm_t *wb, int fd, void *buff_char, int count )
     info[1].buff        = buff_char ;
     info[1].size        = count ;
     info[1].datatype    = MPI_CHAR ;
+    info[1].remote      = 0 ;
     info[1].err_msg     = "Client[%d]: data not received :-(" ;
     info[1].comm_action = COM_RECV_DATA_FROM ;
 
@@ -198,6 +204,7 @@ int clientstub_write ( comm_t *wb, int fd, void *buff_char, int count )
     info[0].buff        = (void *)&msg ;
     info[0].size        = 3 ;
     info[0].datatype    = MPI_INT ;
+    info[0].remote      = 0 ;
     info[0].err_msg     = "Client[%d]: write request cannot be sent :-(" ;
     info[0].comm_action = COM_SEND_DATA_TO ;
 
@@ -205,6 +212,7 @@ int clientstub_write ( comm_t *wb, int fd, void *buff_char, int count )
     info[1].buff        = buff_char ;
     info[1].size        = count ;
     info[1].datatype    = MPI_CHAR ;
+    info[1].remote      = 0 ;
     info[1].err_msg     = "Client[%d]: data not sent :-(" ;
     info[1].comm_action = COM_SEND_DATA_TO ;
 

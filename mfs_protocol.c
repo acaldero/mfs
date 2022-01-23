@@ -64,10 +64,10 @@ int mfs_protocol_request_do ( comm_t *wb, buffer_t *info, int neltos )
     for (int i=0; i<neltos; i++)
     {
 	 if (COM_SEND_DATA_TO == info[i].comm_action) {
-             ret =   mfs_comm_send_data_to(wb, 0, info[i].buff, info[i].size, info[i].datatype) ;
+             ret =   mfs_comm_send_data_to(wb, info[i].remote, info[i].buff, info[i].size, info[i].datatype) ;
          }
 	 if (COM_RECV_DATA_FROM == info[i].comm_action) {
-	     ret = mfs_comm_recv_data_from(wb, 0, info[i].buff, info[i].size, info[i].datatype) ;
+	     ret = mfs_comm_recv_data_from(wb, info[i].remote, info[i].buff, info[i].size, info[i].datatype) ;
          }
 
 	 if (COM_MALLOC == info[i].comm_action) {
