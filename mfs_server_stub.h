@@ -25,7 +25,7 @@
     // Includes
     #include "mpi.h"
     #include "mfs_lib.h"
-    #include "mfs_comm.h"
+    #include "mfs_protocol.h"
     #include "mfs_files.h"
     
 

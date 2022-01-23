@@ -289,12 +289,14 @@ int serverstub_write ( comm_t *ab, int fd, int count )
     return ret ;
 }
 
-//
-//
-//
+
+/*
+ *  File System API (2)
+ */
 
 int serverstub_write2 ( comm_t *ab, int fd, int count )
 {
+    int ret ;
     buffer_t info[4] ;
 
     // Prepare data buffer

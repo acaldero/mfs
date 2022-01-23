@@ -39,8 +39,14 @@
     // Comm action
     #define COM_RECV_DATA_FROM     10
     #define COM_SEND_DATA_TO       20
-    #define COM_MALLOC             30
-    #define COM_FREE               40
+
+    #define COM_MALLOC            100
+    #define COM_FREE              110
+
+    #define COM_FILE_OPEN         200
+    #define COM_FILE_CLOSE        210
+    #define COM_FILE_READ         220
+    #define COM_FILE_WRITE        230
 
 
     // Datatypes
