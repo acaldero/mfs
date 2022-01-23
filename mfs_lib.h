@@ -46,5 +46,9 @@
   // time: API
   long mfs_get_time ( void ) ;
 
+  // memory: API
+  int mfs_malloc ( char **ptr, long size ) ;
+  int mfs_free   ( char **ptr ) ;
+
 #endif
 

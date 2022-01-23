@@ -78,3 +78,45 @@ long mfs_get_time ( void )
     return (long)timenow.tv_sec * 1000 + (long)timenow.tv_usec / 1000 ;
 }
 
+
+//
+// Memory
+//
+
+int mfs_malloc ( char **ptr, long size )
+{
+    // check arguments
+    if (NULL == ptr) {
+	return -1 ;
+    }
+
+    // alloc buffer
+    (*ptr) = (char *)malloc(size) ;
+    if (NULL == (*ptr)) {
+	return -1 ;
+    }
+
+    memset((*ptr), 0, size) ;
+
+    // Return OK
+    return 1 ;
+}
+
+int mfs_free ( char **ptr )
+{
+    // check arguments
+    if (NULL == ptr) {
+	return -1 ;
+    }
+
+    // free buffer
+    if (NULL != *ptr)
+    {
+        free(*ptr) ;
+        *ptr = NULL ;
+    }
+
+    // Return OK
+    return 1 ;
+}
+

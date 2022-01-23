@@ -23,6 +23,10 @@
 #include "mfs_server_stub.h"
 
 
+/*
+ *  Server stub API
+ */
+
 int serverstub_init ( comm_t *wb, int *argc, char ***argv )
 {
     int ret ;
@@ -112,15 +116,15 @@ int serverstub_open ( comm_t *ab, int pathname_length, int flags )
 
     // prepare filename buffer
     buff_data_len = strlen(MFS_DATA_PREFIX) + pathname_length + 1 ;
-    buff_data     = (char *)malloc(buff_data_len) ;
-    if (NULL == buff_data) {
+    ret = mfs_malloc(&buff_data, buff_data_len) ;
+    if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", ab->rank, buff_data_len) ;
-	return -1 ;
+        return -1 ;
     }
 
-    // read filename
-    memset(buff_data, 0, buff_data_len) ;
     strcpy(buff_data, MFS_DATA_PREFIX) ;
+
+    // read filename
     ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_data + strlen(MFS_DATA_PREFIX), pathname_length, MPI_CHAR) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: file name not received :-(", ab->rank) ;
@@ -137,7 +141,10 @@ int serverstub_open ( comm_t *ab, int pathname_length, int flags )
     }
 
     // free filename buffer
-    free(buff_data) ;
+    ret = mfs_free(&buff_data) ;
+    if (ret < 0) {
+        mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", ab->rank) ;
+    }
 
     // Return OK/KO
     return fd ;
@@ -157,25 +164,92 @@ int serverstub_read ( comm_t *ab, int fd, int count )
     int   ret ;
     char *buff_data ;
 
+    ret       = 0 ;
+    buff_data = NULL ;
+
     // prepare data buffer
-    buff_data = (char *)malloc(count) ;
-    if (NULL == buff_data) {
-        mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", ab->rank, count) ;
-	return -1 ;
+    if (ret >= 0)
+    {
+        ret = mfs_malloc(&buff_data, count) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", ab->rank, count) ;
+        }
     }
 
     // read data
-    memset(buff_data, 0, count) ;
-    server_files_read(fd, buff_data, count) ;
+    if (ret >= 0)
+    {
+        ret = server_files_read(fd, buff_data, count) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: data not read :-(", ab->rank) ;
+        }
+    }
 
     // send data
-    ret = mfs_comm_send_data_to(ab, 0, buff_data, count, MPI_CHAR) ;
-    if (ret < 0) {
-        mfs_print(DBG_WARNING, "Server[%d]: data cannot be sent fails :-(", ab->rank) ;
+    if (ret >= 0)
+    {
+        ret = mfs_comm_send_data_to(ab, 0, buff_data, count, MPI_CHAR) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: data cannot be sent fails :-(", ab->rank) ;
+        }
     }
 
     // free data buffer
-    free(buff_data) ;
+    //if (ret >= 0)
+    {
+        ret = mfs_free(&buff_data) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", ab->rank) ;
+        }
+    }
+
+    // Return OK/KO
+    return ret ;
+}
+
+int serverstub_write ( comm_t *ab, int fd, int count )
+{
+    int   ret ;
+    char *buff_data ;
+
+    ret       = 0 ;
+    buff_data = NULL ;
+
+    // prepare data buffer
+    if (ret >= 0)
+    {
+        ret = mfs_malloc(&buff_data, count) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", ab->rank, count) ;
+        }
+    }
+
+    // receive data
+    if (ret >= 0)
+    {
+        ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_data, count, MPI_CHAR) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: data not received :-(", ab->rank) ;
+        }
+    }
+
+    // write data
+    if (ret >= 0)
+    {
+        ret = server_files_write(fd, buff_data, count) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: data not written :-(", ab->rank) ;
+        }
+    }
+
+    // free data buffer
+    //if (ret >= 0)
+    {
+        ret = mfs_free(&buff_data) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", ab->rank) ;
+        }
+    }
 
     // Return OK/KO
     return ret ;
@@ -208,35 +282,6 @@ int serverstub_read2 ( comm_t *ab, int fd, int count )
     // free data buffer
     server_files_munmap(buff_data, fdstat.st_size) ;
     lseek(fd, count, SEEK_CUR) ;
-
-    // Return OK/KO
-    return ret ;
-}
-
-int serverstub_write ( comm_t *ab, int fd, int count )
-{
-    int   ret ;
-    char *buff_data ;
-
-    // prepare data buffer
-    buff_data = (char *)malloc(count) ;
-    if (NULL == buff_data) {
-        mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", ab->rank, count) ;
-	return -1 ;
-    }
-
-    // receive data
-    memset(buff_data, 0, count) ;
-    ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_data, count, MPI_CHAR) ;
-    if (ret < 0) {
-        mfs_print(DBG_WARNING, "Server[%d]: data not received :-(", ab->rank) ;
-    }
-
-    // write data
-    server_files_write(fd, buff_data, count) ;
-
-    // free data buffer
-    free(buff_data) ;
 
     // Return OK/KO
     return ret ;
