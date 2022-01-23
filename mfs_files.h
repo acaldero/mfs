@@ -29,15 +29,20 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <unistd.h>
-    #include <sys/stat.h>
     #include <fcntl.h>
-    
+    #include <sys/stat.h>
+    #include <sys/mman.h>
+
 
     // API
-    int server_files_open  ( const char *pathname, int flags ) ;
-    int server_files_close ( int fd ) ;
-    int server_files_read  ( int fd, void *buff_char, int count ) ;
-    int server_files_write ( int fd, void *buff_char, int count ) ;
+    int   server_files_open  ( const char *pathname, int flags ) ;
+    int   server_files_close ( int fd ) ;
+
+    int   server_files_read  ( int fd, void *buff_char, int count ) ;
+    int   server_files_write ( int fd, void *buff_char, int count ) ;
+
+    void *server_files_mmap   ( void *addr, size_t size, int protect, int flags, int filedes, off_t offset ) ;
+    int   server_files_munmap ( void *addr, size_t size ) ;
 
 #endif
 

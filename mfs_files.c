@@ -78,3 +78,30 @@ int server_files_write ( int fd, void *buff_data, int count )
     return ret ;
 }
 
+void * server_files_mmap ( void *addr, size_t size, int protect, int flags, int filedes, off_t offset )
+{
+    void *ptr ;
+
+    ptr = mmap(addr, length, protect, flags, filedes, offset) ;
+    if (ptr == MAP_FAILED) {
+	mfs_print(DBG_INFO, "ERROR: mapping failed\n") ;
+        return NULL ;
+    }
+
+    return ptr ;
+}
+
+int    server_files_munmap ( void *addr, size_t size )
+{
+    int err ;
+
+    err = munmap(addr, size);
+    if (err != 0) {
+	mfs_print(DBG_INFO, "ERROR: UnMapping failed\n") ;
+        return -1;
+    }
+
+    // Return OK
+    return 1 ;
+}
+
