@@ -50,14 +50,9 @@ int clientstub_init ( comm_t *wb, int *argc, char ***argv )
 int clientstub_finalize ( comm_t *wb )
 {
     int ret ;
-    msg_t msg ;
 
     // Remote disconnect...
-    msg.req_action = REQ_ACTION_DISCONNECT ;
-    msg.req_arg1   = 0 ;
-    msg.req_arg2   = 0 ;
-
-    ret = mfs_protocol_request_send(wb, 0, &msg) ;
+    ret = mfs_comm_request_send(wb, 0, REQ_ACTION_DISCONNECT, 0, 0) ;
     if (ret < 0) {
         return -1 ;
     }
@@ -86,6 +81,95 @@ int clientstub_finalize ( comm_t *wb )
  */
 
 int clientstub_open ( comm_t *wb, const char *pathname, int flags )
+{
+    int ret, fd ;
+
+    // Send open msg
+    ret = mfs_comm_request_send(wb, 0, REQ_ACTION_OPEN, strlen(pathname) + 1, flags) ;
+    if (ret < 0) {
+        return -1 ;
+    }
+
+    // Send pathname
+    ret = mfs_comm_send_data_to(wb, 0, (void *)pathname, strlen(pathname) + 1, MPI_CHAR) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Client[%d]: pathname cannot be sent :-(", wb->rank) ;
+        return -1 ;
+    }
+
+    // Receive descriptor
+    ret = mfs_comm_recv_data_from(wb, 0, &fd, 1, MPI_INT) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Client[%d]: file descriptor not received :-(", wb->rank) ;
+        return -1 ;
+    }
+
+    // Return file descriptor
+    return fd ;
+}
+
+int clientstub_close ( comm_t *wb, int fd )
+{
+    int ret ;
+
+    // Send close msg
+    ret = mfs_comm_request_send(wb, 0, REQ_ACTION_CLOSE, fd, 0) ;
+    if (ret < 0) {
+        return -1 ;
+    }
+
+    // Return OK/KO
+    return ret ;
+}
+
+int clientstub_read ( comm_t *wb, int fd, void *buff_char, int count )
+{
+    int ret ;
+
+    // Send read msg
+    ret = mfs_comm_request_send(wb, 0, REQ_ACTION_READ, fd, count) ;
+    if (ret < 0) {
+        return -1 ;
+    }
+
+    // Receive data
+    ret = mfs_comm_recv_data_from(wb, 0, buff_char, count, MPI_CHAR) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Client[%d]: data not received :-(", wb->rank) ;
+        return -1 ;
+    }
+
+    // Return OK/KO
+    return ret ;
+}
+
+int clientstub_write ( comm_t *wb, int fd, void *buff_char, int count )
+{
+    int ret ;
+
+    // Send write msg
+    ret = mfs_comm_request_send(wb, 0, REQ_ACTION_WRITE, fd, count) ;
+    if (ret < 0) {
+        return -1 ;
+    }
+
+    // Send data
+    ret = mfs_comm_send_data_to(wb, 0, buff_char, count, MPI_CHAR) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Client[%d]: data cannot be sent :-(", wb->rank) ;
+        return -1 ;
+    }
+
+    // Return OK/KO
+    return ret ;
+}
+
+
+/*
+ *  File System API (2)
+ */
+
+int clientstub_open2 ( comm_t *wb, const char *pathname, int flags )
 {
     int      ret, fd ;
     msg_t    msg ;
@@ -128,7 +212,7 @@ int clientstub_open ( comm_t *wb, const char *pathname, int flags )
     return fd ;
 }
 
-int clientstub_close ( comm_t *wb, int fd )
+int clientstub_close2 ( comm_t *wb, int fd )
 {
     int      ret ;
     msg_t    msg ;
@@ -155,7 +239,7 @@ int clientstub_close ( comm_t *wb, int fd )
     return ret ;
 }
 
-int clientstub_read ( comm_t *wb, int fd, void *buff_char, int count )
+int clientstub_read2 ( comm_t *wb, int fd, void *buff_char, int count )
 {
     int      ret ;
     msg_t    msg ;
@@ -190,7 +274,7 @@ int clientstub_read ( comm_t *wb, int fd, void *buff_char, int count )
     return ret ;
 }
 
-int clientstub_write ( comm_t *wb, int fd, void *buff_char, int count )
+int clientstub_write2 ( comm_t *wb, int fd, void *buff_char, int count )
 {
     int      ret ;
     msg_t    msg ;
