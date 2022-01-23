@@ -340,12 +340,12 @@ int serverstub_write2 ( comm_t *ab, int fd, int count )
     info[1].comm_action = COM_RECV_PTRDATA_FROM ;
 
     // Write data
-    info[2].buff        = &ptr ; // TODO
+    info[2].buff        = &ptr ;
     info[2].size        = count ;
     info[2].datatype    = MPI_CHAR ;
     info[2].remote      = fd ;
     info[2].err_msg     = "Server[%d]: data not written :-(" ;
-    info[2].comm_action = COM_FILE_WRITE ; // server_files_write(fd, buff, count) ;
+    info[2].comm_action = COM_FILE_WRITE ;
 
     // Free data buffer
     info[3].buff        = &ptr ;
@@ -353,7 +353,7 @@ int serverstub_write2 ( comm_t *ab, int fd, int count )
     info[3].datatype    = MPI_CHAR ;
     info[3].remote      = 0 ;
     info[3].err_msg     = "Server[%d]: problem on free :-(" ;
-    info[3].comm_action = COM_FREE ; // mfs_free(&buff_data) ;
+    info[3].comm_action = COM_FREE ;
 
     // Do requests
     ret = mfs_protocol_request_do(ab, info, 4) ;
