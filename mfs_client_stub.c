@@ -75,7 +75,7 @@ int clientstub_finalize ( comm_t *wb )
     {
         ret = mfs_comm_finalize(wb) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Server[%d]: finalization fails :-(", wb->rank) ;
+            mfs_print(DBG_ERROR, "Client[%d]: finalization fails :-(", wb->rank) ;
         }
     }
 

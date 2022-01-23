@@ -19,6 +19,7 @@
  *
  */
 
+
 #include "mfs_protocol.h"
 
 
@@ -63,18 +64,34 @@ int mfs_protocol_request_do ( comm_t *wb, buffer_t *info, int neltos )
     ret = 1 ;
     for (int i=0; i<neltos; i++)
     {
-	 if (COM_SEND_DATA_TO == info[i].comm_action) {
-             ret =   mfs_comm_send_data_to(wb, info[i].remote, info[i].buff, info[i].size, info[i].datatype) ;
-         }
-	 if (COM_RECV_DATA_FROM == info[i].comm_action) {
-	     ret = mfs_comm_recv_data_from(wb, info[i].remote, info[i].buff, info[i].size, info[i].datatype) ;
-         }
+         switch (info[i].comm_action)
+         {
+             case COM_SEND_DATA_TO:
+                  ret =   mfs_comm_send_data_to(wb, info[i].remote, info[i].buff, info[i].size, info[i].datatype) ;
+                  break;
+             case COM_RECV_DATA_FROM:
+	          ret = mfs_comm_recv_data_from(wb, info[i].remote, info[i].buff, info[i].size, info[i].datatype) ;
+                  break;
 
-	 if (COM_MALLOC == info[i].comm_action) {
-             ret = mfs_malloc((char **)&(info[i].buff), info[i].size) ;
-         }
-	 if (COM_FREE   == info[i].comm_action) {
-             ret = mfs_free((char **)&(info[i].buff)) ;
+             case COM_MALLOC:
+                  ret = mfs_malloc((char **)&(info[i].buff), info[i].size) ;
+                  break;
+             case COM_FREE:
+                  ret = mfs_free((char **)&(info[i].buff)) ;
+                  break;
+
+             case COM_FILE_OPEN:
+                  break;
+             case COM_FILE_CLOSE:
+                  break;
+             case COM_FILE_WRITE:
+                  ret = server_files_write(info[i].remote, info[i].buff, info[i].size) ;
+                  break;
+             case COM_FILE_READ:
+                  ret =  server_files_read(info[i].remote, info[i].buff, info[i].size) ;
+                  break;
+             default:
+                  break;
          }
 
 	 if (ret < 0) {
@@ -86,3 +103,4 @@ int mfs_protocol_request_do ( comm_t *wb, buffer_t *info, int neltos )
     // Return OK/KO
     return ret ;
 }
+

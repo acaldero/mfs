@@ -25,6 +25,7 @@
     // Includes
     #include "mfs_lib.h"
     #include "mfs_comm.h"
+    #include "mfs_files.h"
 
 
     // Messages
