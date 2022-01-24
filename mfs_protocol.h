@@ -36,18 +36,6 @@
     #define REQ_ACTION_READ       12
     #define REQ_ACTION_WRITE      13
 
-    // Comm action
-    #define COM_RECV_DATA_FROM     10
-    #define COM_SEND_DATA_TO       20
-
-    #define COM_MALLOC            100
-    #define COM_FREE              110
-
-    #define COM_FILE_OPEN         200
-    #define COM_FILE_CLOSE        210
-    #define COM_FILE_READ         220
-    #define COM_FILE_WRITE        230
-
 
     // Datatypes
     typedef struct
@@ -71,9 +59,6 @@
     // Communications
     int mfs_protocol_request_send    ( comm_t *cb, int rank, msg_t *msg ) ;
     int mfs_protocol_request_receive ( comm_t *cb,           msg_t *msg ) ;
-
-    // Array of actions
-    int mfs_protocol_request_do ( comm_t *wb, buffer_t *info, int neltos ) ;
 
 #endif
 

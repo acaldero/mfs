@@ -120,7 +120,7 @@ int serverstub_open ( comm_t *ab, int pathname_length, int flags )
     buff_data_len = strlen(MFS_DATA_PREFIX) + pathname_length + 1 ;
 
     // prepare filename buffer
-    if (ret >= 0)
+    //if (ret >= 0)
     {
         ret = mfs_malloc(&buff_data, buff_data_len) ;
         if (ret < 0) {
@@ -200,7 +200,7 @@ int serverstub_read ( comm_t *ab, int fd, int count )
     buff_data = NULL ;
 
     // prepare data buffer
-    if (ret >= 0)
+    //if (ret >= 0)
     {
         ret = mfs_malloc(&buff_data, count) ;
         if (ret < 0) {
@@ -249,7 +249,7 @@ int serverstub_write ( comm_t *ab, int fd, int count )
     buff_data = NULL ;
 
     // prepare data buffer
-    if (ret >= 0)
+    //if (ret >= 0)
     {
         ret = mfs_malloc(&buff_data, count) ;
         if (ret < 0) {
