@@ -91,14 +91,16 @@ int mfs_protocol_request_do ( comm_t *wb, buffer_t *info, int neltos )
 
 	     // COM_FILE
              case COM_FILE_OPEN:
+                  ret = info[i].remote = server_files_open((char *)info[i].buff, info[i].remote) ;
                   break;
              case COM_FILE_CLOSE:
+                  ret = server_files_close(info[i].remote) ;
                   break;
              case COM_FILE_WRITE:
-                  info[i].size = server_files_write(info[i].remote, *((void **)info[i].buff), info[i].size) ;
+                  ret = info[i].size = server_files_write(info[i].remote, *((void **)info[i].buff), info[i].size) ;
                   break;
              case COM_FILE_READ:
-                  info[i].size =  server_files_read(info[i].remote, *((void **)info[i].buff), info[i].size) ;
+                  ret = info[i].size =  server_files_read(info[i].remote, *((void **)info[i].buff), info[i].size) ;
                   break;
 
              default:
