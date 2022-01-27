@@ -19,7 +19,6 @@
  *
  */
 
-
 #include "mfs_lib.h"
 
 
@@ -116,6 +115,25 @@ int mfs_free ( char **ptr )
         free(*ptr) ;
         *ptr = NULL ;
     }
+
+    // Return OK
+    return 1 ;
+}
+
+
+//
+// Thread
+//
+
+int mfs_get_thread_id ( long *th_id )
+{
+    // check arguments
+    if (NULL == th_id) {
+	return -1 ;
+    }
+
+    // get thread id
+    *th_id = (long)pthread_self() ;
 
     // Return OK
     return 1 ;

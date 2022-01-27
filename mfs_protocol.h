@@ -31,6 +31,7 @@
     // Messages
     #define REQ_ACTION_NONE       0
     #define REQ_ACTION_DISCONNECT 1
+    #define REQ_ACTION_ATEXIT     2
 
     #define REQ_ACTION_OPEN       10
     #define REQ_ACTION_CLOSE      11

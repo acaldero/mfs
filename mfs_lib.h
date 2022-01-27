@@ -29,6 +29,7 @@
   #include <sys/time.h>
   #include <fcntl.h>
   #include <unistd.h>
+  #include <pthread.h>
   #include <mpi.h>
 
 
@@ -45,6 +46,9 @@
 
   // time: API
   long mfs_get_time ( void ) ;
+
+  // thread: API
+  int mfs_get_thread_id ( long *th_id ) ;
 
   // memory: API
   int mfs_malloc ( char **ptr, long size ) ;
