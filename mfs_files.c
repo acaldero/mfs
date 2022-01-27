@@ -29,9 +29,9 @@
 
 #ifdef USE_POSIX
 
-	int server_files_open ( const char *pathname, int flags )
+	long server_files_open ( const char *pathname, int flags )
 	{
-	    int fd ;
+	    long fd ;
 
 	    // open file
 	    fd = open(pathname, flags, 0755) ;
@@ -43,7 +43,7 @@
 	    return fd ;
 	}
 
-	int server_files_close ( int fd )
+	int server_files_close ( long fd )
 	{
 	    int ret ;
 
@@ -54,7 +54,7 @@
 	    return ret ;
 	}
 
-	int server_files_read ( int fd, void *buff_data, int count )
+	int server_files_read ( long fd, void *buff_data, int count )
 	{
 	    int ret ;
 
@@ -68,7 +68,7 @@
 	    return ret ;
 	}
 
-	int server_files_write ( int fd, void *buff_data, int count )
+	int server_files_write ( long fd, void *buff_data, int count )
 	{
 	    int ret ;
 
@@ -82,7 +82,7 @@
 	    return ret ;
 	}
 
-	void * server_files_mmap ( void *addr, size_t size, int protect, int flags, int filedes, off_t offset )
+	void * server_files_mmap ( void *addr, size_t size, int protect, int flags, long filedes, off_t offset )
 	{
 	    void *ptr ;
 
@@ -118,23 +118,30 @@
 
 #ifdef USE_MPI_IO
 
-	int server_files_open ( const char *pathname, int flags )
+	long server_files_open ( const char *pathname, int flags )
 	{
+	    int ret ;
 	    MPI_File *fh ;
 
-	    fh = malloc(sizeof(MPI_File)) ;
+	    fh = (MPI_File *)malloc(sizeof(MPI_File)) ;
 	    if (NULL == fh) {
 		return -1 ;
 	    }
-	    MPI_File_open(MPI_COMM_WORLD, "test.out", MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, fh);
-	    fd = (int)fh ;
+
+	    ret = MPI_File_open(MPI_COMM_SELF, pathname, MPI_MODE_CREATE|MPI_MODE_RDWR, MPI_INFO_NULL, fh);
+	    if (ret != MPI_SUCCESS) {
+		mfs_print(DBG_INFO, "ERROR: open('%s') file.\n", pathname) ;
+		free(fh) ;
+		return -1 ;
+	    }
 
 	    // Return file_descriptor
-	    return fd ;
+	    return (long)fh ;
 	}
 
-	int server_files_close ( int fd )
+	int server_files_close ( long fd )
 	{
+	    int ret ;
 	    MPI_File *fh ;
 
 	    fh = (MPI_File *)fd ;
@@ -145,14 +152,14 @@
 	    return ret ;
 	}
 
-	int server_files_read ( int fd, void *buff_data, int count )
+	int server_files_read ( long fd, void *buff_data, int count )
 	{
 	    int ret ;
 	    MPI_File *fh ;
 	    MPI_Status status ;
 
 	    fh = (MPI_File *)fd ;
-	    ret = MPI_File_read(fh, buff_data, count, MPI_CHAR, &status) ;
+	    ret = MPI_File_read(*fh, buff_data, count, MPI_CHAR, &status) ;
 	    if (ret != MPI_SUCCESS) {
 		mfs_print(DBG_INFO, "ERROR: read %d bytes from file '%d'\n", count, fd) ;
 		return -1 ;
@@ -162,14 +169,14 @@
 	    return count ;
 	}
 
-	int server_files_write ( int fd, void *buff_data, int count )
+	int server_files_write ( long fd, void *buff_data, int count )
 	{
 	    int ret ;
 	    MPI_File *fh ;
 	    MPI_Status status ;
 
 	    fh = (MPI_File *)fd ;
-	    ret = MPI_File_write(fh, buff_data, count, MPI_CHAR, &status) ;
+	    ret = MPI_File_write(*fh, buff_data, count, MPI_CHAR, &status) ;
 	    if (ret != MPI_SUCCESS) {
 		mfs_print(DBG_INFO, "ERROR: write %d bytes from file '%d'\n", count, fd) ;
 		return -1 ;
@@ -179,7 +186,7 @@
 	    return count ;
 	}
 
-	void * server_files_mmap ( void *addr, size_t size, int protect, int flags, int filedes, off_t offset )
+	void * server_files_mmap ( void *addr, size_t size, int protect, int flags, long filedes, off_t offset )
 	{
 	/*
 	    void *ptr ;

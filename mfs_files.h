@@ -35,17 +35,18 @@
 
 
     // Includes
-    #define USE_POSIX 1
+    #define USE_POSIX  1
+  //#define USE_MPI_IO 1
 
 
     // API
-    int   server_files_open  ( const char *pathname, int flags ) ;
-    int   server_files_close ( int fd ) ;
+    long  server_files_open  ( const char *pathname, int flags ) ;
+    int   server_files_close ( long fd ) ;
 
-    int   server_files_read  ( int fd, void *buff_char, int count ) ;
-    int   server_files_write ( int fd, void *buff_char, int count ) ;
+    int   server_files_read  ( long fd, void *buff_char, int count ) ;
+    int   server_files_write ( long fd, void *buff_char, int count ) ;
 
-    void *server_files_mmap   ( void *addr, size_t size, int protect, int flags, int filedes, off_t offset ) ;
+    void *server_files_mmap   ( void *addr, size_t size, int protect, int flags, long filedes, off_t offset ) ;
     int   server_files_munmap ( void *addr, size_t size ) ;
 
 #endif
