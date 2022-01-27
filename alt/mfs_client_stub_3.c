@@ -117,6 +117,35 @@ int clientstub_finalize ( comm_t *wb )
  *  File System API 
  */
 
+buffer_t clnt_api_open[]  = {
+			       // Send open request
+			       { NULL, 3, MPI_INT,  0, COM_SEND_DATA_TO,   "Client[%d]: open request cannot be sent :-(" },
+			       // Send pathname
+			       { NULL, 0, MPI_CHAR, 0, COM_SEND_DATA_TO,   "Client[%d]: pathname cannot be sent :-(" },
+			       // Receive descriptor
+			       { NULL, 1, MPI_INT,  0, COM_RECV_DATA_FROM, "Client[%d]: file descriptor not received :-(" }
+			    };
+
+buffer_t clnt_api_close[] = {
+			       // Send close request
+			       { NULL, 3, MPI_INT,  0, COM_SEND_DATA_TO,   "Client[%d]: close request cannot be sent :-(" }
+			    };
+buffer_t clnt_api_read[]  = {
+			       // Send read request
+			       { NULL, 3, MPI_INT,  0, COM_SEND_DATA_TO,   "Client[%d]: read request cannot be sent :-(" },
+			       // Receive data
+			       { NULL, 0, MPI_CHAR, 0, COM_RECV_DATA_FROM, "Client[%d]: data not received :-(" }
+			    };
+buffer_t clnt_api_write[] = {
+			       // Send write request
+			       { NULL, 3, MPI_INT,  0, COM_SEND_DATA_TO,   "Client[%d]: write request cannot be sent :-(" },
+			       // Send data
+			       { NULL, 0, MPI_CHAR, 0, COM_SEND_DATA_TO,   "Client[%d]: data not sent :-(" }
+		  	    };
+
+buffer_t *clnt_api[] = { clnt_api_open, clnt_api_close, clnt_api_read, clnt_api_write, NULL } ;
+
+
 int clientstub_open ( comm_t *wb, const char *pathname, int flags )
 {
     int      ret, fd ;

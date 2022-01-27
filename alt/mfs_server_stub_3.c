@@ -294,6 +294,23 @@ int serverstub_write ( comm_t *ab, int fd, int count )
  *  File System API (2)
  */
 
+buffer_t srv_api_open[]  = {
+                           } ;
+buffer_t srv_api_close[] = {
+                              { NULL, 0, MPI_CHAR, 0,              COM_FILE_CLOSE,     "Server[%d]: close(...) fails :-("  },
+                           } ;
+buffer_t srv_api_read[]  = {
+                           } ;
+buffer_t srv_api_write[] = {
+                              { NULL, 0, MPI_CHAR, 0,              COM_MALLOC,         "Server[%d]: malloc(...) fails :-("  },
+                              { NULL, 0, MPI_CHAR, MPI_ANY_SOURCE, COM_RECV_DATA_FROM, "Server[%d]: data not received :-(" },
+                              { NULL, 0, MPI_CHAR, 0,              COM_FILE_WRITE,     "Server[%d]: data not written :-("  },
+                              { NULL, 0, MPI_CHAR, 0,              COM_FREE,           "Server[%d]: problem on free :-("   }
+                           } ;
+
+buffer_t *srv_api[] = { srv_api_open, srv_api_close, srv_api_read, srv_api_write, NULL } ;
+
+
 int serverstub_close2 ( comm_t *ab, int fd )
 {
     buffer_t info[1] ;
