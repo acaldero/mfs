@@ -34,16 +34,16 @@
     
 
     // General API
-    int serverstub_init         ( comm_t *wb, int *argc, char ***argv ) ;
-    int serverstub_finalize     ( comm_t *wb ) ;
-    int serverstub_accept       ( comm_t *ab, comm_t *wb ) ;
-    int serverstub_disconnect   ( comm_t *ab ) ;
+    int  serverstub_init         ( comm_t *wb, int *argc, char ***argv ) ;
+    int  serverstub_finalize     ( comm_t *wb ) ;
+    int  serverstub_accept       ( comm_t *ab, comm_t *wb ) ;
+    int  serverstub_disconnect   ( comm_t *ab ) ;
 
     // File System API
-    int serverstub_open  ( comm_t *ab, int pathname_length, int flags ) ;
-    int serverstub_close ( comm_t *ab, int fd ) ;
-    int serverstub_read  ( comm_t *ab, int fd, int count ) ;
-    int serverstub_write ( comm_t *ab, int fd, int count ) ;
+    long serverstub_open  ( comm_t *ab, int pathname_length, int flags ) ;
+    int  serverstub_close ( comm_t *ab, long fd ) ;
+    int  serverstub_read  ( comm_t *ab, long fd, int count ) ;
+    int  serverstub_write ( comm_t *ab, long fd, int count ) ;
 
 #endif
 

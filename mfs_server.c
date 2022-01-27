@@ -55,11 +55,11 @@ void do_stats_ctrc ( int sigid )
 
 void *do_srv ( void *wb )
 {
-    int again;
+    int    again ;
     comm_t ab ;
-    msg_t msg ;
-    int ret ;
-    int fd ;
+    msg_t  msg ;
+    int    ret ;
+    long   fd ;
 
     // copy arguments and signal...
     pthread_mutex_lock(&sync_mutex) ;

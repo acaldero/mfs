@@ -241,10 +241,10 @@ int mfs_comm_stats_reset ( comm_t *cb )
 // Send request "header"
 //
 
-int mfs_comm_request_send ( comm_t *cb, int rank, int req_action, int req_arg1, int req_arg2 )
+int mfs_comm_request_send ( comm_t *cb, int rank, long req_action, long req_arg1, long req_arg2 )
 {
     int ret ;
-    int buff[3] ;
+    long buff[3] ;
 
     // pack msg fields
     buff[0] = req_action ;
@@ -252,7 +252,7 @@ int mfs_comm_request_send ( comm_t *cb, int rank, int req_action, int req_arg1, 
     buff[2] = req_arg2 ;
 
     // send msg
-    ret = mfs_comm_send_data_to(cb, rank, buff, 3, MPI_INT) ;
+    ret = mfs_comm_send_data_to(cb, rank, buff, 3, MPI_LONG) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "[COMM]: MPI_Send fails :-(") ;
         return -1 ;
@@ -262,13 +262,13 @@ int mfs_comm_request_send ( comm_t *cb, int rank, int req_action, int req_arg1, 
     return ret ;
 }
 
-int mfs_comm_request_receive ( comm_t *cb, int *req_action, int *req_arg1, int *req_arg2 )
+int mfs_comm_request_receive ( comm_t *cb, long *req_action, long *req_arg1, long *req_arg2 )
 {
     int ret ;
-    int buff[3] ;
+    long buff[3] ;
 
     // receive msg
-    ret = mfs_comm_recv_data_from(cb, MPI_ANY_SOURCE, buff, 3, MPI_INT) ;
+    ret = mfs_comm_recv_data_from(cb, MPI_ANY_SOURCE, buff, 3, MPI_LONG) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "[COMM]: MPI_Recv fails :-(") ;
         return -1 ;

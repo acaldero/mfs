@@ -41,9 +41,9 @@
     // Datatypes
     typedef struct
     {
-        int  req_action ;
-        int  req_arg1 ;
-        int  req_arg2 ;
+        long  req_action ;
+        long  req_arg1 ;
+        long  req_arg2 ;
     } msg_t ;
 
     typedef struct

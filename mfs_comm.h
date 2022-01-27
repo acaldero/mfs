@@ -68,8 +68,8 @@
     int mfs_comm_connect    ( comm_t *cb ) ;
     int mfs_comm_disconnect ( comm_t *cb ) ;
 
-    int mfs_comm_request_send    ( comm_t *cb, int rank, int  req_action, int  req_arg1, int  req_arg2 ) ;
-    int mfs_comm_request_receive ( comm_t *cb,           int *req_action, int *req_arg1, int *req_arg2 ) ;
+    int mfs_comm_request_send    ( comm_t *cb, int rank, long  req_action, long  req_arg1, long  req_arg2 ) ;
+    int mfs_comm_request_receive ( comm_t *cb,           long *req_action, long *req_arg1, long *req_arg2 ) ;
 
     int mfs_comm_recv_data_from    ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
     int mfs_comm_send_data_to      ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
