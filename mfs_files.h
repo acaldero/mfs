@@ -39,26 +39,15 @@
     #define USE_MPI_IO 2
 
 
-    // Types
-    typedef struct {
-	int      file_protocol ;
-	int      fd ;
-	MPI_File fh ;
-    } file_t ;
-
-
     // API
-    int   server_files_open  ( file_t *fd, int file_protocol, const char *path_name, int flags ) ;
-    int   server_files_close ( file_t *fd ) ;
+    int   server_files_open  ( long *fd, int file_protocol, const char *path_name, int flags ) ;
+    int   server_files_close ( long  fd, int file_protocol ) ;
 
-    int   server_files_read  ( file_t *fd, void *buff_char, int count ) ;
-    int   server_files_write ( file_t *fd, void *buff_char, int count ) ;
+    int   server_files_read  ( long  fd, int file_protocol, void *buff_char, int count ) ;
+    int   server_files_write ( long  fd, int file_protocol, void *buff_char, int count ) ;
 
-    void *server_files_mmap   ( void *addr, size_t size, int protect, int flags, file_t *filedes, off_t offset ) ;
+    void *server_files_mmap   ( void *addr, size_t size, int protect, int flags, long filedes, off_t offset ) ;
     int   server_files_munmap ( void *addr, size_t size ) ;
-
-    file_t server_files_int2fd ( long fint, int file_protocol ) ;
-    long   server_files_fd2int ( file_t *fd ) ;
 
 #endif
 

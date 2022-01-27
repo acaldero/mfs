@@ -23,78 +23,40 @@
 #include "mfs_files.h"
 
 
-long  server_files_fd2int ( file_t *fd )
-{ 
-    // Check params...
-    if (NULL == fd) {
-	return -1 ;
-    }
-
-    if (USE_POSIX  == fd->file_protocol) {
-        return (long) fd->fd ;
-    }
-    if (USE_MPI_IO == fd->file_protocol) {
-        return (long) fd->fh ;
-    }
-
-    // Return KO
-    return -1 ;
-} 
-
-file_t server_files_int2fd ( long fint, int file_protocol )
-{ 
-    file_t fd ;
-
-    fd.file_protocol = file_protocol ;
-    fd.fd = 0 ;
-    fd.fh = NULL ;
-
-    if (USE_POSIX  == fd.file_protocol) {
-        fd.fd =      (int)fint ;
-    }
-    if (USE_MPI_IO == fd.file_protocol) {
-        fd.fh = (MPI_File)fint ;
-    }
-
-    return fd ;
-} 
-
-
 /*
  *  File System API 
  */
 
-int  server_files_open ( file_t *fd, int file_protocol, const char *path_name, int flags )
+int  server_files_open ( long *fd, int file_protocol, const char *path_name, int flags )
 { 
     // Check params...
     if (NULL == fd) {
 	return -1 ;
     }
 
-    // Initialize fd
-    fd->file_protocol = file_protocol ;
-    fd->fd = 0 ;
-    fd->fh = NULL ;
-
-    if (USE_POSIX == fd->file_protocol)
+    if (USE_POSIX == file_protocol)
     {
         // Open file
-        fd->fd = open(path_name, flags, 0755) ;
-        if (fd->fd < 0) {
+        *fd = (long)open(path_name, flags, 0755) ;
+        if (*fd < 0) {
     	    mfs_print(DBG_INFO, "ERROR: on open(path_name='%s', flags=%d, mode=0755)\n", path_name, flags) ;
         }
 
         // Return OK
 	return 1 ;
     }
-    if (USE_MPI_IO == fd->file_protocol)
+    if (USE_MPI_IO == file_protocol)
     {
+	MPI_File fh ;
+
         // Open file
-	int ret = MPI_File_open(MPI_COMM_SELF, path_name, MPI_MODE_CREATE|MPI_MODE_RDWR, MPI_INFO_NULL, &(fd->fh));
+	int ret = MPI_File_open(MPI_COMM_SELF, path_name, MPI_MODE_CREATE|MPI_MODE_RDWR, MPI_INFO_NULL, &fh);
 	if (ret != MPI_SUCCESS) {
 	    mfs_print(DBG_INFO, "ERROR: open('%s') file.\n", path_name) ;
 	    return -1 ;
 	}
+
+	*fd = (long)fh ;
 
 	// Return OK
 	return 1 ;
@@ -104,54 +66,46 @@ int  server_files_open ( file_t *fd, int file_protocol, const char *path_name, i
     return -1 ;
 }
 
-int   server_files_close ( file_t *fd )
+int   server_files_close ( long fd, int file_protocol )
 {
     int ret = -1 ;
 
-    // Check params...
-    if (NULL == fd) {
-	return ret ;
-    }
-
     // Close file
-    if (USE_POSIX == fd->file_protocol)
+    if (USE_POSIX == file_protocol)
     {
         // close file
-        ret = close(fd->fd) ;
+        ret = close(fd) ;
     }
-    if (USE_MPI_IO == fd->file_protocol)
+    if (USE_MPI_IO == file_protocol)
     {
-	ret = MPI_File_close(&(fd->fh)) ;
+	MPI_File fh = (MPI_File)fd ;
+	ret = MPI_File_close(&(fh)) ;
     }
 
     // Return OK/KO
     return ret ;
 }
 
-int   server_files_read  ( file_t *fd, void *buff_data, int count )
+int   server_files_read  ( long fd, int file_protocol, void *buff_data, int count )
 {
     int ret = -1 ;
 
-    // Check params...
-    if (NULL == fd) {
-	return ret ;
-    }
-
     // Read from file...
-    if (USE_POSIX == fd->file_protocol)
+    if (USE_POSIX == file_protocol)
     {
-        ret = read(fd->fd, buff_data, count) ;
+        ret = read(fd, buff_data, count) ;
         if (ret < 0) {
-	    mfs_print(DBG_INFO, "ERROR: read %d bytes from file '%d'\n", count, fd->fd) ;
+	    mfs_print(DBG_INFO, "ERROR: read %d bytes from file '%d'\n", count, fd) ;
         }
     }
-    if (USE_MPI_IO == fd->file_protocol)
+    if (USE_MPI_IO == file_protocol)
     {
+	MPI_File fh = (MPI_File)fd ;
 	MPI_Status status ;
 
-	ret = MPI_File_read(fd->fh, buff_data, count, MPI_CHAR, &status) ;
+	ret = MPI_File_read(fh, buff_data, count, MPI_CHAR, &status) ;
 	if (ret != MPI_SUCCESS) {
-	    mfs_print(DBG_INFO, "ERROR: read %d bytes from file '%d'\n", count, fd->fh) ;
+	    mfs_print(DBG_INFO, "ERROR: read %d bytes from file '%d'\n", count, fh) ;
 	    return -1 ;
 	}
 
@@ -162,30 +116,26 @@ int   server_files_read  ( file_t *fd, void *buff_data, int count )
     return ret ;
 }
 
-int   server_files_write ( file_t *fd, void *buff_data, int count )
+int   server_files_write ( long fd, int file_protocol, void *buff_data, int count )
 {
     int ret = -1 ;
 
-    // Check params...
-    if (NULL == fd) {
-	return ret ;
-    }
-
     // Write into file...
-    if (USE_POSIX == fd->file_protocol)
+    if (USE_POSIX == file_protocol)
     {
-        ret = write(fd->fd, buff_data, count) ;
+        ret = write(fd, buff_data, count) ;
         if (ret < 0) {
-    	    mfs_print(DBG_INFO, "ERROR: write %d bytes from file '%d'\n", count, fd->fd) ;
+    	    mfs_print(DBG_INFO, "ERROR: write %d bytes from file '%d'\n", count, fd) ;
         }
     }
-    if (USE_MPI_IO == fd->file_protocol)
+    if (USE_MPI_IO == file_protocol)
     {
+	MPI_File fh = (MPI_File)fd ;
 	MPI_Status status ;
 
-	ret = MPI_File_write(fd->fh, buff_data, count, MPI_CHAR, &status) ;
+	ret = MPI_File_write(fh, buff_data, count, MPI_CHAR, &status) ;
 	if (ret != MPI_SUCCESS) {
-	    mfs_print(DBG_INFO, "ERROR: write %d bytes from file '%d'\n", count, fd->fh) ;
+	    mfs_print(DBG_INFO, "ERROR: write %d bytes from file '%d'\n", count, fh) ;
 	    return -1 ;
 	}
 
@@ -196,17 +146,14 @@ int   server_files_write ( file_t *fd, void *buff_data, int count )
     return ret ;
 }
 
-void *server_files_mmap   ( void *addr, size_t size, int protect, int flags, file_t *filedes, off_t offset )
+void *server_files_mmap   ( void *addr, size_t size, int protect, int flags, long filedes, off_t offset )
 {
     void *ptr = NULL ;
 
-    if (USE_POSIX == filedes->file_protocol)
-    {
-        ptr = mmap(addr, size, protect, flags, filedes->fd, offset) ;
-        if (ptr == MAP_FAILED) {
-    	    mfs_print(DBG_INFO, "ERROR: mapping failed\n") ;
-	    return NULL ;
-        }
+    ptr = mmap(addr, size, protect, flags, filedes, offset) ;
+    if (ptr == MAP_FAILED) {
+    	mfs_print(DBG_INFO, "ERROR: mapping failed\n") ;
+	return NULL ;
     }
 
     return ptr ;

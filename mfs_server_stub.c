@@ -110,11 +110,10 @@ int serverstub_disconnect ( comm_t *ab )
 
 long serverstub_open ( comm_t *ab, int pathname_length, int flags )
 {
-    int     ret ;
-    file_t  fd ;
-    long    fh ;
-    int     buff_data_len ;
-    char   *buff_data ;
+    int   ret ;
+    long  fd ;
+    int   buff_data_len ;
+    char *buff_data ;
 
     ret           = 0 ;
     buff_data     = NULL ;
@@ -149,14 +148,12 @@ long serverstub_open ( comm_t *ab, int pathname_length, int flags )
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: file not opened :-(", ab->rank) ;
         }
-
-        fh = server_files_fd2int(&fd) ;
     }
 
     // send back file descriptor
     if (ret >= 0)
     {
-        ret = mfs_comm_send_data_to(ab, 0, &fh, 1, MPI_INT) ;
+        ret = mfs_comm_send_data_to(ab, 0, &fd, 1, MPI_LONG) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: file descriptor cannot be sent :-(", ab->rank) ;
         }
@@ -172,13 +169,12 @@ long serverstub_open ( comm_t *ab, int pathname_length, int flags )
     }
 
     // Return OK/KO
-    return fh ;
+    return fd ;
 }
 
 int serverstub_close ( comm_t *ab, long fd )
 {
-    int    ret ;
-    file_t fh ;
+    int  ret ;
 
     ret = 0 ;
 
@@ -186,8 +182,7 @@ int serverstub_close ( comm_t *ab, long fd )
     if (ret >= 0)
     {
         mfs_print(DBG_INFO, "Server[%d]: request 'close' for file %d\n", ab->rank, fd) ;
-	fh = server_files_int2fd(fd, USE_POSIX) ;
-        ret = server_files_close(&fh) ;
+        ret = server_files_close(fd, USE_POSIX) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Server[%d]: close(%d) fails :-(", ab->rank, fd) ;
         }
@@ -200,7 +195,6 @@ int serverstub_close ( comm_t *ab, long fd )
 int serverstub_read ( comm_t *ab, long fd, int count )
 {
     int    ret ;
-    file_t fh ;
     char  *buff_data ;
 
     ret       = 0 ;
@@ -219,8 +213,7 @@ int serverstub_read ( comm_t *ab, long fd, int count )
     if (ret >= 0)
     {
         mfs_print(DBG_INFO, "Server[%d]: request 'read' %d bytes for file %d\n", ab->rank, count, fd) ;
-	fh = server_files_int2fd(fd, USE_POSIX) ;
-        ret = server_files_read(&fh, buff_data, count) ;
+        ret = server_files_read(fd, USE_POSIX, buff_data, count) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: data not read :-(", ab->rank) ;
         }
@@ -251,7 +244,6 @@ int serverstub_read ( comm_t *ab, long fd, int count )
 int serverstub_write ( comm_t *ab, long fd, int count )
 {
     int    ret ;
-    file_t fh ;
     char  *buff_data ;
 
     ret       = 0 ;
@@ -279,8 +271,7 @@ int serverstub_write ( comm_t *ab, long fd, int count )
     if (ret >= 0)
     {
         mfs_print(DBG_INFO, "Server[%d]: request 'write' %d bytes for file %d\n", ab->rank, count, fd) ;
-	fh = server_files_int2fd(fd, USE_POSIX) ;
-        ret = server_files_write(&fh, buff_data, count) ;
+        ret = server_files_write(fd, USE_POSIX, buff_data, count) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: data not written :-(", ab->rank) ;
         }
@@ -307,7 +298,6 @@ int serverstub_write ( comm_t *ab, long fd, int count )
 int serverstub_read2 ( comm_t *ab, long fd, int count )
 {
     int          ret ;
-    file_t       fh ;
     char        *buff_data ;
     struct stat  fdstat ;
     off_t        offset ;
@@ -324,8 +314,7 @@ int serverstub_read2 ( comm_t *ab, long fd, int count )
     // map buffer
     if (ret >= 0)
     {
-	fh = server_files_int2fd(fd, USE_POSIX) ;
-        buff_data = (char *)server_files_mmap(NULL, fdstat.st_size, PROT_READ, MAP_SHARED, &fh, 0) ;
+        buff_data = (char *)server_files_mmap(NULL, fdstat.st_size, PROT_READ, MAP_SHARED, fd, 0) ;
         if (NULL == buff_data) {
             mfs_print(DBG_ERROR, "Server[%d]: mmap(%d, ... %d) fails :-(", ab->rank, fd, count) ;
 	    ret = -1 ;

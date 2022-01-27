@@ -116,10 +116,10 @@ int clientstub_finalize ( comm_t *wb )
     return ret ;
 }
 
-int clientstub_open ( comm_t *wb, const char *pathname, int flags )
+long clientstub_open ( comm_t *wb, const char *pathname, int flags )
 {
-    int ret = 0 ;
-    int fd  = -1 ;
+    int  ret = 0 ;
+    long fd  = -1 ;
 
     // Send open msg
     if (ret >= 0)
@@ -139,7 +139,7 @@ int clientstub_open ( comm_t *wb, const char *pathname, int flags )
     // Receive descriptor
     if (ret >= 0)
     {
-        ret = mfs_comm_recv_data_from(wb, 0, &fd, 1, MPI_INT) ;
+        ret = mfs_comm_recv_data_from(wb, 0, &fd, 1, MPI_LONG) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: file descriptor not received :-(", wb->rank) ;
         }
@@ -149,7 +149,7 @@ int clientstub_open ( comm_t *wb, const char *pathname, int flags )
     return fd ;
 }
 
-int clientstub_close ( comm_t *wb, int fd )
+int clientstub_close ( comm_t *wb, long fd )
 {
     int ret = 0 ;
 
@@ -163,7 +163,7 @@ int clientstub_close ( comm_t *wb, int fd )
     return ret ;
 }
 
-int clientstub_read ( comm_t *wb, int fd, void *buff_char, int count )
+int clientstub_read ( comm_t *wb, long fd, void *buff_char, int count )
 {
     int ret = 0 ;
 
@@ -186,7 +186,7 @@ int clientstub_read ( comm_t *wb, int fd, void *buff_char, int count )
     return ret ;
 }
 
-int clientstub_write ( comm_t *wb, int fd, void *buff_char, int count )
+int clientstub_write ( comm_t *wb, long fd, void *buff_char, int count )
 {
     int ret = 0 ;
 

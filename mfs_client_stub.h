@@ -32,10 +32,10 @@
     int clientstub_init     ( comm_t *wb, int *argc, char ***argv ) ;
     int clientstub_finalize ( comm_t *wb ) ;
 
-    int clientstub_open  ( comm_t *wb, const char *pathname, int flags ) ;
-    int clientstub_close ( comm_t *wb, int fd ) ;
-    int clientstub_read  ( comm_t *wb, int fd, void *buf, int count ) ;
-    int clientstub_write ( comm_t *wb, int fd, void *buf, int count ) ;
+    long clientstub_open  ( comm_t *wb, const char *pathname, int flags ) ;
+    int  clientstub_close ( comm_t *wb, long fd ) ;
+    int  clientstub_read  ( comm_t *wb, long fd, void *buf, int count ) ;
+    int  clientstub_write ( comm_t *wb, long fd, void *buf, int count ) ;
 
 #endif
 

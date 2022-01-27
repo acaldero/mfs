@@ -29,8 +29,9 @@
 int main ( int argc, char **argv )
 {
     comm_t wb ;
-    int ret ;
-    int i, fd ;
+    int  ret ;
+    int  i ;
+    long fd ;
     char str[STR_SIZE] ;
 
     // Welcome...

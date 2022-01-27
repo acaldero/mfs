@@ -58,8 +58,7 @@ void *do_srv ( void *wb )
     int    again ;
     comm_t ab ;
     msg_t  msg ;
-    int    ret ;
-    long   fd ;
+    long   ret ;
 
     // copy arguments and signal...
     pthread_mutex_lock(&sync_mutex) ;
@@ -89,13 +88,13 @@ void *do_srv ( void *wb )
 
 	      case REQ_ACTION_OPEN:
 	           mfs_print(DBG_INFO, "Server[%d]: request 'open' for a filename of %d chars\n", ab.rank, msg.req_action) ;
-                   fd = serverstub_open(&ab, msg.req_arg1, msg.req_arg2) ;
-                   mfs_print(DBG_INFO, "Server[%d]: File[%d]: open(flags=%d)\n", ab.rank, fd, msg.req_arg2) ;
+                   ret = serverstub_open(&ab, msg.req_arg1, msg.req_arg2) ;
+                   mfs_print(DBG_INFO, "Server[%d]: File[%d]: open(flags=%d)\n", ab.rank, ret, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_CLOSE:
 	           mfs_print(DBG_INFO, "Server[%d]: File[%d]: close()\n", ab.rank, msg.req_arg1) ;
-                   serverstub_close(&ab, msg.req_arg1) ;
+                   ret = serverstub_close(&ab, msg.req_arg1) ;
 	           break;
 
 	      case REQ_ACTION_READ:
