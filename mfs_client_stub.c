@@ -30,13 +30,16 @@ void at_exit_finalize ( void )
     long th_id ;
     long remote_rank ;
 
+    if ( (NULL == global_wb) || (0 == global_wb->is_connected) )
+    {
+        return ;
+    }
+
     mfs_get_thread_id(&th_id) ;
     mfs_print(DBG_ERROR, "Client[th=%ld]: exit without disconnect !! :-(", th_id) ;
 
-    if (global_wb != NULL) {
-        remote_rank = (global_wb->rank % global_wb->n_servers) ;
-        mfs_comm_request_send(global_wb, remote_rank, REQ_ACTION_ATEXIT, th_id, 0) ;
-    }
+    remote_rank = (global_wb->rank % global_wb->n_servers) ;
+    mfs_comm_request_send(global_wb, remote_rank, REQ_ACTION_ATEXIT, th_id, 0) ;
 }
 
 
