@@ -30,6 +30,15 @@ int mfs_comm_init ( comm_t *cb, int *argc, char ***argv )
 {
     int ret, claimed, provided ;
 
+    // cb->... (stats)
+    cb->is_connected = 0 ;
+    ret = mfs_comm_stats_reset(cb) ;
+    ret = mfs_comm_stats_set_nservers(cb, argc, argv) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "[COMM]: set n_servers fails :-(") ;
+        return -1 ;
+    }
+
     // MPI_Init
     ret = MPI_Init_thread(argc, argv, MPI_THREAD_MULTIPLE, &provided) ;
     if (MPI_SUCCESS != ret) {
@@ -70,6 +79,9 @@ int mfs_comm_finalize ( comm_t *cb )
         mfs_print(DBG_ERROR, "[COMM]: MPI_Finalize fails :-(") ;
         return -1 ;
     }
+
+    // cb->... (stats)
+    cb->is_connected = 0 ;
 
     // Return OK
     return 0 ;
@@ -137,6 +149,9 @@ int mfs_comm_accept ( comm_t *ab, comm_t *wb )
         return -1 ;
     }
 
+    // cb->... (stats)
+    ab->is_connected = 1 ;
+
     // Return OK
     return 0 ;
 }
@@ -158,6 +173,9 @@ int mfs_comm_connect ( comm_t *cb )
         return -1 ;
     }
 
+    // cb->... (stats)
+    cb->is_connected = 1 ;
+
     // Return OK
     return 1 ;
 }
@@ -173,8 +191,39 @@ int mfs_comm_disconnect ( comm_t *cb )
         return -1 ;
     }
 
+    // cb->... (stats)
+    cb->is_connected = 0 ;
+
     // Return OK
     return 1 ;
+}
+
+
+//
+// Stats
+//
+
+int mfs_comm_stats_set_nservers ( comm_t *cb, int *argc, char ***argv )
+{
+    int ret ;
+
+    // TODO: GET n_servers FROM argc, argv OR FROM configuration file
+    
+    // cb->... (stats)
+    cb->n_servers = 1 ;
+
+    // Return OK
+    return 0 ;
+}
+
+int mfs_comm_stats_reset ( comm_t *cb )
+{
+    // cb->... (stats)
+    cb->n_send_req = 0 ;
+    cb->n_recv_req = 0 ;
+
+    // Return OK
+    return 0 ;
 }
 
 
@@ -193,8 +242,8 @@ int mfs_comm_request_send ( comm_t *cb, int rank, int req_action, int req_arg1, 
     buff[2] = req_arg2 ;
 
     // send msg
-    ret = MPI_Send(buff, 3, MPI_INT, rank, 0, cb->endpoint) ;
-    if (MPI_SUCCESS != ret) {
+    ret = mfs_comm_send_data_to(cb, rank, buff, 3, MPI_INT) ;
+    if (ret < 0) {
         mfs_print(DBG_ERROR, "[COMM]: MPI_Send fails :-(") ;
         return -1 ;
     }
@@ -241,6 +290,9 @@ int mfs_comm_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Da
         return -1 ;
     }
 
+    // cb->... (stats)
+    cb->n_recv_req++ ;
+
     // Return OK
     return 1 ;
 }
@@ -255,6 +307,9 @@ int mfs_comm_send_data_to  ( comm_t *cb, int rank, void *buff, int size, MPI_Dat
         mfs_print(DBG_WARNING, "[COMM]: MPI_Send fails :-(") ;
         return -1 ;
     }
+
+    // cb->... (stats)
+    cb->n_send_req++ ;
 
     // Return OK
     return 1 ;

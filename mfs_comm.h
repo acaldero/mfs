@@ -48,12 +48,18 @@
         int  size ;
         int  rank ;
 
+        // some stats
+        char is_connected ;
+        long n_servers ;
+        long n_send_req ;
+        long n_recv_req ;
+
     } comm_t ;
 
 
     // Communications
-    int mfs_comm_init     ( comm_t *cb, int *argc, char ***argv ) ;
-    int mfs_comm_finalize ( comm_t *cb ) ;
+    int mfs_comm_init       ( comm_t *cb, int *argc, char ***argv ) ;
+    int mfs_comm_finalize   ( comm_t *cb ) ;
 
     int mfs_comm_register   ( comm_t *cb ) ;
     int mfs_comm_unregister ( comm_t *cb ) ;
@@ -67,6 +73,9 @@
 
     int mfs_comm_recv_data_from    ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
     int mfs_comm_send_data_to      ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
+
+    int mfs_comm_stats_set_nservers ( comm_t *cb, int *argc, char ***argv ) ;
+    int mfs_comm_stats_reset        ( comm_t *cb ) ;
 
 #endif
 
