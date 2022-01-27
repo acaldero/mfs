@@ -23,9 +23,30 @@
 #include "mfs_client_stub.h"
 
 
+comm_t *global_wb = NULL ;
+
+void at_exit_finalize ( void )
+{
+    long th_id ;
+    long remote_rank ;
+
+    if ( (NULL == global_wb) || (0 == global_wb->is_connected) )
+    {
+        return ;
+    }
+
+    mfs_get_thread_id(&th_id) ;
+    mfs_print(DBG_ERROR, "Client[th=%ld]: exit without disconnect !! :-(", th_id) ;
+
+    remote_rank = (global_wb->rank % global_wb->n_servers) ;
+    mfs_comm_request_send(global_wb, remote_rank, REQ_ACTION_ATEXIT, th_id, 0) ;
+}
+
+
 int clientstub_init ( comm_t *wb, int *argc, char ***argv )
 {
     int ret = 0 ;
+    int remote_rank = 0 ;
 
     // Initialize
     if (ret >= 0)
@@ -36,15 +57,23 @@ int clientstub_init ( comm_t *wb, int *argc, char ***argv )
         }
     }
 
-    // Register service
+    // Connect to service
     if (ret >= 0)
     {
-        sprintf(wb->srv_name, "%s.%d", MFS_SERVER_STUB_PNAME, wb->rank) ;
+        remote_rank = (wb->rank % wb->n_servers) ;
+        sprintf(wb->srv_name, "%s.%d", MFS_SERVER_STUB_PNAME, remote_rank) ;
 
         ret = mfs_comm_connect(wb) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: connection fails :-(", wb->rank) ;
+            mfs_print(DBG_ERROR, "Client[%d]: connection fails :-(", remote_rank) ;
         }
+    }
+
+    // atexit(...)
+    if (ret >= 0)
+    {
+	global_wb = wb ;
+	ret = atexit(at_exit_finalize) ;
     }
 
     // Return OK/KO
