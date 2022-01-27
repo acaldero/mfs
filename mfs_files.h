@@ -34,6 +34,10 @@
     #include <sys/mman.h>
 
 
+    // Includes
+    #define USE_POSIX 1
+
+
     // API
     int   server_files_open  ( const char *pathname, int flags ) ;
     int   server_files_close ( int fd ) ;

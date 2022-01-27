@@ -24,84 +24,192 @@
 
 
 /*
- *  File System API
+ *  File System API (POSIX)
  */
 
-int server_files_open ( const char *pathname, int flags )
-{
-    int fd ;
+#ifdef USE_POSIX
 
-    // open file
-    fd = open(pathname, flags, 0755) ;
-    if (fd < 0) {
-	mfs_print(DBG_INFO, "ERROR: on open(pathname='%s', flags=%d, mode=0755)\n", pathname, flags) ;
-    }
+	int server_files_open ( const char *pathname, int flags )
+	{
+	    int fd ;
 
-    // Return file_descriptor
-    return fd ;
-}
+	    // open file
+	    fd = open(pathname, flags, 0755) ;
+	    if (fd < 0) {
+		mfs_print(DBG_INFO, "ERROR: on open(pathname='%s', flags=%d, mode=0755)\n", pathname, flags) ;
+	    }
 
-int server_files_close ( int fd )
-{
-    // close file
-    close(fd) ;
+	    // Return file_descriptor
+	    return fd ;
+	}
 
-    // Return OK
-    return 1 ;
-}
+	int server_files_close ( int fd )
+	{
+	    int ret ;
 
-int server_files_read ( int fd, void *buff_data, int count )
-{
-    int ret ;
+	    // close file
+	    ret = close(fd) ;
 
-    // read data
-    ret = read(fd, buff_data, count) ;
-    if (ret < 0) {
-	mfs_print(DBG_INFO, "ERROR: read %d bytes from file '%d'\n", count, fd) ;
-    }
+	    // Return OK(0)/KO(-1)
+	    return ret ;
+	}
 
-    // Return number_bytes readed
-    return ret ;
-}
+	int server_files_read ( int fd, void *buff_data, int count )
+	{
+	    int ret ;
 
-int server_files_write ( int fd, void *buff_data, int count )
-{
-    int ret ;
+	    // read data
+	    ret = read(fd, buff_data, count) ;
+	    if (ret < 0) {
+		mfs_print(DBG_INFO, "ERROR: read %d bytes from file '%d'\n", count, fd) ;
+	    }
 
-    // write data
-    ret = write(fd, buff_data, count) ;
-    if (ret < 0) {
-	mfs_print(DBG_INFO, "ERROR: write %d bytes from file '%d'\n", count, fd) ;
-    }
+	    // Return number_bytes readed
+	    return ret ;
+	}
 
-    // Return number_bytes / KO
-    return ret ;
-}
+	int server_files_write ( int fd, void *buff_data, int count )
+	{
+	    int ret ;
 
-void * server_files_mmap ( void *addr, size_t size, int protect, int flags, int filedes, off_t offset )
-{
-    void *ptr ;
+	    // write data
+	    ret = write(fd, buff_data, count) ;
+	    if (ret < 0) {
+		mfs_print(DBG_INFO, "ERROR: write %d bytes from file '%d'\n", count, fd) ;
+	    }
 
-    ptr = mmap(addr, size, protect, flags, filedes, offset) ;
-    if (ptr == MAP_FAILED) {
-	mfs_print(DBG_INFO, "ERROR: mapping failed\n") ;
-        return NULL ;
-    }
+	    // Return number_bytes / KO
+	    return ret ;
+	}
 
-    return ptr ;
-}
+	void * server_files_mmap ( void *addr, size_t size, int protect, int flags, int filedes, off_t offset )
+	{
+	    void *ptr ;
 
-int    server_files_munmap ( void *addr, size_t size )
-{
-    int err ;
+	    ptr = mmap(addr, size, protect, flags, filedes, offset) ;
+	    if (ptr == MAP_FAILED) {
+		mfs_print(DBG_INFO, "ERROR: mapping failed\n") ;
+		return NULL ;
+	    }
 
-    err = munmap(addr, size);
-    if (err != 0) {
-	mfs_print(DBG_INFO, "ERROR: UnMapping failed\n") ;
-        return -1;
-    }
+	    return ptr ;
+	}
 
-    // Return OK
-    return 1 ;
-}
+	int    server_files_munmap ( void *addr, size_t size )
+	{
+	    int err ;
+
+	    err = munmap(addr, size);
+	    if (err != 0) {
+		mfs_print(DBG_INFO, "ERROR: UnMapping failed\n") ;
+		return -1;
+	    }
+
+	    // Return OK
+	    return 1 ;
+	}
+
+#endif
+
+
+/*
+ *  File System API (MPI-io)
+ */
+
+#ifdef USE_MPI_IO
+
+	int server_files_open ( const char *pathname, int flags )
+	{
+	    MPI_File *fh ;
+
+	    fh = malloc(sizeof(MPI_File)) ;
+	    if (NULL == fh) {
+		return -1 ;
+	    }
+	    MPI_File_open(MPI_COMM_WORLD, "test.out", MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, fh);
+	    fd = (int)fh ;
+
+	    // Return file_descriptor
+	    return fd ;
+	}
+
+	int server_files_close ( int fd )
+	{
+	    MPI_File *fh ;
+
+	    fh = (MPI_File *)fd ;
+	    ret = MPI_File_close(fh) ;
+	    free(fh) ;
+
+	    // Return OK(0)/KO(-1)
+	    return ret ;
+	}
+
+	int server_files_read ( int fd, void *buff_data, int count )
+	{
+	    int ret ;
+	    MPI_File *fh ;
+	    MPI_Status status ;
+
+	    fh = (MPI_File *)fd ;
+	    ret = MPI_File_read(fh, buff_data, count, MPI_CHAR, &status) ;
+	    if (ret != MPI_SUCCESS) {
+		mfs_print(DBG_INFO, "ERROR: read %d bytes from file '%d'\n", count, fd) ;
+		return -1 ;
+	    }
+
+	    // Return number_bytes
+	    return count ;
+	}
+
+	int server_files_write ( int fd, void *buff_data, int count )
+	{
+	    int ret ;
+	    MPI_File *fh ;
+	    MPI_Status status ;
+
+	    fh = (MPI_File *)fd ;
+	    ret = MPI_File_write(fh, buff_data, count, MPI_CHAR, &status) ;
+	    if (ret != MPI_SUCCESS) {
+		mfs_print(DBG_INFO, "ERROR: write %d bytes from file '%d'\n", count, fd) ;
+		return -1 ;
+	    }
+
+	    // Return number_bytes
+	    return count ;
+	}
+
+	void * server_files_mmap ( void *addr, size_t size, int protect, int flags, int filedes, off_t offset )
+	{
+	/*
+	    void *ptr ;
+
+	    ptr = mmap(addr, size, protect, flags, filedes, offset) ;
+	    if (ptr == MAP_FAILED) {
+		mfs_print(DBG_INFO, "ERROR: mapping failed\n") ;
+		return NULL ;
+	    }
+
+	    return ptr ;
+	*/
+	    return NULL ;
+	}
+
+	int    server_files_munmap ( void *addr, size_t size )
+	{
+	/*
+	    int err ;
+
+	    err = munmap(addr, size);
+	    if (err != 0) {
+		mfs_print(DBG_INFO, "ERROR: UnMapping failed\n") ;
+		return -1;
+	    }
+	*/
+
+	    // Return OK
+	    return 1 ;
+	}
+
+#endif
 
