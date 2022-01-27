@@ -203,14 +203,24 @@ int mfs_comm_disconnect ( comm_t *cb )
 // Stats
 //
 
+    // TODO: GET n_servers FROM argc, argv ?
+
 int mfs_comm_stats_set_nservers ( comm_t *cb, int *argc, char ***argv )
 {
-    int ret ;
+    int   ret ;
+    FILE *fd ;
 
-    // TODO: GET n_servers FROM argc, argv OR FROM configuration file
-    
     // cb->... (stats)
     cb->n_servers = 1 ;
+
+    // Get n_servers from file "mfs_client.cfg"
+    fd = fopen("mfs_client.cfg", "r") ;
+    if (NULL == fd) {
+        mfs_print(DBG_WARNING, "[COMM]: no 'mfs_client.cfg' available :-/") ;
+	return 0 ;
+    }
+    fread(&(cb->n_servers), sizeof(int), 1, fd) ;
+    fclose(fd) ;
 
     // Return OK
     return 0 ;
