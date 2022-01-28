@@ -33,6 +33,20 @@
     #define MFS_DATA_PREFIX "./data/"
     
 
+    // Datatypes
+    typedef struct
+    {
+        // underlying comm and file
+        comm_t  wb ;
+        file_t  fd ;
+
+        // underlying file options
+        char   *data_prefix ;
+        int     file_protocol ;
+
+    } srvstub_t ;
+
+
     // General API
     int  serverstub_init         ( comm_t *wb, int *argc, char ***argv ) ;
     int  serverstub_finalize     ( comm_t *wb ) ;
@@ -40,7 +54,7 @@
     int  serverstub_disconnect   ( comm_t *ab ) ;
 
     // File System API
-    int  serverstub_open    ( comm_t *ab, file_t *fd, int pathname_length, int flags ) ;
+    int  serverstub_open    ( comm_t *ab, file_t *fd, char *base_dirname, int pathname_length, int flags ) ;
     int  serverstub_close   ( comm_t *ab, file_t *fd ) ;
     int  serverstub_read    ( comm_t *ab, file_t *fd, int count ) ;
     int  serverstub_write   ( comm_t *ab, file_t *fd, int count ) ;

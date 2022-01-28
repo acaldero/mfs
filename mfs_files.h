@@ -57,8 +57,9 @@
 
 
     // API
-    long mfs_file_fd2long ( file_t *fd ) ;
-    int  mfs_file_long2fd ( file_t *fd, long fref, int file_protocol ) ;
+    long  mfs_file_fd2long    ( file_t *fd ) ;
+    int   mfs_file_long2fd    ( file_t *fd, long fref, int file_protocol ) ;
+    int   mfs_file_stats_show ( file_t *fd, char *prefix ) ;
 
     int   mfs_file_open   ( file_t *fd, int file_protocol, const char *path_name, int flags ) ;
     int   mfs_file_close  ( file_t *fd ) ;
@@ -66,6 +67,7 @@
     int   mfs_file_read   ( file_t *fd, void *buff_data, int count ) ;
     int   mfs_file_write  ( file_t *fd, void *buff_data, int count ) ;
 
+    // API (POSIX)
     void *mfs_file_mmap   ( void *addr, size_t size, int protect, int flags, long filedes, off_t offset ) ;
     int   mfs_file_munmap ( void *addr, size_t size ) ;
 

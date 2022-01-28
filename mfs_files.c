@@ -53,8 +53,10 @@ int mfs_file_long2fd ( file_t *fd, long fref, int file_protocol )
     }
 
     fd->file_protocol = file_protocol ;
-    fd->posix_fd = 0 ;
-    fd->mpiio_fd = NULL ;
+    fd->posix_fd      = 0 ;
+    fd->mpiio_fd      = 0 ;
+    fd->n_read_req    = 0 ;
+    fd->n_write_req   = 0 ;
 
     if (FILE_USE_POSIX  == fd->file_protocol) {
         fd->posix_fd =      (int)fref ;
@@ -66,6 +68,36 @@ int mfs_file_long2fd ( file_t *fd, long fref, int file_protocol )
     // Return OK
     return 1 ;
 }
+
+int  mfs_file_stats_show ( file_t *fd, char *prefix )
+{
+    // Check params...
+    if (NULL == fd) {
+	return -1 ;
+    }
+
+    char *proto = "unknow" ;
+    if (FILE_USE_POSIX == fd->file_protocol)
+        proto = "POSIX" ;
+    if (FILE_USE_MPI_IO == fd->file_protocol)
+        proto = "MPI-IO" ;
+
+    // Print stats...
+    printf("%s: File:\n",           prefix) ;
+    printf("%s: + protocol=%s\n",   prefix, proto) ;
+    printf("%s: + posix_fd=%d\n",   prefix, fd->posix_fd) ;
+    printf("%s: + mpiio_fd=%d\n",   prefix, fd->mpiio_fd) ;
+    printf("%s: + # read=%d\n",     prefix, fd->n_read_req) ;
+    printf("%s: + # write=%d\n",    prefix, fd->n_write_req) ;
+
+    // Return OK
+    return 1 ;
+}
+
+
+/*
+ *  File System API
+ */
 
 int  mfs_file_open ( file_t *fd, int file_protocol, const char *path_name, int flags )
 {
@@ -86,7 +118,7 @@ int  mfs_file_open ( file_t *fd, int file_protocol, const char *path_name, int f
         // Open file
         fd->posix_fd = (long)open(path_name, flags, 0755) ;
         if (fd->posix_fd < 0) {
-    	    mfs_print(DBG_INFO, "ERROR: on open(path_name='%s', flags=%d, mode=0755)\n", path_name, flags) ;
+    	    mfs_print(DBG_INFO, "[FILE]: ERROR on open(path_name='%s', flags=%d, mode=0755)\n", path_name, flags) ;
         }
 
         // Return OK
@@ -97,7 +129,7 @@ int  mfs_file_open ( file_t *fd, int file_protocol, const char *path_name, int f
         // Open file
 	int ret = MPI_File_open(MPI_COMM_SELF, path_name, MPI_MODE_CREATE|MPI_MODE_RDWR, MPI_INFO_NULL, &(fd->mpiio_fd));
 	if (ret != MPI_SUCCESS) {
-	    mfs_print(DBG_INFO, "ERROR: open('%s') file.\n", path_name) ;
+	    mfs_print(DBG_INFO, "[FILE]: ERROR on open('%s') file.\n", path_name) ;
 	    return -1 ;
 	}
 
@@ -147,7 +179,7 @@ int   mfs_file_read  ( file_t *fd, void *buff_data, int count )
     {
         ret = read(fd->posix_fd, buff_data, count) ;
         if (ret < 0) {
-	    mfs_print(DBG_INFO, "ERROR: read %d bytes from file '%d'\n", count, fd->posix_fd) ;
+	    mfs_print(DBG_INFO, "[FILE]: ERROR on read %d bytes from file '%d'\n", count, fd->posix_fd) ;
 	    return -1 ;
         }
     }
@@ -157,7 +189,7 @@ int   mfs_file_read  ( file_t *fd, void *buff_data, int count )
 
 	ret = MPI_File_read(fd->mpiio_fd, buff_data, count, MPI_CHAR, &status) ;
 	if (ret != MPI_SUCCESS) {
-	    mfs_print(DBG_INFO, "ERROR: read %d bytes from file '%d'\n", count, fd->mpiio_fd) ;
+	    mfs_print(DBG_INFO, "[FILE]: ERROR on read %d bytes from file '%d'\n", count, fd->mpiio_fd) ;
 	    return -1 ;
 	}
 
@@ -185,7 +217,7 @@ int   mfs_file_write  ( file_t *fd, void *buff_data, int count )
     {
         ret = write(fd->posix_fd, buff_data, count) ;
         if (ret < 0) {
-    	    mfs_print(DBG_INFO, "ERROR: write %d bytes from file '%d'\n", count, fd->posix_fd) ;
+    	    mfs_print(DBG_INFO, "[FILE]: ERROR on write %d bytes from file '%d'\n", count, fd->posix_fd) ;
 	    return -1 ;
         }
     }
@@ -195,7 +227,7 @@ int   mfs_file_write  ( file_t *fd, void *buff_data, int count )
 
 	ret = MPI_File_write(fd->mpiio_fd, buff_data, count, MPI_CHAR, &status) ;
 	if (ret != MPI_SUCCESS) {
-	    mfs_print(DBG_INFO, "ERROR: write %d bytes from file '%d'\n", count, fd->mpiio_fd) ;
+	    mfs_print(DBG_INFO, "[FILE]: ERROR on write %d bytes from file '%d'\n", count, fd->mpiio_fd) ;
 	    return -1 ;
 	}
 
@@ -215,7 +247,7 @@ void *mfs_file_mmap   ( void *addr, size_t size, int protect, int flags, long fi
 
     ptr = mmap(addr, size, protect, flags, filedes, offset) ;
     if (ptr == MAP_FAILED) {
-    	mfs_print(DBG_INFO, "ERROR: mapping failed\n") ;
+    	mfs_print(DBG_INFO, "[FILE]: ERROR on mapping failed\n") ;
 	return NULL ;
     }
 
@@ -228,7 +260,7 @@ int    mfs_file_munmap ( void *addr, size_t size )
 
     err = munmap(addr, size);
     if (err != 0) {
-	mfs_print(DBG_INFO, "ERROR: UnMapping failed\n") ;
+	mfs_print(DBG_INFO, "[FILE]: ERROR on UnMapping failed\n") ;
 	return -1;
     }
 

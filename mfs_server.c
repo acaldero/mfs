@@ -60,6 +60,7 @@ void *do_srv ( void *wb )
     file_t fd ;
     msg_t  msg ;
     long   ret ;
+    srvstub_t srv ;
 
     // copy arguments and signal...
     pthread_mutex_lock(&sync_mutex) ;
@@ -70,11 +71,15 @@ void *do_srv ( void *wb )
     pthread_mutex_unlock(&sync_mutex) ;
     mfs_print(DBG_INFO, "Server[%d]: active_threads++\n", ab.rank) ;
 
+    // initialize
+    srv.data_prefix   = MFS_DATA_PREFIX ;
+    srv.file_protocol = FILE_USE_POSIX ;
+
     // request loop...
     again = 1 ;
     while (again)
     {
-          mfs_print(DBG_INFO, "Server[%d]: receiving...\n", ab.rank) ;
+          mfs_print(DBG_INFO, "Server[%d]: waiting for request...\n", ab.rank) ;
           mfs_protocol_request_receive(&ab, &msg) ;
           switch (msg.req_action)
           {
@@ -88,26 +93,22 @@ void *do_srv ( void *wb )
 	           break;
 
 	      case REQ_ACTION_OPEN:
-	           mfs_print(DBG_INFO, "Server[%d]: request 'open' for a filename of %d chars\n", ab.rank, msg.req_action) ;
-                   ret = serverstub_open(&ab, &fd, msg.req_arg1, msg.req_arg2) ;
-                   mfs_print(DBG_INFO, "Server[%d]: File[%d]: open(flags=%d)\n", ab.rank, ret, msg.req_arg2) ;
+		   ret = mfs_file_long2fd(&fd, -1, srv.file_protocol) ;
+                   ret = serverstub_open(&ab, &fd, srv.data_prefix, msg.req_arg1, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_CLOSE:
-	           mfs_print(DBG_INFO, "Server[%d]: File[%d]: close()\n", ab.rank, msg.req_arg1) ;
-		   ret = mfs_file_long2fd(&fd, msg.req_arg1, FILE_USE_POSIX) ;
+		   ret = mfs_file_long2fd(&fd, msg.req_arg1, srv.file_protocol) ;
                    ret = serverstub_close(&ab, &fd) ;
 	           break;
 
 	      case REQ_ACTION_READ:
-	           mfs_print(DBG_INFO, "Server[%d]: File[%d]: read(bytes=%d)\n", ab.rank, msg.req_arg1, msg.req_arg2) ;
-		   ret = mfs_file_long2fd(&fd, msg.req_arg1, FILE_USE_POSIX) ;
+		   ret = mfs_file_long2fd(&fd, msg.req_arg1, srv.file_protocol) ;
                    ret = serverstub_read(&ab, &fd, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_WRITE:
-	           mfs_print(DBG_INFO, "Server[%d]: File[%d]: write(bytes=%d)\n", ab.rank, msg.req_arg1, msg.req_arg2) ;
-		   ret = mfs_file_long2fd(&fd, msg.req_arg1, FILE_USE_POSIX) ;
+		   ret = mfs_file_long2fd(&fd, msg.req_arg1, srv.file_protocol) ;
                    ret = serverstub_write(&ab, &fd, msg.req_arg2) ;
 	           break;
 
