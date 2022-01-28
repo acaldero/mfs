@@ -35,19 +35,39 @@
 
 
     // File protocol
-    #define USE_POSIX  1
-    #define USE_MPI_IO 2
+    #define FILE_USE_POSIX  1
+    #define FILE_USE_MPI_IO 2
+
+
+    // Datatypes
+    typedef struct
+    {
+        // underlying protocol
+        int  file_protocol ;
+
+        // descriptors
+        long     posix_fd ;
+	MPI_File mpiio_fd ;
+
+        // some stats
+        long n_read_req ;
+        long n_write_req ;
+
+    } file_t ;
 
 
     // API
-    int   server_files_open  ( long *fd, int file_protocol, const char *path_name, int flags ) ;
-    int   server_files_close ( long  fd, int file_protocol ) ;
+    long mfs_file_fd2long ( file_t *fd ) ;
+    int  mfs_file_long2fd ( file_t *fd, long fref, int file_protocol ) ;
 
-    int   server_files_read  ( long  fd, int file_protocol, void *buff_char, int count ) ;
-    int   server_files_write ( long  fd, int file_protocol, void *buff_char, int count ) ;
+    int   mfs_file_open   ( file_t *fd, int file_protocol, const char *path_name, int flags ) ;
+    int   mfs_file_close  ( file_t *fd ) ;
 
-    void *server_files_mmap   ( void *addr, size_t size, int protect, int flags, long filedes, off_t offset ) ;
-    int   server_files_munmap ( void *addr, size_t size ) ;
+    int   mfs_file_read   ( file_t *fd, void *buff_data, int count ) ;
+    int   mfs_file_write  ( file_t *fd, void *buff_data, int count ) ;
+
+    void *mfs_file_mmap   ( void *addr, size_t size, int protect, int flags, long filedes, off_t offset ) ;
+    int   mfs_file_munmap ( void *addr, size_t size ) ;
 
 #endif
 

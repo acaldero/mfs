@@ -40,10 +40,10 @@
     int  serverstub_disconnect   ( comm_t *ab ) ;
 
     // File System API
-    long serverstub_open  ( comm_t *ab, int pathname_length, int flags ) ;
-    int  serverstub_close ( comm_t *ab, long fd ) ;
-    int  serverstub_read  ( comm_t *ab, long fd, int count ) ;
-    int  serverstub_write ( comm_t *ab, long fd, int count ) ;
+    int  serverstub_open    ( comm_t *ab, file_t *fd, int pathname_length, int flags ) ;
+    int  serverstub_close   ( comm_t *ab, file_t *fd ) ;
+    int  serverstub_read    ( comm_t *ab, file_t *fd, int count ) ;
+    int  serverstub_write   ( comm_t *ab, file_t *fd, int count ) ;
 
 #endif
 

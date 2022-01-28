@@ -57,6 +57,7 @@ void *do_srv ( void *wb )
 {
     int    again ;
     comm_t ab ;
+    file_t fd ;
     msg_t  msg ;
     long   ret ;
 
@@ -88,23 +89,26 @@ void *do_srv ( void *wb )
 
 	      case REQ_ACTION_OPEN:
 	           mfs_print(DBG_INFO, "Server[%d]: request 'open' for a filename of %d chars\n", ab.rank, msg.req_action) ;
-                   ret = serverstub_open(&ab, msg.req_arg1, msg.req_arg2) ;
+                   ret = serverstub_open(&ab, &fd, msg.req_arg1, msg.req_arg2) ;
                    mfs_print(DBG_INFO, "Server[%d]: File[%d]: open(flags=%d)\n", ab.rank, ret, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_CLOSE:
 	           mfs_print(DBG_INFO, "Server[%d]: File[%d]: close()\n", ab.rank, msg.req_arg1) ;
-                   ret = serverstub_close(&ab, msg.req_arg1) ;
+		   ret = mfs_file_long2fd(&fd, msg.req_arg1, FILE_USE_POSIX) ;
+                   ret = serverstub_close(&ab, &fd) ;
 	           break;
 
 	      case REQ_ACTION_READ:
 	           mfs_print(DBG_INFO, "Server[%d]: File[%d]: read(bytes=%d)\n", ab.rank, msg.req_arg1, msg.req_arg2) ;
-                   ret = serverstub_read(&ab, msg.req_arg1, msg.req_arg2) ;
+		   ret = mfs_file_long2fd(&fd, msg.req_arg1, FILE_USE_POSIX) ;
+                   ret = serverstub_read(&ab, &fd, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_WRITE:
 	           mfs_print(DBG_INFO, "Server[%d]: File[%d]: write(bytes=%d)\n", ab.rank, msg.req_arg1, msg.req_arg2) ;
-                   ret = serverstub_write(&ab, msg.req_arg1, msg.req_arg2) ;
+		   ret = mfs_file_long2fd(&fd, msg.req_arg1, FILE_USE_POSIX) ;
+                   ret = serverstub_write(&ab, &fd, msg.req_arg2) ;
 	           break;
 
               default:
