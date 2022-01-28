@@ -47,7 +47,7 @@ int main_simple2 ( params_t *params )
     // Benchmark: write
     memset(buffer, 'x', BUFFER_SIZE) ;
 
-    printf("test\t\tclient\t\tsize (KiB)\t\tavg.time (seconds)\n") ;
+    printf("test\t\tclient\t\tsize (KiB)\tavg.time (seconds)\n") ;
     for (int j=1; j<N_SIZES_BENCHMARK; j=2*j)
     {
          t1 = mfs_get_time() ;
@@ -63,7 +63,7 @@ int main_simple2 ( params_t *params )
     }
 
     // Benchmark: read
-    printf("test\t\tclient\t\tsize (KiB)\t\tavg.time (seconds)\n") ;
+    printf("test\t\tclient\t\tsize (KiB)\tavg.time (seconds)\n") ;
     for (int j=1; j<N_SIZES_BENCHMARK; j=2*j)
     {
          t1 = mfs_get_time() ;

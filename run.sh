@@ -6,8 +6,8 @@
 # 
 HOSTNAME=$(hostname)
 SERVER_NP=2
-CLIENT_NP=2
-N_TESTS=2
+CLIENT_NP=4
+N_TESTS=1
 
 # just in case, create data directory
 mkdir -p ./data
@@ -32,7 +32,7 @@ echo "............................."
 echo "./mfs_server &"
 echo "sleep 3"
 echo "............................."
-mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ./mfs_server &
+mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ./mfs_server -p POSIX &
 sleep 3
 
 #
