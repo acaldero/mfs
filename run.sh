@@ -32,7 +32,7 @@ echo "............................."
 echo "./mfs_server &"
 echo "sleep 3"
 echo "............................."
-mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ./mfs_server -p POSIX &
+mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ./mfs_server -p MPI-IO &
 sleep 3
 
 #
@@ -44,7 +44,7 @@ do
    echo "./mfs_client...(test $i)"
    echo "sleep 2"
    echo "............................."
-   mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./mfs_client -n $SERVER_NP
+   mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./mfs_client -n $SERVER_NP -p MPI-IO
    echo "............................."
    sleep 2
 done
