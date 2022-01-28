@@ -20,118 +20,93 @@
  */
 
 
-#include <signal.h>
-#include <pthread.h>
-#include "mfs_protocol.h"
-#include "mfs_server_stub.h"
+   #include <signal.h>
+   #include "mfs_protocol.h"
+   #include "mfs_workers.h"
+   #include "mfs_server_stub.h"
 
 
-// to wait for copy arguments and for active threads...
-int sync_copied    = 0 ;
-int active_threads = 0 ;
-int the_end        = 0 ;
-pthread_mutex_t sync_mutex ;
-pthread_cond_t  sync_cond ;
-pthread_cond_t   end_cond ;
+   // stats
+   long   t1     = 0L ;
+   char *ver     = "0.9" ;
+   int   the_end = 0 ;
 
-// stats
-long   t1 = 0L ;
-char *ver = "0.8" ;
+   void do_stats_ctrc ( int sigid )
+   {
+       long t2 = mfs_get_time() ;
 
+       printf("INFO:\n") ;
+       printf("INFO: Threads:\n") ;
+//       printf("INFO: + active threads=%ld\n", n_workers) ;  // TODO
+       printf("INFO: Time:\n") ;
+       printf("INFO: + running time=%lf seconds.\n", (t2-t1)/1000.0) ;
+       printf("INFO: Version:\n") ;
+       printf("INFO: + server=%s\n", ver) ;
+       printf("INFO:\n") ;
+   }
 
-void do_stats_ctrc ( int sigid )
-{
-    long t2 = mfs_get_time() ;
+   void do_srv ( struct st_th th )
+   {
+       long      ret ;
+       int       again ;
+       file_t    fd ;
+       msg_t     msg ;
+       srvstub_t srv ;
 
-    printf("INFO:\n") ;
-    printf("INFO: Threads:\n") ;
-    printf("INFO: + active threads=%ld\n", active_threads) ;
-    printf("INFO: Time:\n") ;
-    printf("INFO: + running time=%lf seconds.\n", (t2-t1)/1000.0) ;
-    printf("INFO: Version:\n") ;
-    printf("INFO: + server=%s\n", ver) ;
-    printf("INFO:\n") ;
-}
+       // initialize
+       srv.data_prefix   = MFS_DATA_PREFIX ;
+       srv.file_protocol = FILE_USE_POSIX ;
 
-void *do_srv ( void *wb )
-{
-    int    again ;
-    comm_t ab ;
-    file_t fd ;
-    msg_t  msg ;
-    long   ret ;
-    srvstub_t srv ;
-
-    // copy arguments and signal...
-    pthread_mutex_lock(&sync_mutex) ;
-    ab = *((comm_t *)wb) ;
-    sync_copied = 1 ;
-    active_threads++ ;
-    pthread_cond_signal(&sync_cond) ;
-    pthread_mutex_unlock(&sync_mutex) ;
-    mfs_print(DBG_INFO, "Server[%d]: active_threads++\n", ab.rank) ;
-
-    // initialize
-    srv.data_prefix   = MFS_DATA_PREFIX ;
-    srv.file_protocol = FILE_USE_POSIX ;
-
-    // request loop...
-    again = 1 ;
-    while (again)
-    {
-          mfs_print(DBG_INFO, "Server[%d]: waiting for request...\n", ab.rank) ;
-          mfs_protocol_request_receive(&ab, &msg) ;
+       // request loop...
+       again = 1 ;
+       while (again)
+       {
+          mfs_print(DBG_INFO, "Server[%d]: waiting for request...\n", th.ab.rank) ;
+          mfs_protocol_request_receive(&th.ab, &msg) ;
           switch (msg.req_action)
           {
+              case REQ_ACTION_SHUTDOWN:
+	           mfs_print(DBG_INFO, "Server[%d]: request 'shutdown'\n", th.ab.rank) ;
+                   the_end = 1 ;
+	           break;
+
               case REQ_ACTION_NONE:
-	           mfs_print(DBG_INFO, "Server[%d]: request 'none'\n", ab.rank) ;
+	           mfs_print(DBG_INFO, "Server[%d]: request 'none'\n", th.ab.rank) ;
 	           break;
 
               case REQ_ACTION_DISCONNECT:
-	           mfs_print(DBG_INFO, "Server[%d]: request 'disconnect'\n", ab.rank) ;
+	           mfs_print(DBG_INFO, "Server[%d]: request 'disconnect'\n", th.ab.rank) ;
 	           again = 0 ;
 	           break;
 
 	      case REQ_ACTION_OPEN:
 		   ret = mfs_file_long2fd(&fd, -1, srv.file_protocol) ;
-                   ret = serverstub_open(&ab, &fd, srv.data_prefix, msg.req_arg1, msg.req_arg2) ;
+                   ret = serverstub_open(&th.ab, &fd, srv.data_prefix, msg.req_arg1, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_CLOSE:
 		   ret = mfs_file_long2fd(&fd, msg.req_arg1, srv.file_protocol) ;
-                   ret = serverstub_close(&ab, &fd) ;
+                   ret = serverstub_close(&th.ab, &fd) ;
 	           break;
 
 	      case REQ_ACTION_READ:
 		   ret = mfs_file_long2fd(&fd, msg.req_arg1, srv.file_protocol) ;
-                   ret = serverstub_read(&ab, &fd, msg.req_arg2) ;
+                   ret = serverstub_read(&th.ab, &fd, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_WRITE:
 		   ret = mfs_file_long2fd(&fd, msg.req_arg1, srv.file_protocol) ;
-                   ret = serverstub_write(&ab, &fd, msg.req_arg2) ;
+                   ret = serverstub_write(&th.ab, &fd, msg.req_arg2) ;
 	           break;
 
               default:
-	           mfs_print(DBG_ERROR, "Server[%d]: unexpected message type: %d\n", ab.rank, msg.req_action) ;
+	           mfs_print(DBG_ERROR, "Server[%d]: unexpected message type: %d\n", th.ab.rank, msg.req_action) ;
           }
-    }
+       }
 
-    // active_thread--...
-    pthread_mutex_lock(&sync_mutex) ;
-    active_threads-- ;
-    if (0 == active_threads) {
-        pthread_cond_signal(&end_cond) ;
-    }
-    pthread_mutex_unlock(&sync_mutex) ;
-    mfs_print(DBG_INFO, "Server[%d]: active_threads--\n", ab.rank) ;
-
-    // disconnect from server
-    serverstub_disconnect(&ab) ;
-
-    // return
-    return NULL ;
-}
+       // disconnect from server
+       serverstub_disconnect(&(th.ab)) ;
+   }
 
 
 /*
@@ -143,32 +118,29 @@ int main ( int argc, char **argv )
     int ret ;
     comm_t wb ;
     comm_t ab ;
-    pthread_attr_t attr ;
-    pthread_t thid ;
 
     // Welcome...
     printf("\n"
  	   " mfs_server\n"
 	   " ----------\n"
 	   "\n") ;
+    mfs_print(DBG_INFO, "Server[%d]: initializing...\n", -1) ;
+
+    // Initialize workers
+    ret = mfs_workers_init() ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: mfs_workers_init fails :-(", -1) ;
+        return -1 ;
+    }
 
     // Initialize stub...
-    mfs_print(DBG_INFO, "Server[%d]: initializing...\n", -1) ;
     ret = serverstub_init(&wb, &argc, &argv) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: serverstub_init fails :-(", -1) ;
         return -1 ;
     }
 
-    // Initialize global variables
-    active_threads = 0 ;
-    sync_copied    = 0 ;
-    pthread_mutex_init(&sync_mutex, NULL) ;
-    pthread_cond_init(&sync_cond, NULL) ;
-    pthread_cond_init(&end_cond, NULL) ;
-    pthread_attr_init(&attr) ;
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) ;
-
+    // Initialize signal + time
     signal(SIGUSR1, do_stats_ctrc) ;
     t1 = mfs_get_time() ;
 
@@ -182,15 +154,7 @@ int main ( int argc, char **argv )
     {
 	// new thread...
 	mfs_print(DBG_INFO, "Server[%d]: create new thread...\n", ab.rank) ;
-	pthread_create(&thid, &attr, do_srv, (void *)&ab) ;
-
-	// wait to copy arguments + active_thread++...
-	pthread_mutex_lock(&sync_mutex) ;
-        while (sync_copied == 0) {
-               pthread_cond_wait(&sync_cond, &sync_mutex) ;
-        }
-        sync_copied = 0 ;
-        pthread_mutex_unlock(&sync_mutex) ;
+        ret = mfs_workers_launch_worker(&ab, do_srv) ;
 
 	// To serve next request...
         mfs_print(DBG_INFO, "Server[%d]: accepting...\n", wb.rank) ;
@@ -202,11 +166,7 @@ int main ( int argc, char **argv )
 
     // Wait for active_thread...
     mfs_print(DBG_INFO, "Server[%d]: wait for threads...\n", wb.rank) ;
-    pthread_mutex_lock(&sync_mutex) ;
-    while (active_threads != 0) {
-           pthread_cond_wait(&end_cond, &sync_mutex) ;
-    }
-    pthread_mutex_unlock(&sync_mutex) ;
+    mfs_workers_wait_workers() ;
 
     // Finalize...
     mfs_print(DBG_INFO, "Server[%d]: ends.\n", wb.rank) ;
