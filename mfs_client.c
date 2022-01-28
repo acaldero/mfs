@@ -25,36 +25,70 @@
 #include "mfs_params.h"
 #include "mfs_client_stub.h"
 
-#define STR_SIZE 1024
+#define N_TIMES_BENCHMARK 10
+#define BUFFER_SIZE 1024*1024
+char    buffer[BUFFER_SIZE] ;
 
-params_t params ;
-
-int main ( int argc, char **argv )
+int main_simple2 ( params_t *params )
 {
+    int    ret ;
     comm_t wb ;
-    int  ret ;
-    int  i ;
-    long fd ;
-    char str[STR_SIZE] ;
-
-    // Welcome...
-    printf("\n"
- 	   " mfs_client\n"
-	   " ----------\n"
-	   "\n") ;
-
-    // Get parameters..
-    ret = mfs_params_get(&params, &argc, &argv) ;
-    if (ret < 0) {
-        mfs_params_show_usage() ;
-        exit(-1) ;
-    }
-
-    mfs_print(DBG_INFO, "Client[%d]: initializing...\n", -1) ;
-    mfs_params_show(&params) ;
+    long   fd ;
+    long   t1, t2 ;
 
     // Initialize...
-    ret = clientstub_init(&wb, &params) ;
+    ret = clientstub_init(&wb, params) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Client[%d]: clientstub_init fails :-(", -1) ;
+        return -1 ;
+    }
+
+    // Benchmark: write
+    mfs_print(DBG_INFO, "Client[%d]: creat(...) + write(...) + close(...)\n", wb.rank) ;
+    printf("size\t\ttime (seconds)\t\t\n") ;
+
+    memset(buffer, 'x', BUFFER_SIZE) ;
+    t1 = mfs_get_time() ;
+    for (int i=0; i<N_TIMES_BENCHMARK; i++)
+    {
+         fd = clientstub_open(&wb, "test1.txt", O_WRONLY | O_CREAT | O_TRUNC) ;
+         clientstub_write(&wb, fd, buffer, BUFFER_SIZE) ;
+         clientstub_close(&wb, fd) ;
+    }
+    t2 = mfs_get_time() ;
+    printf("%d\t\t%lf\t\t\n", BUFFER_SIZE, (t2-t1)/1000.0) ;
+
+    // Benchmark: read
+    mfs_print(DBG_INFO, "Client[%d]: open(...) + read(...) + close(...)\n", wb.rank) ;
+    printf("size\t\ttime (seconds)\t\t\n") ;
+
+    t1 = mfs_get_time() ;
+    for (int i=0; i<N_TIMES_BENCHMARK; i++)
+    {
+         fd = clientstub_open(&wb, "test1.txt", O_RDONLY) ;
+         clientstub_read( &wb, fd, buffer, BUFFER_SIZE) ;
+         clientstub_close(&wb, fd) ;
+    }
+    t2 = mfs_get_time() ;
+    printf("%d\t\t%lf\t\t\n", BUFFER_SIZE, (t2-t1)/1000.0) ;
+
+    // Finalize...
+    mfs_print(DBG_INFO, "Client[%d]: finalize...\n", wb.rank) ;
+    clientstub_finalize(&wb) ;
+
+    return 0;
+}
+
+int main_simple1 ( params_t *params )
+{
+    int    ret ;
+    comm_t wb ;
+    long   fd ;
+    #define STR_SIZE 1024
+    char   str[STR_SIZE] ;
+
+    // Initialize...
+    ret = clientstub_init(&wb, params) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Client[%d]: clientstub_init fails :-(", -1) ;
         return -1 ;
@@ -78,5 +112,33 @@ int main ( int argc, char **argv )
     clientstub_finalize(&wb) ;
 
     return 0;
+}
+
+int main ( int argc, char **argv )
+{
+    int  ret ;
+    params_t params ;
+
+    // Welcome...
+    printf("\n"
+ 	   " mfs_client\n"
+	   " ----------\n"
+	   "\n") ;
+
+    // Get parameters..
+    ret = mfs_params_get(&params, &argc, &argv) ;
+    if (ret < 0) {
+        mfs_params_show_usage() ;
+        exit(-1) ;
+    }
+
+    mfs_print(DBG_INFO, "Client[%d]: initializing...\n", -1) ;
+    mfs_params_show(&params) ;
+
+    // simple main...
+    ret = main_simple2(&params) ;
+
+    // Return OK/KO
+    return ret ;
 }
 

@@ -13,7 +13,7 @@ N_TESTS=2
 mkdir -p ./data
 
 # https://stackoverflow.com/questions/360201/how-do-i-kill-background-processes-jobs-when-my-shell-script-exits
-trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+trap "trap - TERM && kill -- -$$" INT TERM EXIT
 
 #
 # start namespace server...
@@ -44,7 +44,7 @@ do
    echo "./mfs_client...(test $i)"
    echo "sleep 2"
    echo "............................."
-   mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./mfs_client
+   mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./mfs_client -n $SERVER_NP
    echo "............................."
    sleep 2
 done

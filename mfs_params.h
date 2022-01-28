@@ -53,7 +53,7 @@
     */
 
    void mfs_params_show_usage ( void ) ;
-   int  mfs_params_get        ( params_t *params, int *argc, char **argv[] ) ;
+   int  mfs_params_get        ( params_t *params, int *argc, char ***argv ) ;
    void mfs_params_show       ( params_t *params ) ;
 
 #endif

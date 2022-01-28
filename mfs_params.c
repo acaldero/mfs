@@ -48,41 +48,41 @@
       	printf("\t-n <integer>: number of servers\n") ;
  }
       
- int mfs_params_get ( params_t *params, int *argc, char **argv[] )
+ int mfs_params_get ( params_t *params, int *argc, char ***argv )
  {
       	// set default values
       	params->argc = argc ;
       	params->argv = argv ;
 
+        params->num_servers   = 1 ;
         params->file_protocol = FILE_USE_POSIX ;
         strcpy(params->data_prefix, DEFAULT_DATA_PREFIX) ;
-        params->num_servers   = 1 ;
 
       	// update user requests
-      	for (int i=0; i<*argc; i++)
+      	for (int i=0; i<(*argc); i++)
       	{
-      		switch (*argv[i][0])
+      		switch ((*argv)[i][0])
       		{
       			case '-':
-      				switch (*argv[i][1])
+      				switch ((*argv)[i][1])
 				{
       					case 'p':
-						if (!strcmp("POSIX", *argv[i+1]) ) {
+						if (!strcmp("POSIX",  (*argv)[i+1]) ) {
       						    params->file_protocol = FILE_USE_POSIX ;
 						}
-						if (!strcmp("MPI-IO", *argv[i+1]) ) {
+						if (!strcmp("MPI-IO", (*argv)[i+1]) ) {
       						    params->file_protocol = FILE_USE_MPI_IO ;
 						}
       						i++;
       						break;
 
       					case 'd':
-      						strcpy(params->data_prefix, *argv[i+1]);
+      						strcpy(params->data_prefix, (*argv)[i+1]) ;
       						i++;
       						break;					
 
       					case 'n':
-      						params->num_servers = atoi(*argv[i+1]);
+      						params->num_servers = atoi((*argv)[i+1]) ;
       						i++;
       						break;					
 
