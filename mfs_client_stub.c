@@ -47,7 +47,7 @@ void at_exit_finalize ( void )
  *  File System API
  */
 
-int clientstub_init ( comm_t *wb, int *argc, char ***argv )
+int clientstub_init ( comm_t *wb, params_t *params )
 {
     int ret = 0 ;
     int remote_rank = 0 ;
@@ -55,7 +55,7 @@ int clientstub_init ( comm_t *wb, int *argc, char ***argv )
     // Initialize
     if (ret >= 0)
     {
-        ret = mfs_comm_init(wb, argc, argv) ;
+        ret = mfs_comm_init(wb, params) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: initialization fails :-(", -1) ;
         }

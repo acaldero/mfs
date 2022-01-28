@@ -27,11 +27,7 @@
     #include "mfs_lib.h"
     #include "mfs_protocol.h"
     #include "mfs_files.h"
-    
 
-    // Const
-    #define MFS_DATA_PREFIX "./data/"
-    
 
     // Datatypes
     typedef struct
@@ -48,7 +44,7 @@
 
 
     // General API
-    int  serverstub_init         ( comm_t *wb, int *argc, char ***argv ) ;
+    int  serverstub_init         ( comm_t *wb, params_t *params ) ;
     int  serverstub_finalize     ( comm_t *wb ) ;
     int  serverstub_accept       ( comm_t *ab, comm_t *wb ) ;
     int  serverstub_disconnect   ( comm_t *ab ) ;

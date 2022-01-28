@@ -18,41 +18,43 @@
  *
  */
 
-#ifndef __MFS_WORKERS_H__
-#define __MFS_WORKERS_H__
+#ifndef _MFS_PARAMS_H_
+#define _MFS_PARAMS_H_
 
-   #include <pthread.h>
-   #include "mfs_protocol.h"
+   #include <stdlib.h>
+   #include <stdio.h>
+   #include <string.h>
+   #include "mpi.h"
    #include "mfs_lib.h"
+   #include "mfs_files.h"
 
 
-   /*
-    * Constants
-    */
-
-   #define MAX_THREADS 1024 
-   #define STACK_SIZE (256*1024)
+   // Const
+   #define DEFAULT_DATA_PREFIX "./data/"
 
 
-   /*
-    * Datatype
-    */
-
-   struct st_th
+   // Datatype
+   typedef struct
    {
-        comm_t    ab ;
-        void (*function)(struct st_th) ;
-     // mfs_param_t *params;
-   };
+        // associated client
+        int   file_protocol ;
+        char  data_prefix[1024] ;
+        int   num_servers ;
+
+        // server arguments
+        int    *argc ;
+        char ***argv ;
+
+   } params_t ;
 
 
    /*
     * API
     */
 
-   int  mfs_workers_init          ( void ) ;
-   int  mfs_workers_launch_worker ( comm_t *wb, void (*worker_function)(struct st_th) ) ;
-   int  mfs_workers_wait_workers  ( void ) ;
+   void mfs_params_show_usage ( void ) ;
+   int  mfs_params_get        ( params_t *params, int *argc, char **argv[] ) ;
+   void mfs_params_show       ( params_t *params ) ;
 
 #endif
 

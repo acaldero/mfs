@@ -27,12 +27,12 @@
  *  Server stub API
  */
 
-int serverstub_init ( comm_t *wb, int *argc, char ***argv )
+int serverstub_init ( comm_t *wb, params_t *params )
 {
     int ret ;
 
     // Initialize
-    ret = mfs_comm_init(wb, argc, argv) ;
+    ret = mfs_comm_init(wb, params) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: initialization fails :-(", -1) ;
         return -1 ;

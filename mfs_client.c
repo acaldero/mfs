@@ -22,9 +22,12 @@
 
 #include <stdio.h>
 #include "mfs_protocol.h"
+#include "mfs_params.h"
 #include "mfs_client_stub.h"
 
 #define STR_SIZE 1024
+
+params_t params ;
 
 int main ( int argc, char **argv )
 {
@@ -40,9 +43,18 @@ int main ( int argc, char **argv )
 	   " ----------\n"
 	   "\n") ;
 
-    // Initialize...
+    // Get parameters..
+    ret = mfs_params_get(&params, &argc, &argv) ;
+    if (ret < 0) {
+        mfs_params_show_usage() ;
+        exit(-1) ;
+    }
+
     mfs_print(DBG_INFO, "Client[%d]: initializing...\n", -1) ;
-    ret = clientstub_init(&wb, &argc, &argv) ;
+    mfs_params_show(&params) ;
+
+    // Initialize...
+    ret = clientstub_init(&wb, &params) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Client[%d]: clientstub_init fails :-(", -1) ;
         return -1 ;

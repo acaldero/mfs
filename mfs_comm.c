@@ -26,21 +26,21 @@
 // Init, Finalize
 //
 
-int mfs_comm_init ( comm_t *cb, int *argc, char ***argv )
+int mfs_comm_init ( comm_t *cb, params_t *params )
 {
     int ret, claimed, provided ;
 
     // cb->... (stats)
     cb->is_connected = 0 ;
     ret = mfs_comm_stats_reset(cb) ;
-    ret = mfs_comm_stats_set_nservers(cb, argc, argv) ;
+    ret = mfs_comm_stats_set_nservers(cb, params) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "[COMM]: set n_servers fails :-(") ;
         return -1 ;
     }
 
     // MPI_Init
-    ret = MPI_Init_thread(argc, argv, MPI_THREAD_MULTIPLE, &provided) ;
+    ret = MPI_Init_thread(params->argc, params->argv, MPI_THREAD_MULTIPLE, &provided) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "[COMM]: MPI_Init fails :-(") ;
         return -1 ;
@@ -203,24 +203,16 @@ int mfs_comm_disconnect ( comm_t *cb )
 // Stats
 //
 
-    // TODO: GET n_servers FROM argc, argv ?
-
-int mfs_comm_stats_set_nservers ( comm_t *cb, int *argc, char ***argv )
+int mfs_comm_stats_set_nservers ( comm_t *cb, params_t *params )
 {
-    int   ret ;
-    FILE *fd ;
+    // cb->number_of_process_in_server
+    cb->n_servers = params->num_servers ;
 
-    // cb->... (stats)
-    cb->n_servers = 1 ;
-
-    // Get n_servers from file "mfs_client.cfg"
-    fd = fopen("mfs_client.cfg", "r") ;
-    if (NULL == fd) {
-        mfs_print(DBG_WARNING, "[COMM]: no 'mfs_client.cfg' available :-/") ;
-	return 0 ;
+    // check negative value...
+    if (cb->n_servers < 0) {
+        cb->n_servers = 1 ;
+	return -1 ;
     }
-    fread(&(cb->n_servers), sizeof(int), 1, fd) ;
-    fclose(fd) ;
 
     // Return OK
     return 0 ;

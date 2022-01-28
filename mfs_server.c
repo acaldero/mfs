@@ -21,27 +21,29 @@
 
 
    #include <signal.h>
+   #include "mfs_params.h"
    #include "mfs_protocol.h"
-   #include "mfs_workers.h"
    #include "mfs_server_stub.h"
+   #include "mfs_workers.h"
 
 
    // stats
-   long   t1     = 0L ;
-   char *ver     = "0.9" ;
-   int   the_end = 0 ;
+   char    *ver     = "0.9" ;
+   int      the_end = 0 ;
+   long     t1      = 0L ;
+   params_t params ;
 
    void do_stats_ctrc ( int sigid )
    {
        long t2 = mfs_get_time() ;
 
        printf("INFO:\n") ;
-       printf("INFO: Threads:\n") ;
-//       printf("INFO: + active threads=%ld\n", n_workers) ;  // TODO
-       printf("INFO: Time:\n") ;
-       printf("INFO: + running time=%lf seconds.\n", (t2-t1)/1000.0) ;
        printf("INFO: Version:\n") ;
        printf("INFO: + server=%s\n", ver) ;
+       printf("INFO: Time:\n") ;
+       printf("INFO: + running time=%lf seconds.\n", (t2-t1)/1000.0) ;
+//       printf("INFO: Threads:\n") ;
+//       printf("INFO: + active threads=%ld\n", n_workers) ;  // TODO
        printf("INFO:\n") ;
    }
 
@@ -51,11 +53,6 @@
        int       again ;
        file_t    fd ;
        msg_t     msg ;
-       srvstub_t srv ;
-
-       // initialize
-       srv.data_prefix   = MFS_DATA_PREFIX ;
-       srv.file_protocol = FILE_USE_POSIX ;
 
        // request loop...
        again = 1 ;
@@ -80,22 +77,22 @@
 	           break;
 
 	      case REQ_ACTION_OPEN:
-		   ret = mfs_file_long2fd(&fd, -1, srv.file_protocol) ;
-                   ret = serverstub_open(&th.ab, &fd, srv.data_prefix, msg.req_arg1, msg.req_arg2) ;
+		   ret = mfs_file_long2fd(&fd, -1, params.file_protocol) ;
+                   ret = serverstub_open(&th.ab, &fd, params.data_prefix, msg.req_arg1, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_CLOSE:
-		   ret = mfs_file_long2fd(&fd, msg.req_arg1, srv.file_protocol) ;
+		   ret = mfs_file_long2fd(&fd, msg.req_arg1, params.file_protocol) ;
                    ret = serverstub_close(&th.ab, &fd) ;
 	           break;
 
 	      case REQ_ACTION_READ:
-		   ret = mfs_file_long2fd(&fd, msg.req_arg1, srv.file_protocol) ;
+		   ret = mfs_file_long2fd(&fd, msg.req_arg1, params.file_protocol) ;
                    ret = serverstub_read(&th.ab, &fd, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_WRITE:
-		   ret = mfs_file_long2fd(&fd, msg.req_arg1, srv.file_protocol) ;
+		   ret = mfs_file_long2fd(&fd, msg.req_arg1, params.file_protocol) ;
                    ret = serverstub_write(&th.ab, &fd, msg.req_arg2) ;
 	           break;
 
@@ -115,16 +112,25 @@
 
 int main ( int argc, char **argv )
 {
-    int ret ;
-    comm_t wb ;
-    comm_t ab ;
+    int      ret ;
+    comm_t   wb ;
+    comm_t   ab ;
 
     // Welcome...
     printf("\n"
  	   " mfs_server\n"
 	   " ----------\n"
 	   "\n") ;
+
+    // Get parameters..
+    ret = mfs_params_get(&params, &argc, &argv) ;
+    if (ret < 0) {
+        mfs_params_show_usage() ;
+        exit(-1) ;
+    }
+
     mfs_print(DBG_INFO, "Server[%d]: initializing...\n", -1) ;
+    mfs_params_show(&params) ;
 
     // Initialize workers
     ret = mfs_workers_init() ;
@@ -134,7 +140,7 @@ int main ( int argc, char **argv )
     }
 
     // Initialize stub...
-    ret = serverstub_init(&wb, &argc, &argv) ;
+    ret = serverstub_init(&wb, &params) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: serverstub_init fails :-(", -1) ;
         return -1 ;

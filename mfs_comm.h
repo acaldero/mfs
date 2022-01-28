@@ -32,6 +32,7 @@
     #include <unistd.h>
     #include <mpi.h>
     #include "mfs_lib.h"
+    #include "mfs_params.h"
 
 
     // Datatypes
@@ -58,7 +59,7 @@
 
 
     // Communications
-    int mfs_comm_init       ( comm_t *cb, int *argc, char ***argv ) ;
+    int mfs_comm_init       ( comm_t *cb, params_t *params ) ;
     int mfs_comm_finalize   ( comm_t *cb ) ;
 
     int mfs_comm_register   ( comm_t *cb ) ;
@@ -74,7 +75,7 @@
     int mfs_comm_recv_data_from     ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
     int mfs_comm_send_data_to       ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
 
-    int mfs_comm_stats_set_nservers ( comm_t *cb, int *argc, char ***argv ) ;
+    int mfs_comm_stats_set_nservers ( comm_t *cb, params_t *params ) ;
     int mfs_comm_stats_reset        ( comm_t *cb ) ;
     int mfs_comm_stats_show         ( comm_t *cb, char *prefix ) ;
 

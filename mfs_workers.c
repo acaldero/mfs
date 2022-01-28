@@ -36,7 +36,8 @@ int mfs_workers_init ( void )
        pthread_cond_init (&c_worker, NULL) ;
        pthread_cond_init (&end_cond, NULL) ;
 
-       return 0;
+       // Return OK
+       return 1;
 }
 
 void *mfs_workers_worker_run ( void *arg )
@@ -86,7 +87,8 @@ int mfs_workers_launch_worker ( comm_t * wb, void (*worker_function)(struct st_t
        // create thread...
        ret = pthread_create(&th_worker, &th_attr, (mfs_workers_worker_run), (void *)&st_worker);
        if (ret != 0){
-           perror("pthread_create: Error en create_thread: ");
+           mfs_print(DBG_ERROR, "[WORKERS]: pthread_create fails :-(") ;
+           perror("pthread_create: ");
        }
 
        // wait to copy arguments + active_thread++...
@@ -97,10 +99,11 @@ int mfs_workers_launch_worker ( comm_t * wb, void (*worker_function)(struct st_t
        sync_copied = 0 ;
        pthread_mutex_unlock(&m_worker);
 
-       return 0;
+       // Return OK
+       return 1;
 }
 
-void mfs_workers_wait_workers ( void )
+int mfs_workers_wait_workers ( void )
 {
        // wait to n_workers be zero...
        pthread_mutex_lock(&m_worker) ;
@@ -108,5 +111,8 @@ void mfs_workers_wait_workers ( void )
               pthread_cond_wait(&end_cond, &m_worker) ;
        }
        pthread_mutex_unlock(&m_worker) ;
+
+       // Return OK
+       return 1;
 }
 
