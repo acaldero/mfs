@@ -35,8 +35,10 @@ int mfs_print ( int src_type, char *src_fname, long src_line, FILE *fd, char *ms
    switch (src_type)
    {
         case  3:
+#ifdef DEBUG
               fprintf(fd, "[%s:%4ld] [INFO] ", src_fname, src_line) ;
               ret = vfprintf(fd, msg_fmt, valist) ;
+#endif
      	      break;
 
         case  2:

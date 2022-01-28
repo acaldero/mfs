@@ -26,7 +26,8 @@
 #include "mfs_client_stub.h"
 
 #define N_TIMES_BENCHMARK 10
-#define BUFFER_SIZE 1024*1024
+#define N_SIZES_BENCHMARK 1024
+#define BUFFER_SIZE 1024
 char    buffer[BUFFER_SIZE] ;
 
 int main_simple2 ( params_t *params )
@@ -44,33 +45,38 @@ int main_simple2 ( params_t *params )
     }
 
     // Benchmark: write
-    mfs_print(DBG_INFO, "Client[%d]: creat(...) + write(...) + close(...)\n", wb.rank) ;
-    printf("size\t\ttime (seconds)\t\t\n") ;
-
     memset(buffer, 'x', BUFFER_SIZE) ;
-    t1 = mfs_get_time() ;
-    for (int i=0; i<N_TIMES_BENCHMARK; i++)
+
+    printf("test\t\tclient\t\tsize (KiB)\t\tavg.time (seconds)\n") ;
+    for (int j=1; j<N_SIZES_BENCHMARK; j=2*j)
     {
-         fd = clientstub_open(&wb, "test1.txt", O_WRONLY | O_CREAT | O_TRUNC) ;
-         clientstub_write(&wb, fd, buffer, BUFFER_SIZE) ;
-         clientstub_close(&wb, fd) ;
+         t1 = mfs_get_time() ;
+         for (int i=0; i<N_TIMES_BENCHMARK; i++)
+         {
+              fd = clientstub_open(&wb, "test1.txt", O_WRONLY | O_CREAT | O_TRUNC) ;
+              for (int k=0; k<j; k++)
+                   clientstub_write(&wb, fd, buffer, BUFFER_SIZE) ;
+              clientstub_close(&wb, fd) ;
+         }
+         t2 = mfs_get_time() ;
+         printf("write\t\t%d\t\t%d\t\t%lf\n", wb.rank, (j*BUFFER_SIZE)/1024, ((t2-t1)/1000.0)/N_TIMES_BENCHMARK) ;
     }
-    t2 = mfs_get_time() ;
-    printf("%d\t\t%lf\t\t\n", BUFFER_SIZE, (t2-t1)/1000.0) ;
 
     // Benchmark: read
-    mfs_print(DBG_INFO, "Client[%d]: open(...) + read(...) + close(...)\n", wb.rank) ;
-    printf("size\t\ttime (seconds)\t\t\n") ;
-
-    t1 = mfs_get_time() ;
-    for (int i=0; i<N_TIMES_BENCHMARK; i++)
+    printf("test\t\tclient\t\tsize (KiB)\t\tavg.time (seconds)\n") ;
+    for (int j=1; j<N_SIZES_BENCHMARK; j=2*j)
     {
-         fd = clientstub_open(&wb, "test1.txt", O_RDONLY) ;
-         clientstub_read( &wb, fd, buffer, BUFFER_SIZE) ;
-         clientstub_close(&wb, fd) ;
+         t1 = mfs_get_time() ;
+         for (int i=0; i<N_TIMES_BENCHMARK; i++)
+         {
+              fd = clientstub_open(&wb, "test1.txt", O_RDONLY) ;
+              for (int k=0; k<j; k++)
+                   clientstub_read( &wb, fd, buffer, BUFFER_SIZE) ;
+              clientstub_close(&wb, fd) ;
+         }
+         t2 = mfs_get_time() ;
+         printf("read\t\t%d\t\t%d\t\t%lf\n", wb.rank, (j*BUFFER_SIZE)/1024, ((t2-t1)/1000.0)/N_TIMES_BENCHMARK) ;
     }
-    t2 = mfs_get_time() ;
-    printf("%d\t\t%lf\t\t\n", BUFFER_SIZE, (t2-t1)/1000.0) ;
 
     // Finalize...
     mfs_print(DBG_INFO, "Client[%d]: finalize...\n", wb.rank) ;
