@@ -42,8 +42,7 @@
        printf("INFO: + server=%s\n", ver) ;
        printf("INFO: Time:\n") ;
        printf("INFO: + running time=%lf seconds.\n", (t2-t1)/1000.0) ;
-//       printf("INFO: Threads:\n") ;
-//       printf("INFO: + active threads=%ld\n", n_workers) ;  // TODO
+       mfs_workers_stats_show("INFO") ;
        printf("INFO:\n") ;
    }
 
@@ -72,6 +71,7 @@
 	           break;
 
               case REQ_ACTION_DISCONNECT:
+              case REQ_ACTION_ATEXIT:
 	           mfs_print(DBG_INFO, "Server[%d]: request 'disconnect'\n", th.ab.rank) ;
 	           again = 0 ;
 	           break;

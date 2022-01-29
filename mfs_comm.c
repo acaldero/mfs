@@ -65,6 +65,10 @@ int mfs_comm_init ( comm_t *cb, params_t *params )
         return -1 ;
     }
 
+    // cb->status_... 
+    cb->status_rank = -1 ;
+    cb->status_tag  = -1 ;
+
     // Return OK
     return 0 ;
 }
@@ -308,6 +312,10 @@ int mfs_comm_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Da
         mfs_print(DBG_WARNING, "[COMM]: MPI_Recv fails :-(") ;
         return -1 ;
     }
+
+    // Copy status
+    cb->status_rank = status.MPI_SOURCE ;
+    cb->status_tag  = status.MPI_TAG ;
 
     // cb->... (stats)
     cb->n_recv_req++ ;

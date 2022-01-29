@@ -49,6 +49,10 @@
         int  size ;
         int  rank ;
 
+        // remote identification
+        int  status_rank ;
+        int  status_tag ;
+
         // some stats
         char is_connected ;
         long n_servers ;
@@ -56,6 +60,13 @@
         long n_recv_req ;
 
     } comm_t ;
+
+
+    // Macros
+    #define mfs_comm_get_rank(pcb)         ((pcb != NULL) ? pcb->rank : -1)
+    #define mfs_comm_get_size(pcb)         ((pcb != NULL) ? pcb->size : -1)
+    #define mfs_comm_get_status_rank(pcb)  ((pcb != NULL) ? pcb->status_rank : -1)
+    #define mfs_comm_get_status_size(pcb)  ((pcb != NULL) ? pcb->status_size : -1)
 
 
     // Communications

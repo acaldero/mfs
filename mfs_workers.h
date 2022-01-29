@@ -53,6 +53,7 @@
    int  mfs_workers_init          ( void ) ;
    int  mfs_workers_launch_worker ( comm_t *wb, void (*worker_function)(struct st_th) ) ;
    int  mfs_workers_wait_workers  ( void ) ;
+   int  mfs_workers_stats_show    ( char *prefix ) ;
 
 #endif
 

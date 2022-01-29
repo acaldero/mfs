@@ -39,11 +39,11 @@ int serverstub_init ( comm_t *wb, params_t *params )
     }
 
     // Register service
-    sprintf(wb->srv_name, "%s.%d", MFS_SERVER_STUB_PNAME, wb->rank) ;
+    sprintf(wb->srv_name, "%s.%d", MFS_SERVER_STUB_PNAME, mfs_comm_get_rank(wb)) ;
 
     ret = mfs_comm_register(wb) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Server[%d]: port registration fails :-(", wb->rank) ;
+        mfs_print(DBG_ERROR, "Server[%d]: port registration fails :-(", mfs_comm_get_rank(wb)) ;
         return -1 ;
     }
 
@@ -58,14 +58,14 @@ int serverstub_finalize ( comm_t *wb )
     // UnRegister
     ret = mfs_comm_unregister(wb) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Server[%d]: port unregistration fails :-(", wb->rank) ;
+        mfs_print(DBG_ERROR, "Server[%d]: port unregistration fails :-(", mfs_comm_get_rank(wb)) ;
         return -1 ;
     }
 
     // Finalize
     ret = mfs_comm_finalize(wb) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Server[%d]: finalization fails :-(", wb->rank) ;
+        mfs_print(DBG_ERROR, "Server[%d]: finalization fails :-(", mfs_comm_get_rank(wb)) ;
         return -1 ;
     }
 
@@ -80,7 +80,7 @@ int serverstub_accept ( comm_t *ab, comm_t *wb )
     // Accept connections...
     ret = mfs_comm_accept(ab, wb) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Server[%d]: accept connections fails :-(", ab->rank) ;
+        mfs_print(DBG_ERROR, "Server[%d]: accept connections fails :-(", mfs_comm_get_rank(ab)) ;
         return -1 ;
     }
 
@@ -95,7 +95,7 @@ int serverstub_disconnect ( comm_t *ab )
     // Disconnect
     ret = mfs_comm_disconnect(ab) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Server[%d]: disconnect fails :-(", ab->rank) ;
+        mfs_print(DBG_ERROR, "Server[%d]: disconnect fails :-(", mfs_comm_get_rank(ab)) ;
         return -1 ;
     }
 
@@ -128,31 +128,31 @@ int serverstub_open ( comm_t *ab, file_t *fd, char *base_dirname, int pathname_l
     {
         ret = mfs_malloc(&buff_data, buff_data_len) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", ab->rank, buff_data_len) ;
+            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), buff_data_len) ;
         }
     }
 
     // read filename
     if (ret >= 0)
     {
-	mfs_print(DBG_INFO, "Server[%d]: request 'open' for a filename of %d chars\n", ab->rank, pathname_length) ;
+	mfs_print(DBG_INFO, "Server[%d]: request 'open' for a filename of %d chars\n", mfs_comm_get_rank(ab), pathname_length) ;
 
         strcpy(buff_data, base_dirname) ;
         ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE,
                                       buff_data + strlen(base_dirname), pathname_length, MPI_CHAR) ;
         if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: file name not received :-(", ab->rank) ;
+            mfs_print(DBG_WARNING, "Server[%d]: file name not received :-(", mfs_comm_get_rank(ab)) ;
         }
     }
 
     // open file
     if (ret >= 0)
     {
-        mfs_print(DBG_INFO, "Server[%d]: request 'open' for filename %s\n", ab->rank, buff_data) ;
+        mfs_print(DBG_INFO, "Server[%d]: request 'open' for filename %s\n", mfs_comm_get_rank(ab), buff_data) ;
 
 	ret = mfs_file_open(fd, fd->file_protocol, buff_data, flags) ;
         if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: file not opened :-(", ab->rank) ;
+            mfs_print(DBG_WARNING, "Server[%d]: file not opened :-(", mfs_comm_get_rank(ab)) ;
         }
     }
 
@@ -160,11 +160,11 @@ int serverstub_open ( comm_t *ab, file_t *fd, char *base_dirname, int pathname_l
     if (ret >= 0)
     {
 	long fh = mfs_file_fd2long(fd) ;
-        mfs_print(DBG_INFO, "Server[%d]: File[%ld]: open(flags=%d) >> client\n", ab->rank, fh, flags) ;
+        mfs_print(DBG_INFO, "Server[%d]: File[%ld]: open(flags=%d) >> client\n", mfs_comm_get_rank(ab), fh, flags) ;
 
         ret = mfs_comm_send_data_to(ab, 0, &fh, 1, MPI_LONG) ;
         if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: file descriptor cannot be sent :-(", ab->rank) ;
+            mfs_print(DBG_WARNING, "Server[%d]: file descriptor cannot be sent :-(", mfs_comm_get_rank(ab)) ;
         }
     }
 
@@ -173,7 +173,7 @@ int serverstub_open ( comm_t *ab, file_t *fd, char *base_dirname, int pathname_l
     {
         ret = mfs_free(&buff_data) ;
         if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", ab->rank) ;
+            mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", mfs_comm_get_rank(ab)) ;
         }
     }
 
@@ -190,11 +190,11 @@ int serverstub_close ( comm_t *ab, file_t *fd )
     // close file
     if (ret >= 0)
     {
-	mfs_print(DBG_INFO, "Server[%d]: File[%ld]: close()\n", ab->rank, mfs_file_fd2long(fd)) ;
+	mfs_print(DBG_INFO, "Server[%d]: File[%ld]: close()\n", mfs_comm_get_rank(ab), mfs_file_fd2long(fd)) ;
 
         ret = mfs_file_close(fd) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Server[%d]: close(%d) fails :-(", ab->rank, mfs_file_fd2long(fd)) ;
+            mfs_print(DBG_ERROR, "Server[%d]: close(%d) fails :-(", mfs_comm_get_rank(ab), mfs_file_fd2long(fd)) ;
         }
     }
 
@@ -215,29 +215,29 @@ int serverstub_read ( comm_t *ab, file_t *fd, int count )
     {
         ret = mfs_malloc(&buff_data, count) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", ab->rank, count) ;
+            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), count) ;
         }
     }
 
     // read data
     if (ret >= 0)
     {
-        mfs_print(DBG_INFO, "Server[%d]: request 'read' %d bytes for file %d\n", ab->rank, count, mfs_file_fd2long(fd)) ;
+        mfs_print(DBG_INFO, "Server[%d]: request 'read' %d bytes for file %d\n", mfs_comm_get_rank(ab), count, mfs_file_fd2long(fd)) ;
 
         ret = mfs_file_read(fd, buff_data, count) ;
         if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: data not read :-(", ab->rank) ;
+            mfs_print(DBG_WARNING, "Server[%d]: data not read :-(", mfs_comm_get_rank(ab)) ;
         }
     }
 
     // send data
     if (ret >= 0)
     {
-	mfs_print(DBG_INFO, "Server[%d]: File[%ld]: read(bytes=%d) >> client\n", ab->rank, mfs_file_fd2long(fd), count) ;
+	mfs_print(DBG_INFO, "Server[%d]: File[%ld]: read(bytes=%d) >> client\n", mfs_comm_get_rank(ab), mfs_file_fd2long(fd), count) ;
 
         ret = mfs_comm_send_data_to(ab, 0, buff_data, count, MPI_CHAR) ;
         if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: data cannot be sent fails :-(", ab->rank) ;
+            mfs_print(DBG_WARNING, "Server[%d]: data cannot be sent fails :-(", mfs_comm_get_rank(ab)) ;
         }
     }
 
@@ -246,7 +246,7 @@ int serverstub_read ( comm_t *ab, file_t *fd, int count )
     {
         ret = mfs_free(&buff_data) ;
         if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", ab->rank) ;
+            mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", mfs_comm_get_rank(ab)) ;
         }
     }
 
@@ -267,29 +267,29 @@ int serverstub_write ( comm_t *ab, file_t *fd, int count )
     {
         ret = mfs_malloc(&buff_data, count) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", ab->rank, count) ;
+            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), count) ;
         }
     }
 
     // receive data
     if (ret >= 0)
     {
-	mfs_print(DBG_INFO, "Server[%d]: File[%ld]: write(bytes=%d) << client\n", ab->rank, mfs_file_fd2long(fd), count) ;
+	mfs_print(DBG_INFO, "Server[%d]: File[%ld]: write(bytes=%d) << client\n", mfs_comm_get_rank(ab), mfs_file_fd2long(fd), count) ;
 
         ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_data, count, MPI_CHAR) ;
         if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: data not received :-(", ab->rank) ;
+            mfs_print(DBG_WARNING, "Server[%d]: data not received :-(", mfs_comm_get_rank(ab)) ;
         }
     }
 
     // write data
     if (ret >= 0)
     {
-        mfs_print(DBG_INFO, "Server[%d]: request 'write' %d bytes for file %d\n", ab->rank, count, mfs_file_fd2long(fd)) ;
+        mfs_print(DBG_INFO, "Server[%d]: request 'write' %d bytes for file %d\n", mfs_comm_get_rank(ab), count, mfs_file_fd2long(fd)) ;
 
         ret = mfs_file_write(fd, buff_data, count) ;
         if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: data not written :-(", ab->rank) ;
+            mfs_print(DBG_WARNING, "Server[%d]: data not written :-(", mfs_comm_get_rank(ab)) ;
         }
     }
 
@@ -298,7 +298,7 @@ int serverstub_write ( comm_t *ab, file_t *fd, int count )
     {
         ret = mfs_free(&buff_data) ;
         if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", ab->rank) ;
+            mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", mfs_comm_get_rank(ab)) ;
         }
     }
 
@@ -332,7 +332,7 @@ int serverstub_read2 ( comm_t *ab, long fd, int count )
     {
         buff_data = (char *)mfs_file_mmap(NULL, fdstat.st_size, PROT_READ, MAP_SHARED, fd, 0) ;
         if (NULL == buff_data) {
-            mfs_print(DBG_ERROR, "Server[%d]: mmap(%d, ... %d) fails :-(", ab->rank, fd, count) ;
+            mfs_print(DBG_ERROR, "Server[%d]: mmap(%d, ... %d) fails :-(", mfs_comm_get_rank(ab), fd, count) ;
 	    ret = -1 ;
         }
     }
@@ -342,7 +342,7 @@ int serverstub_read2 ( comm_t *ab, long fd, int count )
     {
         ret = mfs_comm_send_data_to(ab, 0, buff_data+offset, count, MPI_CHAR) ;
         if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: data cannot be sent fails :-(", ab->rank) ;
+            mfs_print(DBG_WARNING, "Server[%d]: data cannot be sent fails :-(", mfs_comm_get_rank(ab)) ;
         }
     }
 

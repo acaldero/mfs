@@ -64,7 +64,7 @@ int clientstub_init ( comm_t *wb, params_t *params )
     // Connect to service
     if (ret >= 0)
     {
-        remote_rank = (wb->rank % wb->n_servers) ;
+        remote_rank = (mfs_comm_get_rank(wb) % wb->n_servers) ;
         sprintf(wb->srv_name, "%s.%d", MFS_SERVER_STUB_PNAME, remote_rank) ;
 
         ret = mfs_comm_connect(wb) ;
@@ -99,7 +99,7 @@ int clientstub_finalize ( comm_t *wb )
     {
         ret = mfs_comm_disconnect(wb) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: disconnect fails :-(", wb->rank) ;
+            mfs_print(DBG_ERROR, "Client[%d]: disconnect fails :-(", mfs_comm_get_rank(wb)) ;
         }
     }
 
@@ -108,7 +108,7 @@ int clientstub_finalize ( comm_t *wb )
     {
         ret = mfs_comm_finalize(wb) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: finalization fails :-(", wb->rank) ;
+            mfs_print(DBG_ERROR, "Client[%d]: finalization fails :-(", mfs_comm_get_rank(wb)) ;
         }
     }
 
@@ -132,7 +132,7 @@ long clientstub_open ( comm_t *wb, const char *pathname, int flags )
     {
         ret = mfs_comm_send_data_to(wb, 0, (void *)pathname, strlen(pathname) + 1, MPI_CHAR) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: pathname cannot be sent :-(", wb->rank) ;
+            mfs_print(DBG_ERROR, "Client[%d]: pathname cannot be sent :-(", mfs_comm_get_rank(wb)) ;
         }
     }
 
@@ -141,7 +141,7 @@ long clientstub_open ( comm_t *wb, const char *pathname, int flags )
     {
         ret = mfs_comm_recv_data_from(wb, 0, &fd, 1, MPI_LONG) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: file descriptor not received :-(", wb->rank) ;
+            mfs_print(DBG_ERROR, "Client[%d]: file descriptor not received :-(", mfs_comm_get_rank(wb)) ;
         }
     }
 
@@ -178,7 +178,7 @@ int clientstub_read ( comm_t *wb, long fd, void *buff_char, int count )
     {
         ret = mfs_comm_recv_data_from(wb, 0, buff_char, count, MPI_CHAR) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: data not received :-(", wb->rank) ;
+            mfs_print(DBG_ERROR, "Client[%d]: data not received :-(", mfs_comm_get_rank(wb)) ;
         }
     }
 
@@ -201,7 +201,7 @@ int clientstub_write ( comm_t *wb, long fd, void *buff_char, int count )
     {
         ret = mfs_comm_send_data_to(wb, 0, buff_char, count, MPI_CHAR) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: data cannot be sent :-(", wb->rank) ;
+            mfs_print(DBG_ERROR, "Client[%d]: data cannot be sent :-(", mfs_comm_get_rank(wb)) ;
         }
     }
 

@@ -116,3 +116,18 @@ int mfs_workers_wait_workers ( void )
        return 1;
 }
 
+int mfs_workers_stats_show ( char *prefix )
+{
+    // Check params...
+    if (NULL == prefix) {
+        return -1 ;
+    }
+
+    // Print stats...
+    printf("%s: Threads:\n",              prefix) ;
+    printf("%s: + active threads=%ld\n",  prefix, n_workers) ;
+
+    // Return OK
+    return 1 ;
+}
+
