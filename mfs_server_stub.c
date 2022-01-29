@@ -111,24 +111,24 @@ int serverstub_disconnect ( comm_t *ab )
 int serverstub_open ( comm_t *ab, file_t *fd, char *base_dirname, int pathname_length, int flags )
 {
     int   ret ;
-    int   buff_data_len ;
-    char *buff_data ;
+    char *buff_data_user ;
+    char *buff_data_sys ;
 
     // Check params...
     if (NULL == ab) { return -1 ; }
     if (NULL == fd) { return -1 ; }
 
     // Initialize...
-    ret           = 0 ;
-    buff_data     = NULL ;
-    buff_data_len = strlen(base_dirname) + pathname_length + 1 ;
+    ret = 0 ;
+    buff_data_user = NULL ;
+    buff_data_sys  = NULL ;
 
     // prepare filename buffer
     //if (ret >= 0)
     {
-        ret = mfs_malloc(&buff_data, buff_data_len) ;
+        ret = mfs_malloc(&buff_data_user, pathname_length) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), buff_data_len) ;
+            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), pathname_length) ;
         }
     }
 
@@ -137,20 +137,32 @@ int serverstub_open ( comm_t *ab, file_t *fd, char *base_dirname, int pathname_l
     {
 	mfs_print(DBG_INFO, "Server[%d]: request 'open' for a filename of %d chars\n", mfs_comm_get_rank(ab), pathname_length) ;
 
-        strcpy(buff_data, base_dirname) ;
-        ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE,
-                                      buff_data + strlen(base_dirname), pathname_length, MPI_CHAR) ;
+        ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_data_user, pathname_length, MPI_CHAR) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: file name not received :-(", mfs_comm_get_rank(ab)) ;
         }
     }
 
+    // from user filename to internal filename
+    if (ret >= 0)
+    {
+        int buff_data_len = strlen(base_dirname) + pathname_length + 16 ;  // base_dirname_value + '/' + pathname + '.<rank>'
+
+	ret = mfs_malloc(&buff_data_sys, buff_data_len) ;
+	if (ret < 0) {
+            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), buff_data_len) ;
+        }
+	else {
+	    sprintf(buff_data_sys, "%s/%s.%d", base_dirname, buff_data_user, mfs_comm_get_rank(ab)) ;
+	}
+    }
+
     // open file
     if (ret >= 0)
     {
-        mfs_print(DBG_INFO, "Server[%d]: request 'open' for filename %s\n", mfs_comm_get_rank(ab), buff_data) ;
+        mfs_print(DBG_INFO, "Server[%d]: request 'open' for filename %s\n", mfs_comm_get_rank(ab), buff_data_sys) ;
 
-	ret = mfs_file_open(fd, fd->file_protocol, buff_data, flags) ;
+	ret = mfs_file_open(fd, fd->file_protocol, buff_data_sys, flags) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: file not opened :-(", mfs_comm_get_rank(ab)) ;
         }
@@ -171,7 +183,12 @@ int serverstub_open ( comm_t *ab, file_t *fd, char *base_dirname, int pathname_l
     // free filename buffer
     //if (ret >= 0)
     {
-        ret = mfs_free(&buff_data) ;
+        ret = mfs_free(&buff_data_user) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", mfs_comm_get_rank(ab)) ;
+        }
+
+        ret = mfs_free(&buff_data_sys) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", mfs_comm_get_rank(ab)) ;
         }

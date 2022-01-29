@@ -51,8 +51,9 @@
   int mfs_get_thread_id ( long *th_id ) ;
 
   // memory: API
-  int mfs_malloc ( char **ptr, long size ) ;
-  int mfs_free   ( char **ptr ) ;
+  int mfs_malloc  ( char **ptr, long size ) ;
+  int mfs_free    ( char **ptr ) ;
+  int mfs_realloc ( char **ptr, long new_size ) ;
 
 #endif
 

@@ -122,6 +122,27 @@ int mfs_free ( char **ptr )
     return 1 ;
 }
 
+int mfs_realloc ( char **ptr, long new_size )
+{
+    char *new_ptr ;
+
+    // check arguments
+    if (NULL == ptr) {
+	return -1 ;
+    }
+
+    // alloc buffer
+    new_ptr = (char *)realloc((*ptr), new_size) ;
+    if (NULL == new_ptr) {
+	return -1 ;
+    }
+
+    (*ptr) = new_ptr ;
+
+    // Return OK
+    return 1 ;
+}
+
 
 //
 // Thread

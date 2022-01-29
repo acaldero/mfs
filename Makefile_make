@@ -31,5 +31,5 @@ clean:
 	rm -fr CMakeFiles/
 	rm -fr cmake_install.cmake
 	rm -f *.o $(BIN_FILES)
-	rm -fr data/test1.txt
+	rm -fr data/test1.txt.*
 
