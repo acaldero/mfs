@@ -21,10 +21,8 @@ cd mpi_pfs
 ### Compile MPI_PFS
 
 ```
-cmake .
-cmake --build . 
-make clean
-make
+make         -f Makefile_make
+make -C test -f Makefile_make
 ```
 
 ## Executing MPI_PFS
@@ -39,9 +37,10 @@ make
   </tr>
   <tr>
   <td>
+  cd test
   HYDRA_HOSTNAME=$(hostname)
   hydra_nameserver & <br>
-  mpirun -np 2 -nameserver ${HYDRA_HOSTNAME} ./mfs_server &<br>
+  mpirun -np 2 -nameserver ${HYDRA_HOSTNAME} ../bin/mfs_server &<br>
   </td>
   <td>
   &nbsp;
@@ -52,7 +51,8 @@ make
   &nbsp;
   </td>
   <td>
-  mpirun -np 2 -nameserver ${HYDRA_HOSTNAME} ./mfs_client
+  cd test
+  mpirun -np 2 -nameserver ${HYDRA_HOSTNAME} ./test_benchmark
   </td>
   </tr>
   </table>

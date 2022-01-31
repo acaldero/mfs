@@ -1,0 +1,51 @@
+
+#
+# Const
+#
+
+CC=mpic++
+AR=ar
+CFLAGS=-w -g -O2 -Wall -I/usr/local/include/ -I./ -I../include # -DDEBUG
+LDFLAGS=-lpthread
+
+LIB_DIR=../lib
+BIN_FILES=test_simple test_benchmark
+LIB_FILES=$(LIB_DIR)/mfs_client.a
+
+
+#
+# Rules
+#
+
+all: begin $(BIN_FILES) end
+.PHONY: all clean begin end
+
+begin:
+	@echo ""
+	@echo " MPI_FS"
+	@echo " ~~~~~~"
+	@echo ""
+	@echo " Compile test_simple and test_benchmark"
+end:
+	@echo " Done"
+
+test_simple:    test_simple.o
+	$(CC) $^  $(LDFLAGS) $(LIB_FILES) -o $@
+
+test_benchmark: test_benchmark.o
+	$(CC) $^  $(LDFLAGS) $(LIB_FILES) -o $@
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+clean: begin
+	@echo " Remove cmake stuff..."
+	rm -fr CMakeCache.txt
+	rm -fr CMakeFiles/
+	rm -fr cmake_install.cmake
+	@echo " Remove objects and binaries..."
+	rm -f  *.o
+	rm -f  test_simple
+	rm -f  test_benchmark
+	@echo " Done"
+

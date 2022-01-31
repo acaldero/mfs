@@ -29,10 +29,10 @@ sleep 1
 # start server...
 #
 echo "............................."
-echo "./mfs_server &"
+echo "../bin/mfs_server &"
 echo "sleep 3"
 echo "............................."
-mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ./mfs_server -p MPI-IO &
+mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server -p MPI-IO &
 sleep 3
 
 #
@@ -41,10 +41,10 @@ sleep 3
 for i in $(seq 1 1 $N_TESTS)
 do
    echo "............................."
-   echo "./mfs_client...(test $i)"
+   echo "./test_benchmark ...(test $i)"
    echo "sleep 2"
    echo "............................."
-   mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./mfs_client -n $SERVER_NP -p MPI-IO
+   mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_benchmark -n $SERVER_NP -p MPI-IO
    echo "............................."
    sleep 2
 done
