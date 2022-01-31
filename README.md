@@ -37,10 +37,10 @@ make -C test -f Makefile_make
   </tr>
   <tr>
   <td>
-  cd test
-  HYDRA_HOSTNAME=$(hostname)
+  cd test<br>
+  HYDRA_HOST=$(hostname)<br>
   hydra_nameserver & <br>
-  mpirun -np 2 -nameserver ${HYDRA_HOSTNAME} ../bin/mfs_server &<br>
+  mpirun -nameserver ${HYDRA_HOST} -np 2 ../bin/mfs_server &<br>
   </td>
   <td>
   &nbsp;
@@ -51,8 +51,8 @@ make -C test -f Makefile_make
   &nbsp;
   </td>
   <td>
-  cd test
-  mpirun -np 2 -nameserver ${HYDRA_HOSTNAME} ./test_benchmark
+  cd test<br>
+  mpirun -nameserver ${HYDRA_HOST} -np 2 ./test_benchmark
   </td>
   </tr>
   </table>
