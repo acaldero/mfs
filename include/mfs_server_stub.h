@@ -27,6 +27,7 @@
     #include "mfs_lib.h"
     #include "mfs_protocol.h"
     #include "mfs_files.h"
+    #include "mfs_directories.h"
 
 
     // Datatypes
@@ -54,6 +55,9 @@
     int  serverstub_close   ( comm_t *ab, file_t *fd ) ;
     int  serverstub_read    ( comm_t *ab, file_t *fd, int count ) ;
     int  serverstub_write   ( comm_t *ab, file_t *fd, int count ) ;
+
+    // Directory API
+    int  serverstub_mkdir   ( comm_t *ab, char *base_dirname, int pathname_length, int mode ) ;
 
 #endif
 

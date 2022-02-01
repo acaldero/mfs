@@ -44,18 +44,18 @@ int main_simple1 ( params_t *params )
     // Example
     strcpy(str, "hello word") ;
 
-    mfs_print(DBG_INFO, "Client[%d]: creat(...) + write(...) + close(...)\n", wb.rank) ;
+    printf("Client[%d]: creat(...) + write(...) + close(...)\n", wb.rank) ;
     fd = clientstub_open(&wb, "test1.txt", O_WRONLY | O_CREAT | O_TRUNC) ;
     clientstub_write(&wb, fd, str, strlen(str)) ;
     clientstub_close(&wb, fd) ;
 
-    mfs_print(DBG_INFO, "Client[%d]: open(...) + read(...) + close(...)\n", wb.rank) ;
+    printf("Client[%d]: open(...) + read(...) + close(...)\n", wb.rank) ;
     fd = clientstub_open(&wb, "test1.txt", O_RDONLY) ;
     clientstub_read( &wb, fd, str, STR_SIZE) ;
     clientstub_close(&wb, fd) ;
 
     // Finalize...
-    mfs_print(DBG_INFO, "Client[%d]: finalize...\n", wb.rank) ;
+    printf("Client[%d]: finalize...\n", wb.rank) ;
     clientstub_finalize(&wb) ;
 
     return 0;
@@ -79,7 +79,7 @@ int main ( int argc, char **argv )
         exit(-1) ;
     }
 
-    mfs_print(DBG_INFO, "Client[%d]: initializing...\n", -1) ;
+    printf("Client[%d]: initializing...\n", -1) ;
     mfs_params_show(&params) ;
 
     // simple main...
