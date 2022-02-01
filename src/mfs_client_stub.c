@@ -116,6 +116,11 @@ int clientstub_finalize ( comm_t *wb )
     return ret ;
 }
 
+
+/*
+ *  File API
+ */
+
 long clientstub_open ( comm_t *wb, const char *pathname, int flags )
 {
     int  ret = 0 ;
@@ -207,5 +212,58 @@ int clientstub_write ( comm_t *wb, long fd, void *buff_char, int count )
 
     // Return OK/KO
     return ret ;
+}
+
+
+/*
+ *  Directory API
+ */
+
+long clientstub_mkdir ( comm_t *wb, const char *pathname, int mode )
+{
+    int  ret = 0 ;
+    long fd  = -1 ;
+
+    // Send open msg
+    if (ret >= 0)
+    {
+        ret = mfs_comm_request_send(wb, 0, REQ_ACTION_MKDIR, strlen(pathname) + 1, mode) ;
+    }
+
+    // Send pathname
+    if (ret >= 0)
+    {
+        ret = mfs_comm_send_data_to(wb, 0, (void *)pathname, strlen(pathname) + 1, MPI_CHAR) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: pathname cannot be sent :-(", mfs_comm_get_rank(wb)) ;
+        }
+    }
+
+    // Return file descriptor
+    return fd ;
+}
+
+long clientstub_rmdir ( comm_t *wb, const char *pathname )
+{
+    int  ret = 0 ;
+    long fd  = -1 ;
+
+    // Send open msg
+    if (ret >= 0)
+    {
+        ret = mfs_comm_request_send(wb, 0, REQ_ACTION_RMDIR, strlen(pathname) + 1, 0) ;
+    }
+
+    // Send pathname
+    if (ret >= 0)
+    {
+        ret = mfs_comm_send_data_to(wb, 0, (void *)pathname, strlen(pathname) + 1, MPI_CHAR) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: pathname cannot be sent :-(", mfs_comm_get_rank(wb)) ;
+        }
+    }
+
+    // Return file descriptor
+    return fd ;
 }
 

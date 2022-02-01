@@ -32,10 +32,15 @@
     int clientstub_init     ( comm_t *wb, params_t *params ) ;
     int clientstub_finalize ( comm_t *wb ) ;
 
+    // File API
     long clientstub_open  ( comm_t *wb, const char *pathname, int flags ) ;
     int  clientstub_close ( comm_t *wb, long fd ) ;
     int  clientstub_read  ( comm_t *wb, long fd, void *buf, int count ) ;
     int  clientstub_write ( comm_t *wb, long fd, void *buf, int count ) ;
+
+    // Directory API
+    long clientstub_mkdir ( comm_t *wb, const char *pathname, int mode ) ;
+    long clientstub_rmdir ( comm_t *wb, const char *pathname ) ;
 
 #endif
 
