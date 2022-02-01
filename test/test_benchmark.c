@@ -47,7 +47,7 @@ int main_simple2 ( params_t *params )
     // Benchmark: write
     memset(buffer, 'x', BUFFER_SIZE) ;
 
-    printf("test\t\tclient\t\tsize (KiB)\tavg.time (seconds)\n") ;
+    printf("test;\t\tclient;\t\tsize (KiB);\tavg.time (seconds);\n") ;
     for (int j=1; j<N_SIZES_BENCHMARK; j=2*j)
     {
          t1 = mfs_get_time() ;
@@ -59,11 +59,11 @@ int main_simple2 ( params_t *params )
               clientstub_close(&wb, fd) ;
          }
          t2 = mfs_get_time() ;
-         printf("write\t\t%d\t\t%d\t\t%lf\n", wb.rank, (j*BUFFER_SIZE)/1024, ((t2-t1)/1000.0)/N_TIMES_BENCHMARK) ;
+         printf("write;\t\t%d;\t\t%d;\t\t%lf;\n", wb.rank, (j*BUFFER_SIZE)/1024, ((t2-t1)/1000.0)/N_TIMES_BENCHMARK) ;
     }
 
     // Benchmark: read
-    printf("test\t\tclient\t\tsize (KiB)\tavg.time (seconds)\n") ;
+    printf("test;\t\tclient;\t\tsize (KiB);\tavg.time (seconds);\n") ;
     for (int j=1; j<N_SIZES_BENCHMARK; j=2*j)
     {
          t1 = mfs_get_time() ;
@@ -75,7 +75,7 @@ int main_simple2 ( params_t *params )
               clientstub_close(&wb, fd) ;
          }
          t2 = mfs_get_time() ;
-         printf("read\t\t%d\t\t%d\t\t%lf\n", wb.rank, (j*BUFFER_SIZE)/1024, ((t2-t1)/1000.0)/N_TIMES_BENCHMARK) ;
+         printf("read;\t\t%d;\t\t%d;\t\t%lf;\n", wb.rank, (j*BUFFER_SIZE)/1024, ((t2-t1)/1000.0)/N_TIMES_BENCHMARK) ;
     }
 
     // Finalize...

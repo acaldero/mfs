@@ -58,6 +58,7 @@
 
     // Directory API
     int  serverstub_mkdir   ( comm_t *ab, char *base_dirname, int pathname_length, int mode ) ;
+    int  serverstub_rmdir   ( comm_t *ab, char *base_dirname, int pathname_length ) ;
 
 #endif
 
