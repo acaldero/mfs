@@ -76,6 +76,7 @@
 	           again = 0 ;
 	           break;
 
+              // Files
 	      case REQ_ACTION_OPEN:
 		   ret = mfs_file_long2fd(&fd, -1, params.file_protocol) ;
                    ret = serverstub_open(&th.ab, &fd, params.data_prefix, msg.req_arg1, msg.req_arg2) ;
@@ -94,6 +95,15 @@
 	      case REQ_ACTION_WRITE:
 		   ret = mfs_file_long2fd(&fd, msg.req_arg1, params.file_protocol) ;
                    ret = serverstub_write(&th.ab, &fd, msg.req_arg2) ;
+	           break;
+
+              // Directories
+	      case REQ_ACTION_MKDIR:
+                   ret = serverstub_mkdir(&th.ab, params.data_prefix, msg.req_arg1, msg.req_arg2) ;
+	           break;
+
+	      case REQ_ACTION_RMDIR:
+                   ret = serverstub_rmdir(&th.ab, params.data_prefix, msg.req_arg1) ;
 	           break;
 
               default:

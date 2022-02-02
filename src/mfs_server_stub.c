@@ -24,6 +24,72 @@
 
 
 /*
+ *  Auxiliar (internal) functions
+ */
+
+int stub_read_name ( comm_t *ab, char **buff_data_sys, char *base_dirname, int pathname_length )
+{
+    int ret ;
+    char *buff_data_user ;
+
+    // Check params...
+    if (NULL == ab)            { return -1 ; }
+    if (NULL == buff_data_sys) { return -1 ; }
+
+    // Initialize...
+    ret = 0 ;
+    (*buff_data_sys) = NULL ;
+      buff_data_user = NULL ;
+
+    // prepare name buffer
+    //if (ret >= 0)
+    {
+        ret = mfs_malloc(&buff_data_user, pathname_length) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), pathname_length) ;
+        }
+    }
+
+    // read name
+    if (ret >= 0)
+    {
+	mfs_print(DBG_INFO, "Server[%d]: request for a name of %d chars\n", mfs_comm_get_rank(ab), pathname_length) ;
+
+        ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_data_user, pathname_length, MPI_CHAR) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: name not received :-(", mfs_comm_get_rank(ab)) ;
+        }
+    }
+
+    // from user dirname to internal dirname
+    if (ret >= 0)
+    {
+        int buff_data_len = strlen(base_dirname) + pathname_length + 16 ;  // base_dirname_value + '/' + pathname + '.<rank>'
+
+	ret = mfs_malloc(buff_data_sys, buff_data_len) ;
+	if (ret < 0) {
+            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), buff_data_len) ;
+        }
+	else {
+	    sprintf((*buff_data_sys), "%s/%s", base_dirname, buff_data_user) ;
+	}
+    }
+
+    // free name buffer
+    //if (ret >= 0)
+    {
+        ret = mfs_free(&buff_data_user) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", mfs_comm_get_rank(ab)) ;
+        }
+    }
+
+    // Return OK/KO
+    return ret ;
+}
+
+
+/*
  *  Server stub API
  */
 
@@ -111,7 +177,6 @@ int serverstub_disconnect ( comm_t *ab )
 int serverstub_open ( comm_t *ab, file_t *fd, char *base_dirname, int pathname_length, int flags )
 {
     int   ret ;
-    char *buff_data_user ;
     char *buff_data_sys ;
 
     // Check params...
@@ -120,41 +185,15 @@ int serverstub_open ( comm_t *ab, file_t *fd, char *base_dirname, int pathname_l
 
     // Initialize...
     ret = 0 ;
-    buff_data_user = NULL ;
     buff_data_sys  = NULL ;
 
-    // prepare filename buffer
+    // read filename
     //if (ret >= 0)
     {
-        ret = mfs_malloc(&buff_data_user, pathname_length) ;
+        ret = stub_read_name(ab, &buff_data_sys, base_dirname, pathname_length) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), pathname_length) ;
         }
-    }
-
-    // read filename
-    if (ret >= 0)
-    {
-	mfs_print(DBG_INFO, "Server[%d]: request 'open' for a filename of %d chars\n", mfs_comm_get_rank(ab), pathname_length) ;
-
-        ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_data_user, pathname_length, MPI_CHAR) ;
-        if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: file name not received :-(", mfs_comm_get_rank(ab)) ;
-        }
-    }
-
-    // from user filename to internal filename
-    if (ret >= 0)
-    {
-        int buff_data_len = strlen(base_dirname) + pathname_length + 16 ;  // base_dirname_value + '/' + pathname + '.<rank>'
-
-	ret = mfs_malloc(&buff_data_sys, buff_data_len) ;
-	if (ret < 0) {
-            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), buff_data_len) ;
-        }
-	else {
-	    sprintf(buff_data_sys, "%s/%s.%d", base_dirname, buff_data_user, mfs_comm_get_rank(ab)) ;
-	}
     }
 
     // open file
@@ -183,11 +222,6 @@ int serverstub_open ( comm_t *ab, file_t *fd, char *base_dirname, int pathname_l
     // free filename buffer
     //if (ret >= 0)
     {
-        ret = mfs_free(&buff_data_user) ;
-        if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", mfs_comm_get_rank(ab)) ;
-        }
-
         ret = mfs_free(&buff_data_sys) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", mfs_comm_get_rank(ab)) ;
@@ -368,6 +402,103 @@ int serverstub_read2 ( comm_t *ab, long fd, int count )
     {
         mfs_file_munmap(buff_data, fdstat.st_size) ;
         lseek(fd, count, SEEK_CUR) ;
+    }
+
+    // Return OK/KO
+    return ret ;
+}
+
+
+/*
+ *  Directory API
+ */
+
+int serverstub_mkdir ( comm_t *ab, char *base_dirname, int pathname_length, int mode )
+{
+    int   ret ;
+    char *buff_data_sys ;
+
+    // Check params...
+    if (NULL == ab)           { return -1 ; }
+    if (NULL == base_dirname) { return -1 ; }
+
+    // Initialize...
+    ret = 0 ;
+    buff_data_sys = NULL ;
+
+    // read dirname
+    //if (ret >= 0)
+    {
+        ret = stub_read_name(ab, &buff_data_sys, base_dirname, pathname_length) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Server[%d]: read_name of %d chars fails :-(", mfs_comm_get_rank(ab), pathname_length) ;
+        }
+    }
+
+    // open dir
+    if (ret >= 0)
+    {
+        mfs_print(DBG_INFO, "Server[%d]: request 'mkdir' for dirname %s\n", mfs_comm_get_rank(ab), buff_data_sys) ;
+
+	ret = mfs_directory_mkdir(buff_data_sys, mode) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: dir not opened :-(", mfs_comm_get_rank(ab)) ;
+        }
+    }
+
+    // free dirname buffer
+    //if (ret >= 0)
+    {
+        ret = mfs_free(&buff_data_sys) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", mfs_comm_get_rank(ab)) ;
+        }
+    }
+
+    // Return OK/KO
+    return ret ;
+}
+
+int serverstub_rmdir ( comm_t *ab, char *base_dirname, int pathname_length )
+{
+    int   ret ;
+    char *buff_data_sys ;
+
+    // Check params...
+    if (NULL == ab)           { return -1 ; }
+    if (NULL == base_dirname) { return -1 ; }
+
+    // Initialize...
+    ret = 0 ;
+    buff_data_sys = NULL ;
+
+    // read dirname
+    //if (ret >= 0)
+    {
+        ret = stub_read_name(ab, &buff_data_sys, base_dirname, pathname_length) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Server[%d]: read_name of %d chars fails :-(", mfs_comm_get_rank(ab), pathname_length) ;
+        }
+    }
+
+    // open dir
+    if (ret >= 0)
+    {
+        mfs_print(DBG_INFO, "Server[%d]: request 'mkdir' for dirname %s\n", mfs_comm_get_rank(ab), buff_data_sys) ;
+
+	ret = mfs_directory_rmdir(buff_data_sys) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: dir not opened :-(", mfs_comm_get_rank(ab)) ;
+        }
+    }
+
+    // free dirname buffer
+    //if (ret >= 0)
+    {
+        ret = mfs_free(&buff_data_sys) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", mfs_comm_get_rank(ab)) ;
+        }
     }
 
     // Return OK/KO
