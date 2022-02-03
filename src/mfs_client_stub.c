@@ -157,11 +157,21 @@ long clientstub_open ( comm_t *wb, const char *pathname, int flags )
 int clientstub_close ( comm_t *wb, long fd )
 {
     int ret = 0 ;
+    int status ;
 
     // Send close msg
     if (ret >= 0)
     {
         ret = mfs_comm_request_send(wb, 0, REQ_ACTION_CLOSE, fd, 0) ;
+    }
+
+    // Receive status
+    if (ret >= 0)
+    {
+        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
+        }
     }
 
     // Return OK/KO
@@ -171,6 +181,7 @@ int clientstub_close ( comm_t *wb, long fd )
 int clientstub_read ( comm_t *wb, long fd, void *buff_char, int count )
 {
     int ret = 0 ;
+    int status ;
 
     // Send read msg
     if (ret >= 0)
@@ -178,22 +189,32 @@ int clientstub_read ( comm_t *wb, long fd, void *buff_char, int count )
         ret = mfs_comm_request_send(wb, 0, REQ_ACTION_READ, fd, count) ;
     }
 
+    // Receive status
+    if (ret >= 0)
+    {
+        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
+        }
+    }
+
     // Receive data
     if (ret >= 0)
     {
-        ret = mfs_comm_recv_data_from(wb, 0, buff_char, count, MPI_CHAR) ;
+        ret = mfs_comm_recv_data_from(wb, 0, buff_char, status, MPI_CHAR) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: data not received :-(", mfs_comm_get_rank(wb)) ;
         }
     }
 
-    // Return OK/KO
-    return ret ;
+    // Return bytes read
+    return status ;
 }
 
 int clientstub_write ( comm_t *wb, long fd, void *buff_char, int count )
 {
     int ret = 0 ;
+    int status ;
 
     // Send write msg
     if (ret >= 0)
@@ -210,8 +231,17 @@ int clientstub_write ( comm_t *wb, long fd, void *buff_char, int count )
         }
     }
 
-    // Return OK/KO
-    return ret ;
+    // Receive status
+    if (ret >= 0)
+    {
+        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
+        }
+    }
+
+    // Return bytes written
+    return status ;
 }
 
 
@@ -221,8 +251,8 @@ int clientstub_write ( comm_t *wb, long fd, void *buff_char, int count )
 
 long clientstub_mkdir ( comm_t *wb, const char *pathname, int mode )
 {
-    int  ret = 0 ;
-    long fd  = -1 ;
+    int ret = 0 ;
+    int status ;
 
     // Send open msg
     if (ret >= 0)
@@ -239,14 +269,23 @@ long clientstub_mkdir ( comm_t *wb, const char *pathname, int mode )
         }
     }
 
-    // Return file descriptor
-    return fd ;
+    // Receive status
+    if (ret >= 0)
+    {
+        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
+        }
+    }
+
+    // Return status
+    return status ;
 }
 
 long clientstub_rmdir ( comm_t *wb, const char *pathname )
 {
-    int  ret = 0 ;
-    long fd  = -1 ;
+    int ret = 0 ;
+    int status ;
 
     // Send open msg
     if (ret >= 0)
@@ -263,7 +302,16 @@ long clientstub_rmdir ( comm_t *wb, const char *pathname )
         }
     }
 
-    // Return file descriptor
-    return fd ;
+    // Receive status
+    if (ret >= 0)
+    {
+        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
+        }
+    }
+
+    // Return status
+    return status ;
 }
 

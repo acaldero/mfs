@@ -26,7 +26,7 @@
 #include "mfs_client_stub.h"
 
 #define N_TIMES_BENCHMARK 10
-#define N_SIZES_BENCHMARK 1024
+#define N_SIZES_BENCHMARK 2*1024
 #define BUFFER_SIZE 1024
 char    buffer[BUFFER_SIZE] ;
 
@@ -35,7 +35,8 @@ int main_simple2 ( params_t *params )
     int    ret ;
     comm_t wb ;
     long   fd ;
-    long   t1, t2 ;
+    long   kb, t1, t2 ;
+    double mb, t ;
 
     // Initialize...
     ret = clientstub_init(&wb, params) ;
@@ -47,7 +48,7 @@ int main_simple2 ( params_t *params )
     // Benchmark: write
     memset(buffer, 'x', BUFFER_SIZE) ;
 
-    printf("test;\t\tclient;\t\tsize (KiB);\tavg.time (seconds);\n") ;
+    printf("test;\t\tclient;\t\tsize (KiB);\tavg.bandwidth (MiB/sec.);\n") ;
     for (int j=1; j<N_SIZES_BENCHMARK; j=2*j)
     {
          t1 = mfs_get_time() ;
@@ -59,11 +60,14 @@ int main_simple2 ( params_t *params )
               clientstub_close(&wb, fd) ;
          }
          t2 = mfs_get_time() ;
-         printf("write;\t\t%d;\t\t%d;\t\t%lf;\n", wb.rank, (j*BUFFER_SIZE)/1024, ((t2-t1)/1000.0)/N_TIMES_BENCHMARK) ;
+	 t  = (double) ((t2-t1)/1000.0) / N_TIMES_BENCHMARK ;
+	 kb = (long)   (j*BUFFER_SIZE) / 1024 ;
+	 mb = (double) kb / 1024 ;
+         printf("%s\t\twrite;\t\t%d;\t\t%d;\t\t%lf;\n", params->file_protocol_name, wb.rank, kb, mb/t) ;
     }
 
     // Benchmark: read
-    printf("test;\t\tclient;\t\tsize (KiB);\tavg.time (seconds);\n") ;
+    printf("test;\t\tclient;\t\tsize (KiB);\tavg.bandwidth (MiB/sec.);\n") ;
     for (int j=1; j<N_SIZES_BENCHMARK; j=2*j)
     {
          t1 = mfs_get_time() ;
@@ -75,7 +79,10 @@ int main_simple2 ( params_t *params )
               clientstub_close(&wb, fd) ;
          }
          t2 = mfs_get_time() ;
-         printf("read;\t\t%d;\t\t%d;\t\t%lf;\n", wb.rank, (j*BUFFER_SIZE)/1024, ((t2-t1)/1000.0)/N_TIMES_BENCHMARK) ;
+	 t  = (double) ((t2-t1)/1000.0) / N_TIMES_BENCHMARK ;
+	 kb = (long)   (j*BUFFER_SIZE) / 1024 ;
+	 mb = (double) kb / 1024 ;
+         printf("%s\t\tread;\t\t%d;\t\t%d;\t\t%lf;\n", params->file_protocol_name, wb.rank, kb, mb/t) ;
     }
 
     // Finalize...

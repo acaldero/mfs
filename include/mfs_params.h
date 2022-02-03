@@ -38,6 +38,7 @@
    {
         // associated client
         int   file_protocol ;
+        char  file_protocol_name[1024] ;
         char  data_prefix[1024] ;
         int   num_servers ;
 

@@ -249,6 +249,15 @@ int serverstub_close ( comm_t *ab, file_t *fd )
         }
     }
 
+    // send back status
+    if (ret >= 0)
+    {
+        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(", mfs_comm_get_rank(ab)) ;
+        }
+    }
+    
     // Return OK/KO
     return ret ;
 }
@@ -281,12 +290,21 @@ int serverstub_read ( comm_t *ab, file_t *fd, int count )
         }
     }
 
+    // send back status
+    if (ret >= 0)
+    {
+        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(", mfs_comm_get_rank(ab)) ;
+        }
+    }
+
     // send data
     if (ret >= 0)
     {
-	mfs_print(DBG_INFO, "Server[%d]: File[%ld]: read(bytes=%d) >> client\n", mfs_comm_get_rank(ab), mfs_file_fd2long(fd), count) ;
+	mfs_print(DBG_INFO, "Server[%d]: File[%ld]: read(bytes=%d) >> client\n", mfs_comm_get_rank(ab), mfs_file_fd2long(fd), ret) ;
 
-        ret = mfs_comm_send_data_to(ab, 0, buff_data, count, MPI_CHAR) ;
+        ret = mfs_comm_send_data_to(ab, 0, buff_data, ret, MPI_CHAR) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: data cannot be sent fails :-(", mfs_comm_get_rank(ab)) ;
         }
@@ -341,6 +359,15 @@ int serverstub_write ( comm_t *ab, file_t *fd, int count )
         ret = mfs_file_write(fd, buff_data, count) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: data not written :-(", mfs_comm_get_rank(ab)) ;
+        }
+    }
+
+    // send back status
+    if (ret >= 0)
+    {
+        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(", mfs_comm_get_rank(ab)) ;
         }
     }
 
@@ -452,6 +479,15 @@ int serverstub_mkdir ( comm_t *ab, char *base_dirname, int pathname_length, int 
         }
     }
 
+    // send back status
+    if (ret >= 0)
+    {
+        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(", mfs_comm_get_rank(ab)) ;
+        }
+    }
+
     // free dirname buffer
     //if (ret >= 0)
     {
@@ -495,6 +531,15 @@ int serverstub_rmdir ( comm_t *ab, char *base_dirname, int pathname_length )
 	ret = mfs_directory_rmdir(buff_data_sys) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: dir not opened :-(", mfs_comm_get_rank(ab)) ;
+        }
+    }
+
+    // send back status
+    if (ret >= 0)
+    {
+        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(", mfs_comm_get_rank(ab)) ;
         }
     }
 

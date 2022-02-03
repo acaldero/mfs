@@ -24,18 +24,8 @@
 
  void mfs_params_show ( params_t *params )
  {
-	char *proto ;
-
-	proto = "<unknown>" ;
-	if (FILE_USE_POSIX == params->file_protocol) {
-	    proto = "POSIX" ;
-	}
-	if (FILE_USE_MPI_IO == params->file_protocol) {
-	    proto = "MPI-IO" ;
-	}
-
  	printf("Current configuration:\n");
-      	printf("\t-p <POSIX|MPI-IO>:\t\t%s\n",          proto) ;
+      	printf("\t-p <POSIX|MPI-IO>:\t\t%s\n",          params->file_protocol_name) ;
       	printf("\t-d <base directory>:\t\t'%s'\n",      params->data_prefix) ;
       	printf("\t-n <# process in server>:\t'%d'\n",   params->num_servers) ;
  }
@@ -56,6 +46,7 @@
 
         params->num_servers   = 1 ;
         params->file_protocol = FILE_USE_POSIX ;
+        strcpy(params->file_protocol_name, "POSIX") ;
         strcpy(params->data_prefix, DEFAULT_DATA_PREFIX) ;
 
       	// update user requests
@@ -69,9 +60,11 @@
       					case 'p':
 						if (!strcmp("POSIX",  (*argv)[i+1]) ) {
       						    params->file_protocol = FILE_USE_POSIX ;
+                                                    strcpy(params->file_protocol_name, "POSIX") ;
 						}
 						if (!strcmp("MPI-IO", (*argv)[i+1]) ) {
       						    params->file_protocol = FILE_USE_MPI_IO ;
+                                                    strcpy(params->file_protocol_name, "MPI-IO") ;
 						}
       						i++;
       						break;
