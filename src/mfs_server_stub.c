@@ -368,6 +368,7 @@ int serverstub_read2 ( comm_t *ab, long fd, int count )
     char        *buff_data ;
     struct stat  fdstat ;
     off_t        offset ;
+    long         to_read ;
 
     ret = 0 ;
 
@@ -376,6 +377,9 @@ int serverstub_read2 ( comm_t *ab, long fd, int count )
     {
         fstat(fd, &fdstat) ;
         offset = lseek(fd, 0L, SEEK_CUR) ;
+
+	to_read = fdstat.st_size - offset ;
+	to_read = (to_read < count) ? to_read : count ;
     }
 
     // map buffer
@@ -401,8 +405,10 @@ int serverstub_read2 ( comm_t *ab, long fd, int count )
     if (ret >= 0)
     {
         mfs_file_munmap(buff_data, fdstat.st_size) ;
-        lseek(fd, count, SEEK_CUR) ;
+        lseek(fd, to_read, SEEK_CUR) ;
     }
+
+    // TODO: send to_read, so client knows the readed bytes (could be less that count bytes). Same on read1.
 
     // Return OK/KO
     return ret ;
