@@ -304,7 +304,7 @@ int serverstub_read ( comm_t *ab, file_t *fd, int count )
     {
 	mfs_print(DBG_INFO, "Server[%d]: File[%ld]: read(bytes=%d) >> client\n", mfs_comm_get_rank(ab), mfs_file_fd2long(fd), ret) ;
 
-        ret = mfs_comm_send_data_to(ab, 0, buff_data, ret, MPI_CHAR) ;
+        ret = mfs_comm_send_data_to(ab, 0, buff_data, (ret==0)?1:ret, MPI_CHAR) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: data cannot be sent fails :-(", mfs_comm_get_rank(ab)) ;
         }
@@ -389,7 +389,7 @@ int serverstub_write ( comm_t *ab, file_t *fd, int count )
  *  File System API (2)
  */
 
-int serverstub_read2 ( comm_t *ab, long fd, int count )
+int serverstub_read2 ( comm_t *ab, file_t *fd, int count )
 {
     int          ret ;
     char        *buff_data ;
@@ -402,40 +402,51 @@ int serverstub_read2 ( comm_t *ab, long fd, int count )
     // prepare st_size and offset
     if (ret >= 0)
     {
-        fstat(fd, &fdstat) ;
-        offset = lseek(fd, 0L, SEEK_CUR) ;
+        fstat(fd->posix_fd, &fdstat) ;
+        offset = lseek(fd->posix_fd, 0L, SEEK_CUR) ;
 
 	to_read = fdstat.st_size - offset ;
 	to_read = (to_read < count) ? to_read : count ;
     }
 
+printf("1 >>>>>>>>>>> size=%ld, fd=%d\n", fdstat.st_size, fd->posix_fd) ;
     // map buffer
     if (ret >= 0)
     {
-        buff_data = (char *)mfs_file_mmap(NULL, fdstat.st_size, PROT_READ, MAP_SHARED, fd, 0) ;
+        buff_data = (char *)mfs_file_mmap(NULL, fdstat.st_size, PROT_READ, MAP_SHARED, fd->posix_fd, 0) ;
         if (NULL == buff_data) {
-            mfs_print(DBG_ERROR, "Server[%d]: mmap(%d, ... %d) fails :-(", mfs_comm_get_rank(ab), fd, count) ;
+            mfs_print(DBG_ERROR, "Server[%d]: mmap(%d, ... %d) fails :-(", mfs_comm_get_rank(ab), fd->posix_fd, count) ;
 	    ret = -1 ;
         }
     }
 
+printf("2 >>>>>>>>>>> size=%ld, fd=%d\n", fdstat.st_size, fd->posix_fd) ;
+    // send back status
+    if (ret >= 0)
+    {
+        ret = mfs_comm_send_data_to(ab, 0, &to_read, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(", mfs_comm_get_rank(ab)) ;
+        }
+    }
+
+printf("3 >>>>>>>>>>> size=%ld, fd=%d\n", fdstat.st_size, fd->posix_fd) ;
     // send data
     if (ret >= 0)
     {
-        ret = mfs_comm_send_data_to(ab, 0, buff_data+offset, count, MPI_CHAR) ;
+        ret = mfs_comm_send_data_to(ab, 0, buff_data+offset, to_read, MPI_CHAR) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: data cannot be sent fails :-(", mfs_comm_get_rank(ab)) ;
         }
     }
 
+printf("4 >>>>>>>>>>> size=%ld, fd=%d\n", fdstat.st_size, fd->posix_fd) ;
     // unmap buffer
     if (ret >= 0)
     {
         mfs_file_munmap(buff_data, fdstat.st_size) ;
-        lseek(fd, to_read, SEEK_CUR) ;
+        lseek(fd->posix_fd, to_read, SEEK_CUR) ;
     }
-
-    // TODO: send to_read, so client knows the readed bytes (could be less that count bytes). Same on read1.
 
     // Return OK/KO
     return ret ;

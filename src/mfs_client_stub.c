@@ -201,9 +201,9 @@ int clientstub_read ( comm_t *wb, long fd, void *buff_char, int count )
     // Receive data
     if (ret >= 0)
     {
-        ret = mfs_comm_recv_data_from(wb, 0, buff_char, status, MPI_CHAR) ;
+        ret = mfs_comm_recv_data_from(wb, 0, buff_char, (status==0)?1:status, MPI_CHAR) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: data not received :-(", mfs_comm_get_rank(wb)) ;
+    	    mfs_print(DBG_ERROR, "Client[%d]: data not received :-(", mfs_comm_get_rank(wb)) ;
         }
     }
 
