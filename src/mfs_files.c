@@ -153,19 +153,18 @@ int  mfs_file_open ( file_t *fd, int file_protocol, const char *path_name, int f
 	     }
              break ;
         case FILE_USE_MMAP:
+	     // open
              fd->file_protocol_name = "MMAP" ;
 	     fd->posix_fd = (long)open(path_name, flags, 0755) ;
 	     if (fd->posix_fd < 0) {
-	         mfs_print(DBG_INFO,
-                           "[FILE]: ERROR on open(path_name='%s', flags=%d, mode=0755)\n", path_name, flags) ;
+	         mfs_print(DBG_INFO, "[FILE]: ERROR on open(name='%s', flags=%d, mode=0755)\n", path_name, flags) ;
 	         return -1 ;
 	     }
-
 	     // prepare st_size and offset
 	     struct stat fdstat ;
 	     fstat(fd->posix_fd, &fdstat) ;
              fd->size = fdstat.st_size ;
-
+	     // mmap
 	     fd->mmap_ptr = (char *)mmap(NULL, fd->size, PROT_READ, MAP_SHARED, fd->posix_fd, 0) ;
 	     if (fd->mmap_ptr == MAP_FAILED) {
 	         mfs_print(DBG_INFO, "[FILE]: ERROR on mapping failed\n") ;
@@ -201,11 +200,14 @@ int   mfs_file_close ( file_t *fd )
 	     ret = MPI_File_close(&(fd->mpiio_fd)) ;
              break ;
         case FILE_USE_MMAP:
+	     // msync
+	     msync(fd->mmap_ptr, fd->size, MS_SYNC);
+	     // munmap
              ret = munmap(fd->mmap_ptr, fd->size);
              if (ret != 0) {
 	         mfs_print(DBG_INFO, "[FILE]: ERROR on UnMapping failed\n") ;
              }
-
+	     // close
              ret = close(fd->posix_fd) ;
              break ;
         default:
@@ -239,14 +241,13 @@ int   mfs_file_read  ( file_t *fd, void *buff_data, int count )
              break ;
         case FILE_USE_MPI_IO:
              MPI_Status status ;
-
 	     ret = MPI_File_read(fd->mpiio_fd, buff_data, count, MPI_CHAR, &status) ;
 	     if (ret != MPI_SUCCESS) {
 	         mfs_print(DBG_INFO, "[FILE]: ERROR on read %d bytes from file '%d'\n", count, fd->mpiio_fd) ;
 	         return -1 ;
 	     }
 
-	     ret = count ;
+	     MPI_Get_count(&status, MPI_INT, &ret);
              break ;
         case FILE_USE_MMAP:
              to_read = fd->size - fd->offset ;
@@ -289,17 +290,16 @@ int   mfs_file_write  ( file_t *fd, void *buff_data, int count )
              break ;
         case FILE_USE_MPI_IO:
 	     MPI_Status status ;
-
 	     ret = MPI_File_write(fd->mpiio_fd, buff_data, count, MPI_CHAR, &status) ;
 	     if (ret != MPI_SUCCESS) {
 	         mfs_print(DBG_INFO, "[FILE]: ERROR on write %d bytes from file '%d'\n", count, fd->mpiio_fd) ;
 	         return -1 ;
 	     }
 
-	     ret = count ;
+	     MPI_Get_count(&status, MPI_INT, &ret);
              break ;
         case FILE_USE_MMAP:
-             memmove(fd->mmap_ptr+fd->offset, buff_data, count) ;
+             memmove(fd->mmap_ptr + fd->offset, buff_data, count) ;
              fd->offset = fd->offset + count ;
 
 	     ret = count ;
