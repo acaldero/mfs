@@ -24,6 +24,54 @@
 
 
 /*
+ *  Auxiliar functions
+ */
+
+int mfs_read_buffer ( int read_fd, void *buffer, int buffer_size )
+{
+     ssize_t bytes_read ;
+     ssize_t remaining_bytes ;
+
+     remaining_bytes = buffer_size ;
+     while (remaining_bytes > 0)
+     {
+         bytes_read = read(read_fd, buffer, remaining_bytes) ;
+         if (bytes_read < 0) {
+	     return -1 ;
+         }
+         if (bytes_read == 0) {
+	     return (buffer_size - remaining_bytes) ;
+         }
+
+         remaining_bytes -= bytes_read ;
+         buffer          += bytes_read ;
+     }
+
+     return buffer_size ;
+}
+
+int mfs_write_buffer ( int write_fd, void *buffer, int buffer_size )
+{
+     ssize_t write_num_bytes ;
+     ssize_t remaining_bytes ;
+
+     remaining_bytes = buffer_size ;
+     while (remaining_bytes > 0)
+     {
+         write_num_bytes = write(write_fd, buffer, remaining_bytes) ;
+         if (write_num_bytes == -1) {
+	     return -1 ;
+         }
+
+         remaining_bytes -= write_num_bytes ;
+         buffer          += write_num_bytes ;
+     }
+
+     return buffer_size ;
+}
+
+
+/*
  *  File System API
  */
 
@@ -194,7 +242,7 @@ int   mfs_file_read  ( file_t *fd, void *buff_data, int count )
     switch (fd->file_protocol)
     {
         case FILE_USE_POSIX:
-             ret = read(fd->posix_fd, buff_data, count) ;
+             ret = mfs_read_buffer(fd->posix_fd, buff_data, count) ;
              if (ret < 0) {
 	         mfs_print(DBG_INFO, "[FILE]: ERROR on read %d bytes from file '%d'\n", count, fd->posix_fd) ;
 	         return -1 ;
@@ -235,7 +283,7 @@ int   mfs_file_write  ( file_t *fd, void *buff_data, int count )
     switch (fd->file_protocol)
     {
         case FILE_USE_POSIX:
-             ret = write(fd->posix_fd, buff_data, count) ;
+             ret = mfs_write_buffer(fd->posix_fd, buff_data, count) ;
              if (ret < 0) {
     	         mfs_print(DBG_INFO, "[FILE]: ERROR on write %d bytes from file '%d'\n", count, fd->posix_fd) ;
 	         return -1 ;
