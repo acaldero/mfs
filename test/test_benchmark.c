@@ -54,9 +54,15 @@ int main_simple2 ( params_t *params )
          t1 = mfs_get_time() ;
          for (int i=0; i<N_TIMES_BENCHMARK; i++)
          {
-              fd = clientstub_open(&wb, "test1.txt", O_WRONLY | O_CREAT | O_TRUNC) ;
-              for (int k=0; k<j; k++)
+              fd = clientstub_open(&wb, "test1.txt", O_RDWR | O_CREAT) ;
+	      if (fd < 0) {
+                  clientstub_finalize(&wb) ;
+		  exit(-1) ;
+	      }
+
+              for (int k=0; k<j; k++) {
                    clientstub_write(&wb, fd, buffer, BUFFER_SIZE) ;
+	      }
               clientstub_close(&wb, fd) ;
          }
          t2 = mfs_get_time() ;
@@ -74,8 +80,14 @@ int main_simple2 ( params_t *params )
          for (int i=0; i<N_TIMES_BENCHMARK; i++)
          {
               fd = clientstub_open(&wb, "test1.txt", O_RDONLY) ;
-              for (int k=0; k<j; k++)
+	      if (fd < 0) {
+                  clientstub_finalize(&wb) ;
+		  exit(-1) ;
+	      }
+
+              for (int k=0; k<j; k++) {
                    clientstub_read( &wb, fd, buffer, BUFFER_SIZE) ;
+	      }
               clientstub_close(&wb, fd) ;
          }
          t2 = mfs_get_time() ;

@@ -208,7 +208,7 @@ int serverstub_open ( comm_t *ab, file_t *fd, char *base_dirname, int pathname_l
     }
 
     // send back file descriptor
-    if (ret >= 0)
+    //if (ret >= 0)
     {
 	long fh = mfs_file_fd2long(fd) ;
         mfs_print(DBG_INFO, "Server[%d]: File[%ld]: open(flags=%d) >> client\n", mfs_comm_get_rank(ab), fh, flags) ;

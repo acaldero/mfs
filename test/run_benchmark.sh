@@ -8,7 +8,7 @@ HOSTNAME=$(hostname)
 SERVER_NP=2
 CLIENT_NP=4
 N_TESTS=1
-F_PROTO=POSIX
+F_PROTO=MMAP
 
 # just in case, create data directory
 mkdir -p ./data
