@@ -25,7 +25,7 @@
  void mfs_params_show ( params_t *params )
  {
  	printf("Current configuration:\n");
-      	printf("\t-p <POSIX|MPI-IO|MMAP>:\t\t%s\n",     params->file_protocol_name) ;
+      	printf("\t-p <POSIX|MPI-IO>:\t\t%s\n",          params->file_protocol_name) ;
       	printf("\t-d <base directory>:\t\t'%s'\n",      params->data_prefix) ;
       	printf("\t-n <# process in server>:\t'%d'\n",   params->num_servers) ;
  }
@@ -33,7 +33,7 @@
  void mfs_params_show_usage ( void )
  {
       	printf("Usage:\n");
-      	printf("\t-p <string>:  POSIX | MPI-IO | MMAP\n") ;
+      	printf("\t-p <string>:  POSIX | MPI-IO\n") ;
       	printf("\t-d <string>:  name of the base directory\n") ;
       	printf("\t-n <integer>: number of servers\n") ;
  }
