@@ -37,7 +37,6 @@
     // File protocol
     #define FILE_USE_POSIX  1
     #define FILE_USE_MPI_IO 2
-    #define FILE_USE_MMAP   3
 
 
     // Datatypes
@@ -55,10 +54,6 @@
         long  offset ;
         long  n_read_req ;
         long  n_write_req ;
-
-        // mmap: address and size
-        long  size ;
-        char *mmap_ptr ;
 
     } file_t ;
 

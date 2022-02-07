@@ -66,10 +66,6 @@
       						    params->file_protocol = FILE_USE_MPI_IO ;
                                                     strcpy(params->file_protocol_name, "MPI-IO") ;
 						}
-						if (!strcmp("MMAP",   (*argv)[i+1]) ) {
-      						    params->file_protocol = FILE_USE_MMAP ;
-                                                    strcpy(params->file_protocol_name, "MMAP") ;
-						}
       						i++;
       						break;
 

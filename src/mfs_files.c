@@ -42,9 +42,6 @@ long  mfs_file_fd2long ( file_t *fd )
         case FILE_USE_MPI_IO:
              return (long) fd->mpiio_fd ;
              break ;
-        case FILE_USE_MMAP:
-             return (long) fd->mmap_ptr ;
-             break ;
         default:
 	     return -1 ;
              break ;
@@ -78,13 +75,6 @@ int mfs_file_long2fd ( file_t *fd, long fref, int file_protocol )
              fd->offset   = 0 ;
              fd->file_protocol_name = "MPI-IO" ;
              break ;
-        case FILE_USE_MMAP:
-             fd->posix_fd = (int)0 ;
-             fd->offset   = 0 ;         // TODO: how to recover the current working offset
-             fd->size     = 1024*1024 ; // TODO: how to recover the current file size
-             fd->file_protocol_name = "MMAP" ;
-	     fd->mmap_ptr = (char *)fref ;
-             break ;
         default:
              fd->file_protocol_name = "unknown" ;
 	     return -1 ;
@@ -107,7 +97,6 @@ int  mfs_file_stats_show ( file_t *fd, char *prefix )
     printf("%s: + protocol=%s\n",   prefix, fd->file_protocol_name) ;
     printf("%s:   + posix_fd=%d\n", prefix, fd->posix_fd) ;
     printf("%s:   + mpiio_fd=%d\n", prefix, fd->mpiio_fd) ;
-    printf("%s:   + mmap_ptr=%p\n", prefix, fd->mmap_ptr) ;
     printf("%s: + offset=%ld\n",    prefix, fd->offset) ;
     printf("%s: + # read=%ld\n",    prefix, fd->n_read_req) ;
     printf("%s: + # write=%ld\n",   prefix, fd->n_write_req) ;
@@ -155,55 +144,6 @@ int  mfs_file_open ( file_t *fd, int file_protocol, const char *path_name, int f
 	         return -1 ;
 	     }
              break ;
-        case FILE_USE_MMAP:
-	     // open
-             fd->file_protocol_name = "MMAP" ;
-	     fd->posix_fd = (long)open(path_name, flags, 0755) ;
-	     if (fd->posix_fd < 0) {
-	         mfs_print(DBG_INFO, "[FILE]: ERROR on open(name='%s', flags=%d, mode=0755)\n", path_name, flags) ;
-	         return -1 ;
-	     }
-	     // prepare prot and flags
-             int m_prot ;
-             int m_flags ;
-             m_flags = flags & O_ACCMODE ;
-	     switch (m_flags)
-	     {
-	           case O_WRONLY:
-		        m_prot  = PROT_WRITE | PROT_READ ;
-		        m_flags = MAP_SHARED ;
-			break ;
-	           case O_RDONLY:
-		        m_prot  = PROT_READ ;
-		        m_flags = MAP_PRIVATE ;
-			break ;
-		   default:
-		        m_prot  = PROT_WRITE | PROT_READ ;
-		        m_flags = MAP_SHARED ;
-			break ;
-	     }
-	     // prepare st_size
-	     struct stat fdstat ;
-	     fstat(fd->posix_fd, &fdstat) ;
-             fd->size = fdstat.st_size ;
-	     if (0 == fd->size) {
-		 ftruncate(fd->posix_fd, 1024*1024) ;
-	         fd->size = 1024*1024 ;
-	     }
-	     // mmap
-	     fd->mmap_ptr = (char *)mmap(NULL, fd->size, m_prot, m_flags, fd->posix_fd, 0) ;
-	     if (fd->mmap_ptr == MAP_FAILED)
-	     {
-	         mfs_print(DBG_INFO, "[FILE]: ERROR on mapping failed\n") ;
-                 perror("mmap: ") ;
-
-                 close(fd->posix_fd) ;
-                 fd->posix_fd = -1 ;
-	         return -1 ;
-	     }
-	     // close
-             ret = close(fd->posix_fd) ;
-             break ;
         default:
 	     return -1 ;
              break ;
@@ -230,15 +170,6 @@ int   mfs_file_close ( file_t *fd )
              break ;
         case FILE_USE_MPI_IO:
 	     ret = MPI_File_close(&(fd->mpiio_fd)) ;
-             break ;
-        case FILE_USE_MMAP:
-	     // msync
-	     msync(fd->mmap_ptr, fd->size, MS_SYNC);
-	     // munmap
-             ret = munmap(fd->mmap_ptr, fd->size);
-             if (ret != 0) {
-	         mfs_print(DBG_INFO, "[FILE]: ERROR on UnMapping failed\n") ;
-             }
              break ;
         default:
 	     return -1 ;
@@ -279,21 +210,13 @@ int   mfs_file_read  ( file_t *fd, void *buff_data, int count )
 
 	     MPI_Get_count(&status, MPI_INT, &ret);
              break ;
-        case FILE_USE_MMAP:
-             to_read = fd->size - fd->offset ;
-             to_read = (count > to_read) ? to_read : count ;
-             // memmove(buff_data, fd->mmap_ptr + fd->offset, to_read) ;  // TODO
-             fd->offset = fd->offset + to_read ;
-
-	     ret = to_read ;
-             break ;
         default:
 	     return -1 ;
              break ;
     }
 
     // Stats...
-    fd->n_read_req ++ ;
+    (fd->n_read_req) ++ ;
 
     // Return number_bytes readed
     return ret ;
@@ -328,19 +251,13 @@ int   mfs_file_write  ( file_t *fd, void *buff_data, int count )
 
 	     MPI_Get_count(&status, MPI_INT, &ret);
              break ;
-        case FILE_USE_MMAP:
-             // memmove(fd->mmap_ptr + fd->offset, buff_data, count) ;  // TODO
-             fd->offset = fd->offset + count ;
-
-	     ret = count ;
-             break ;
         default:
 	     return -1 ;
              break ;
     }
 
     // Stats...
-    fd->n_write_req ++ ;
+    (fd->n_write_req) ++ ;
 
     // Return number_bytes / KO
     return ret ;
