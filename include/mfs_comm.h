@@ -52,6 +52,7 @@
         // remote identification
         int  status_rank ;
         int  status_tag ;
+        int  status_count ;
 
         // some stats
         char is_connected ;

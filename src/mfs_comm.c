@@ -66,8 +66,9 @@ int mfs_comm_init ( comm_t *cb, params_t *params )
     }
 
     // cb->status_... 
-    cb->status_rank = -1 ;
-    cb->status_tag  = -1 ;
+    cb->status_rank  = -1 ;
+    cb->status_tag   = -1 ;
+    cb->status_count = -1 ;
 
     // Return OK
     return 0 ;
@@ -316,6 +317,7 @@ int mfs_comm_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Da
     // Copy status
     cb->status_rank = status.MPI_SOURCE ;
     cb->status_tag  = status.MPI_TAG ;
+    MPI_Get_count(&status, datatype, &(cb->status_count));
 
     // cb->... (stats)
     cb->n_recv_req++ ;

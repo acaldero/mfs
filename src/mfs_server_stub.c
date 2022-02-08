@@ -262,17 +262,14 @@ int serverstub_close ( comm_t *ab, file_t *fd )
     return ret ;
 }
 
-#define SRVSTUB_READ_UP_TO_IS_DYNAMIC (1*1024*1024)
-#define SRVSTUB_READ_BUFFLOCAL_SIZE       (64*1024)
-
 int serverstub_read ( comm_t *ab, file_t *fd, int count )
 {
-    int    ret, readed ;
+    int    ret ;
     int    is_dynamic ;
     char  *buff_data ;
     long   buff_size ;
     char   buff_data_local[SRVSTUB_READ_BUFFLOCAL_SIZE] ;
-    long   remaining_size, current_size ;
+    long   remaining_size, readed ;
 
     ret = 0 ;
     is_dynamic = (count < SRVSTUB_READ_UP_TO_IS_DYNAMIC) ? 1 : 0 ;
@@ -298,7 +295,6 @@ int serverstub_read ( comm_t *ab, file_t *fd, int count )
 	}
     }
 
-    current_size   = 0 ;
     remaining_size = count ;
     while ( (ret >= 0) && (remaining_size > 0) )
     {
@@ -333,13 +329,10 @@ int serverstub_read ( comm_t *ab, file_t *fd, int count )
                }
            }
 
-           current_size   = current_size   + readed ;
-           remaining_size = remaining_size - readed ;
-
 	   // if (readed == 0) then read less than count but no more data is available
-	   if (0 == readed) {
-	       remaining_size = 0 ;
-	   }
+	   if (0 == readed)
+	        remaining_size = 0 ;
+	   else remaining_size = remaining_size - readed ;
     }
 
     // free data buffer

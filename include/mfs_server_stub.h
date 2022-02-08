@@ -30,6 +30,11 @@
     #include "mfs_directories.h"
 
 
+    // Define
+    #define SRVSTUB_READ_UP_TO_IS_DYNAMIC (1*1024*1024)
+    #define SRVSTUB_READ_BUFFLOCAL_SIZE       (64*1024)
+
+
     // Datatypes
     typedef struct
     {
