@@ -32,8 +32,8 @@
     * Constants
     */
 
-   #define MAX_BUFFER   128
-   #define MAX_SERVICIO   5
+   #define POOL_MAX_REQUESTS  128
+   #define POOL_MAX_THREADS     5
 
 
    /*
