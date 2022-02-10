@@ -43,15 +43,17 @@
     typedef struct
     {
         // underlying protocol
-        int  file_protocol ;
+        int   file_protocol ;
+        char *file_protocol_name ;
 
         // descriptors
         long     posix_fd ;
 	MPI_File mpiio_fd ;
 
         // some stats
-        long n_read_req ;
-        long n_write_req ;
+        long  offset ;
+        long  n_read_req ;
+        long  n_write_req ;
 
     } file_t ;
 
@@ -66,10 +68,6 @@
 
     int   mfs_file_read   ( file_t *fd, void *buff_data, int count ) ;
     int   mfs_file_write  ( file_t *fd, void *buff_data, int count ) ;
-
-    // API (POSIX)
-    void *mfs_file_mmap   ( void *addr, size_t size, int protect, int flags, long filedes, off_t offset ) ;
-    int   mfs_file_munmap ( void *addr, size_t size ) ;
 
 #endif
 

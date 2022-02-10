@@ -180,8 +180,9 @@ int clientstub_close ( comm_t *wb, long fd )
 
 int clientstub_read ( comm_t *wb, long fd, void *buff_char, int count )
 {
-    int ret = 0 ;
-    int status ;
+    int  ret = 0 ;
+    int  status ;
+    long remaining_size, current_size ;
 
     // Send read msg
     if (ret >= 0)
@@ -189,26 +190,39 @@ int clientstub_read ( comm_t *wb, long fd, void *buff_char, int count )
         ret = mfs_comm_request_send(wb, 0, REQ_ACTION_READ, fd, count) ;
     }
 
-    // Receive status
-    if (ret >= 0)
+    current_size   = 0 ;
+    remaining_size = count ;
+    while ( (ret >= 0) && (remaining_size > 0) )
     {
-        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
-        }
-    }
+          // Receive status
+          if (ret >= 0)
+          {
+              ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+              if (ret < 0) {
+                  mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
+              }
+          }
 
-    // Receive data
-    if (ret >= 0)
-    {
-        ret = mfs_comm_recv_data_from(wb, 0, buff_char, status, MPI_CHAR) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: data not received :-(", mfs_comm_get_rank(wb)) ;
-        }
+          // Receive data
+          if ( (ret >= 0) && (status > 0) )
+          {
+              ret = mfs_comm_recv_data_from(wb, 0, buff_char + current_size, status, MPI_CHAR) ;
+              if (ret < 0) {
+    	          mfs_print(DBG_ERROR, "Client[%d]: data not received :-(", mfs_comm_get_rank(wb)) ;
+              }
+          }
+
+	  current_size   = current_size   + status ;
+          remaining_size = remaining_size - status ;
+
+	  // if (status == 0) then read less than count but no more data is available
+          if (0 == status) {
+              remaining_size = 0 ;
+          }
     }
 
     // Return bytes read
-    return status ;
+    return current_size ;
 }
 
 int clientstub_write ( comm_t *wb, long fd, void *buff_char, int count )

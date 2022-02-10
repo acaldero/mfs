@@ -208,7 +208,7 @@ int serverstub_open ( comm_t *ab, file_t *fd, char *base_dirname, int pathname_l
     }
 
     // send back file descriptor
-    if (ret >= 0)
+    //if (ret >= 0)
     {
 	long fh = mfs_file_fd2long(fd) ;
         mfs_print(DBG_INFO, "Server[%d]: File[%ld]: open(flags=%d) >> client\n", mfs_comm_get_rank(ab), fh, flags) ;
@@ -265,58 +265,86 @@ int serverstub_close ( comm_t *ab, file_t *fd )
 int serverstub_read ( comm_t *ab, file_t *fd, int count )
 {
     int    ret ;
+    int    is_dynamic ;
     char  *buff_data ;
+    long   buff_size ;
+    char   buff_data_local[SRVSTUB_READ_BUFFLOCAL_SIZE] ;
+    long   remaining_size, readed ;
 
-    ret       = 0 ;
-    buff_data = NULL ;
+    ret = 0 ;
+    is_dynamic = (count < SRVSTUB_READ_UP_TO_IS_DYNAMIC) ? 1 : 0 ;
+    buff_data  = NULL ;
 
     // prepare data buffer
     //if (ret >= 0)
     {
-        ret = mfs_malloc(&buff_data, count) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), count) ;
-        }
+	if (1 == is_dynamic)
+	{
+            buff_size = count ;
+            ret = mfs_malloc(&buff_data, count) ;
+            if (ret < 0) {
+                mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), count) ;
+	        is_dynamic = 0 ; // if malloc fails then we try is_dynamic=off
+            }
+	}
+
+	if (0 == is_dynamic) {
+            buff_size = SRVSTUB_READ_BUFFLOCAL_SIZE ;
+	    buff_data = buff_data_local ;
+	    ret = 0 ;
+	}
     }
 
-    // read data
-    if (ret >= 0)
+    remaining_size = count ;
+    while ( (ret >= 0) && (remaining_size > 0) )
     {
-        mfs_print(DBG_INFO, "Server[%d]: request 'read' %d bytes for file %d\n", mfs_comm_get_rank(ab), count, mfs_file_fd2long(fd)) ;
+           // read data
+           if (ret >= 0)
+           {
+               mfs_print(DBG_INFO, "Server[%d]: request 'read' %d bytes for file %d\n", mfs_comm_get_rank(ab), count, mfs_file_fd2long(fd)) ;
 
-        ret = mfs_file_read(fd, buff_data, count) ;
-        if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: data not read :-(", mfs_comm_get_rank(ab)) ;
-        }
-    }
+               ret = readed = mfs_file_read(fd, buff_data, buff_size) ;
+               if (ret < 0) {
+                   mfs_print(DBG_WARNING, "Server[%d]: data not read :-(", mfs_comm_get_rank(ab)) ;
+               }
+           }
 
-    // send back status
-    if (ret >= 0)
-    {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
-        if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(", mfs_comm_get_rank(ab)) ;
-        }
-    }
+           // send back status
+           if (ret >= 0)
+           {
+               ret = mfs_comm_send_data_to(ab, 0, &readed, 1, MPI_INT) ;
+               if (ret < 0) {
+                   mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(", mfs_comm_get_rank(ab)) ;
+               }
+           }
 
-    // send data
-    if (ret >= 0)
-    {
-	mfs_print(DBG_INFO, "Server[%d]: File[%ld]: read(bytes=%d) >> client\n", mfs_comm_get_rank(ab), mfs_file_fd2long(fd), ret) ;
+           // send data
+           if ( (ret >= 0) && (readed > 0) )
+           {
+	       mfs_print(DBG_INFO, "Server[%d]: File[%ld]: read(bytes=%d) >> client\n", mfs_comm_get_rank(ab), mfs_file_fd2long(fd), ret) ;
 
-        ret = mfs_comm_send_data_to(ab, 0, buff_data, ret, MPI_CHAR) ;
-        if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: data cannot be sent fails :-(", mfs_comm_get_rank(ab)) ;
-        }
+               ret = mfs_comm_send_data_to(ab, 0, buff_data, readed, MPI_CHAR) ;
+               if (ret < 0) {
+                   mfs_print(DBG_WARNING, "Server[%d]: data cannot be sent fails :-(", mfs_comm_get_rank(ab)) ;
+               }
+           }
+
+	   // if (readed == 0) then read less than count but no more data is available
+	   if (0 == readed)
+	        remaining_size = 0 ;
+	   else remaining_size = remaining_size - readed ;
     }
 
     // free data buffer
     //if (ret >= 0)
     {
-        ret = mfs_free(&buff_data) ;
-        if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", mfs_comm_get_rank(ab)) ;
-        }
+	if (1 == is_dynamic)
+	{
+            ret = mfs_free(&buff_data) ;
+            if (ret < 0) {
+                mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", mfs_comm_get_rank(ab)) ;
+            }
+	}
     }
 
     // Return OK/KO
@@ -379,63 +407,6 @@ int serverstub_write ( comm_t *ab, file_t *fd, int count )
             mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", mfs_comm_get_rank(ab)) ;
         }
     }
-
-    // Return OK/KO
-    return ret ;
-}
-
-
-/*
- *  File System API (2)
- */
-
-int serverstub_read2 ( comm_t *ab, long fd, int count )
-{
-    int          ret ;
-    char        *buff_data ;
-    struct stat  fdstat ;
-    off_t        offset ;
-    long         to_read ;
-
-    ret = 0 ;
-
-    // prepare st_size and offset
-    if (ret >= 0)
-    {
-        fstat(fd, &fdstat) ;
-        offset = lseek(fd, 0L, SEEK_CUR) ;
-
-	to_read = fdstat.st_size - offset ;
-	to_read = (to_read < count) ? to_read : count ;
-    }
-
-    // map buffer
-    if (ret >= 0)
-    {
-        buff_data = (char *)mfs_file_mmap(NULL, fdstat.st_size, PROT_READ, MAP_SHARED, fd, 0) ;
-        if (NULL == buff_data) {
-            mfs_print(DBG_ERROR, "Server[%d]: mmap(%d, ... %d) fails :-(", mfs_comm_get_rank(ab), fd, count) ;
-	    ret = -1 ;
-        }
-    }
-
-    // send data
-    if (ret >= 0)
-    {
-        ret = mfs_comm_send_data_to(ab, 0, buff_data+offset, count, MPI_CHAR) ;
-        if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: data cannot be sent fails :-(", mfs_comm_get_rank(ab)) ;
-        }
-    }
-
-    // unmap buffer
-    if (ret >= 0)
-    {
-        mfs_file_munmap(buff_data, fdstat.st_size) ;
-        lseek(fd, to_read, SEEK_CUR) ;
-    }
-
-    // TODO: send to_read, so client knows the readed bytes (could be less that count bytes). Same on read1.
 
     // Return OK/KO
     return ret ;
