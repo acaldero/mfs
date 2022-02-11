@@ -27,21 +27,33 @@ int mfs_workers_init ( void )
        int ret ;
 
        ret = mfs_workers_onrequest_init() ;
-    // ret = mfs_workers_pool_init() ;
+       if (ret < 0) {
+	   return ret ;
+       }
 
-       // Return OK/KO
-       return ret;
+       ret = mfs_workers_pool_init() ;
+       if (ret < 0) {
+	   return ret ;
+       }
+
+       // Return OK
+       return 1 ;
 }
 
-int mfs_workers_launch_worker ( comm_t * wb, void (*worker_function)(struct st_th) )
+int mfs_workers_launch_worker ( params_t *params, comm_t * wb, void (*worker_function)(struct st_th) )
 {
        int ret ;
 
-       ret = mfs_workers_onrequest_launch_worker(wb, worker_function) ;
-    // ret = mfs_workers_pool_launch(wb, worker_function) ;
+       if (THREAD_USE_ONDEMAND == params->thread_launch) {
+           ret = mfs_workers_onrequest_launch_worker(params, wb, worker_function) ;
+       }
+
+       if (THREAD_USE_POOL == params->thread_launch) {
+           ret = mfs_workers_pool_launch_worker(params, wb, worker_function) ;
+       }
 
        // Return OK/KO
-       return ret;
+       return ret ;
 }
 
 int mfs_workers_wait_workers ( void )
@@ -49,10 +61,17 @@ int mfs_workers_wait_workers ( void )
        int ret ;
 
        ret = mfs_workers_onrequest_wait_workers() ;
-    // ret = mfs_workers_pool_waitall() ;
+       if (ret < 0) {
+	   return ret ;
+       }
 
-       // Return OK/KO
-       return ret;
+       ret = mfs_workers_pool_wait_workers() ;
+       if (ret < 0) {
+	   return ret ;
+       }
+
+       // Return OK
+       return 1 ;
 }
 
 int mfs_workers_stats_show ( char *prefix )
@@ -60,9 +79,16 @@ int mfs_workers_stats_show ( char *prefix )
        int ret ;
 
        ret = mfs_workers_onrequest_stats_show(prefix) ;
-    // ret = mfs_workers_pool_stats_show(prefix) ;
+       if (ret < 0) {
+	   return ret ;
+       }
 
-       // Return OK/KO
-       return ret;
+       ret = mfs_workers_pool_stats_show(prefix) ;
+       if (ret < 0) {
+	   return ret ;
+       }
+
+       // Return OK
+       return 1 ;
 }
 

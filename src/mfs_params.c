@@ -22,12 +22,14 @@
 
 #include "mfs_params.h"
 
+
  void mfs_params_show ( params_t *params )
  {
  	printf("Current configuration:\n");
-      	printf("\t-p <POSIX|MPI-IO>:\t\t%s\n",          params->file_protocol_name) ;
-      	printf("\t-d <base directory>:\t\t'%s'\n",      params->data_prefix) ;
-      	printf("\t-n <# process in server>:\t'%d'\n",   params->num_servers) ;
+      	printf("\t-p <POSIX | MPI-IO>:\t\t%s\n",       params->file_protocol_name) ;
+      	printf("\t-d <base directory>:\t\t'%s'\n",     params->data_prefix) ;
+      	printf("\t-t <ondemand | pool>:\t\t'%s'\n",    params->thread_launch_name) ;
+      	printf("\t-n <# process in server>:\t'%d'\n",  params->num_servers) ;
  }
       
  void mfs_params_show_usage ( void )
@@ -35,6 +37,7 @@
       	printf("Usage:\n");
       	printf("\t-p <string>:  POSIX | MPI-IO\n") ;
       	printf("\t-d <string>:  name of the base directory\n") ;
+      	printf("\t-t <string>:  ondemand | pool\n") ;
       	printf("\t-n <integer>: number of servers\n") ;
  }
       
@@ -45,9 +48,13 @@
       	params->argv = argv ;
 
         params->num_servers   = 1 ;
+        strcpy(params->data_prefix, DEFAULT_DATA_PREFIX) ;
+
         params->file_protocol = FILE_USE_POSIX ;
         strcpy(params->file_protocol_name, "POSIX") ;
-        strcpy(params->data_prefix, DEFAULT_DATA_PREFIX) ;
+
+        params->thread_launch = THREAD_USE_ONDEMAND ;
+        strcpy(params->thread_launch_name, "On demand") ;
 
       	// update user requests
       	for (int i=0; i<(*argc); i++)
@@ -78,6 +85,18 @@
       						params->num_servers = atoi((*argv)[i+1]) ;
       						i++;
       						break;					
+
+      					case 't':
+						if (!strcmp("ondemand",  (*argv)[i+1]) ) {
+                                                    params->thread_launch = THREAD_USE_ONDEMAND ;
+                                                    strcpy(params->thread_launch_name, "On Demand") ;
+						}
+						if (!strcmp("pool", (*argv)[i+1]) ) {
+                                                    params->thread_launch = THREAD_USE_POOL ;
+                                                    strcpy(params->thread_launch_name, "Pool") ;
+						}
+      						i++;
+      						break;
 
       					case 'h':
       						return -1;

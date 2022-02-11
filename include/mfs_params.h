@@ -32,11 +32,16 @@
    // Const
    #define DEFAULT_DATA_PREFIX "./data/"
 
+   #define THREAD_USE_ONDEMAND  1
+   #define THREAD_USE_POOL      2
+
 
    // Datatype
    typedef struct
    {
         // associated client
+        int   thread_launch ;
+        char  thread_launch_name[1024] ;
         int   file_protocol ;
         char  file_protocol_name[1024] ;
         char  data_prefix[1024] ;

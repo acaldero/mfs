@@ -21,8 +21,6 @@
 #ifndef __MFS_WORKERS_POOL_H__
 #define __MFS_WORKERS_POOL_H__
 
-   #include <stdio.h>
-   #include <time.h>
    #include "mfs_workers.h"
    #include "mfs_protocol.h"
    #include "mfs_lib.h"
@@ -40,10 +38,11 @@
     * API
     */
 
-   int  mfs_workers_pool_init       ( void ) ;
-   int  mfs_workers_pool_launch     ( comm_t *wb, void (*worker_function)(struct st_th) ) ;
-   int  mfs_workers_pool_waitall    ( void ) ;
-   int  mfs_workers_pool_stats_show ( char *prefix ) ;
+   int  mfs_workers_pool_init           ( void ) ;
+   int  mfs_workers_pool_launch_worker  ( params_t *params, comm_t *wb, void (*worker_function)(struct st_th) ) ;
+   int  mfs_workers_pool_wait_workers   ( void ) ;
+
+   int  mfs_workers_pool_stats_show     ( char *prefix ) ;
 
 #endif
 

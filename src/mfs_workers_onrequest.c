@@ -68,7 +68,7 @@ void *mfs_workers_onrequest_worker_run ( void *arg )
        return NULL ;
 }
 
-int mfs_workers_onrequest_launch_worker ( comm_t * wb, void (*worker_function)(struct st_th) )
+int mfs_workers_onrequest_launch_worker ( params_t *params, comm_t * wb, void (*worker_function)(struct st_th) )
 {
        int            ret;
        pthread_attr_t th_attr;
@@ -83,6 +83,7 @@ int mfs_workers_onrequest_launch_worker ( comm_t * wb, void (*worker_function)(s
        // prepare arguments...
        st_worker.ab       = *wb ;
        st_worker.function = worker_function ;
+       st_worker.params   = params ;
 
        // create thread...
        ret = pthread_create(&th_worker, &th_attr, (mfs_workers_onrequest_worker_run), (void *)&st_worker);
@@ -124,7 +125,7 @@ int mfs_workers_onrequest_stats_show ( char *prefix )
     }
 
     // Print stats...
-    printf("%s: Threads:\n",              prefix) ;
+    printf("%s: Threads (on request):\n", prefix) ;
     printf("%s: + active threads=%ld\n",  prefix, n_workers) ;
 
     // Return OK

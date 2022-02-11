@@ -125,7 +125,7 @@ int  mfs_workers_pool_init ( void )
 }
 
 
-int  mfs_workers_pool_launch  ( comm_t *wb, void (*worker_function)(th_args_t) )
+int  mfs_workers_pool_launch_worker  ( params_t *params, comm_t *wb, void (*worker_function)(th_args_t) )
 {
     // lock when not full...
     pthread_mutex_lock(&mutex);
@@ -136,6 +136,7 @@ int  mfs_workers_pool_launch  ( comm_t *wb, void (*worker_function)(th_args_t) )
     // inserting element into the buffer
     pool_buffer[buff_position_receptor].ab       = *wb ;
     pool_buffer[buff_position_receptor].function = worker_function ;
+    pool_buffer[buff_position_receptor].params   = params ;
     buff_position_receptor = (buff_position_receptor +1) % POOL_MAX_REQUESTS;
     pool_n_eltos++;
 
@@ -147,7 +148,7 @@ int  mfs_workers_pool_launch  ( comm_t *wb, void (*worker_function)(th_args_t) )
     return 1;
 }
 
-int  mfs_workers_pool_waitall   ( void )
+int  mfs_workers_pool_wait_workers ( void )
 {
     // finalizar
     pool_theend = 1;
@@ -180,7 +181,7 @@ int mfs_workers_pool_stats_show ( char *prefix )
     }
 
     // Print stats...
-    printf("%s: Threads:\n",              prefix) ;
+    printf("%s: Threads (pool):\n",       prefix) ;
     printf("%s: + max. threads=%ld\n",    prefix, POOL_MAX_THREADS) ;
     printf("%s: + max. requests=%ld\n",   prefix, POOL_MAX_REQUESTS) ;
     printf("%s: + active threads=%ld\n",  prefix, pool_n_eltos) ;
