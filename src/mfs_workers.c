@@ -22,112 +22,47 @@
 #include "mfs_workers.h"
 
 
-int sync_copied = 0 ;
-int n_workers   = 0 ;
-pthread_mutex_t m_worker ;
-pthread_cond_t  c_worker ;
-pthread_cond_t  end_cond ;
-
 int mfs_workers_init ( void )
 {
-       n_workers   = 0 ;
-       sync_copied = 0 ;
-       pthread_mutex_init(&m_worker, NULL) ;
-       pthread_cond_init (&c_worker, NULL) ;
-       pthread_cond_init (&end_cond, NULL) ;
+       int ret ;
 
-       // Return OK
-       return 1;
-}
+       ret = mfs_workers_onrequest_init() ;
+    // ret = mfs_workers_pool_init() ;
 
-void *mfs_workers_worker_run ( void *arg )
-{
-       struct st_th th;
-
-       // prolog...
-       pthread_mutex_lock(&m_worker);
-       memcpy(&th, arg, sizeof(struct st_th)) ;
-       n_workers++ ;
-       sync_copied = 1 ;
-       pthread_cond_broadcast(&c_worker); // pthread_cond_signal(&c_worker);
-       pthread_mutex_unlock(&m_worker);
-
-       // do function code...
-       th.function(th) ;
-
-       // epilog...
-       pthread_mutex_lock(&m_worker) ;
-       n_workers-- ;
-       if (0 == n_workers) {
-           pthread_cond_signal(&end_cond) ; // pthread_cond_signal(&end_cond);
-       }
-       pthread_mutex_unlock(&m_worker) ;
-
-       // end
-       pthread_exit(0);
-       return NULL ;
+       // Return OK/KO
+       return ret;
 }
 
 int mfs_workers_launch_worker ( comm_t * wb, void (*worker_function)(struct st_th) )
 {
-       int            ret;
-       pthread_attr_t th_attr;
-       pthread_t      th_worker;
-       struct st_th   st_worker;
+       int ret ;
 
-       pthread_attr_init(&th_attr);
-       pthread_attr_setdetachstate(&th_attr, PTHREAD_CREATE_DETACHED);
-       pthread_attr_setstacksize  (&th_attr, STACK_SIZE);
-       sync_copied = 0 ;
+       ret = mfs_workers_onrequest_launch_worker(wb, worker_function) ;
+    // ret = mfs_workers_pool_launch(wb, worker_function) ;
 
-       // prepare arguments...
-       st_worker.ab       = *wb ;
-       st_worker.function = worker_function ;
-
-       // create thread...
-       ret = pthread_create(&th_worker, &th_attr, (mfs_workers_worker_run), (void *)&st_worker);
-       if (ret != 0){
-           mfs_print(DBG_ERROR, "[WORKERS]: pthread_create fails :-(") ;
-           perror("pthread_create: ");
-       }
-
-       // wait to copy arguments + active_thread++...
-       pthread_mutex_lock(&m_worker);
-       while (sync_copied == 0) {
-              pthread_cond_wait(&c_worker, &m_worker) ;
-       }
-       sync_copied = 0 ;
-       pthread_mutex_unlock(&m_worker);
-
-       // Return OK
-       return 1;
+       // Return OK/KO
+       return ret;
 }
 
 int mfs_workers_wait_workers ( void )
 {
-       // wait to n_workers be zero...
-       pthread_mutex_lock(&m_worker) ;
-       while (n_workers != 0) {
-              pthread_cond_wait(&end_cond, &m_worker) ;
-       }
-       pthread_mutex_unlock(&m_worker) ;
+       int ret ;
 
-       // Return OK
-       return 1;
+       ret = mfs_workers_onrequest_wait_workers() ;
+    // ret = mfs_workers_pool_waitall() ;
+
+       // Return OK/KO
+       return ret;
 }
 
 int mfs_workers_stats_show ( char *prefix )
 {
-    // Check params...
-    if (NULL == prefix) {
-        return -1 ;
-    }
+       int ret ;
 
-    // Print stats...
-    printf("%s: Threads:\n",              prefix) ;
-    printf("%s: + active threads=%ld\n",  prefix, n_workers) ;
+       ret = mfs_workers_onrequest_stats_show(prefix) ;
+    // ret = mfs_workers_pool_stats_show(prefix) ;
 
-    // Return OK
-    return 1 ;
+       // Return OK/KO
+       return ret;
 }
 

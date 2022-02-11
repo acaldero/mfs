@@ -19,7 +19,7 @@
  *
  */
 
-#include "mfs_pool.h"
+#include "mfs_workers_pool.h"
 
 
 th_args_t  *pool_buffer ;
@@ -85,7 +85,7 @@ void * th_pool_service ( void * param )
  *  API
  */
 
-int  mfs_pool_init ( void )
+int  mfs_workers_pool_init ( void )
 {
     // initialize
     pthread_mutex_init(&mutex,      NULL) ;
@@ -125,7 +125,7 @@ int  mfs_pool_init ( void )
 }
 
 
-int  mfs_pool_launch  ( comm_t *wb, void (*worker_function)(th_args_t) )
+int  mfs_workers_pool_launch  ( comm_t *wb, void (*worker_function)(th_args_t) )
 {
     // lock when not full...
     pthread_mutex_lock(&mutex);
@@ -147,7 +147,7 @@ int  mfs_pool_launch  ( comm_t *wb, void (*worker_function)(th_args_t) )
     return 1;
 }
 
-int  mfs_pool_waitall   ( void )
+int  mfs_workers_pool_waitall   ( void )
 {
     // finalizar
     pool_theend = 1;
@@ -170,5 +170,22 @@ int  mfs_pool_waitall   ( void )
 
     // return OK
     return 1;
+}
+
+int mfs_workers_pool_stats_show ( char *prefix )
+{
+    // Check params...
+    if (NULL == prefix) {
+        return -1 ;
+    }
+
+    // Print stats...
+    printf("%s: Threads:\n",              prefix) ;
+    printf("%s: + max. threads=%ld\n",    prefix, POOL_MAX_THREADS) ;
+    printf("%s: + max. requests=%ld\n",   prefix, POOL_MAX_REQUESTS) ;
+    printf("%s: + active threads=%ld\n",  prefix, pool_n_eltos) ;
+
+    // Return OK
+    return 1 ;
 }
 

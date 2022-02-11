@@ -18,45 +18,21 @@
  *
  */
 
-#ifndef __MFS_POOL_H__
-#define __MFS_POOL_H__
+#ifndef __MFS_WORKERS_ONREQUEST_H__
+#define __MFS_WORKERS_ONREQUEST_H__
 
-   #include <stdio.h>
-   #include <time.h>
-   #include <pthread.h>
-   #include "mfs_protocol.h"
+   #include "mfs_workers.h"
    #include "mfs_lib.h"
-
-
-   /*
-    * Constants
-    */
-
-   #define POOL_MAX_REQUESTS  128
-   #define POOL_MAX_THREADS     5
-
-
-   /*
-    * Datatype
-    */
-
-   typedef struct st_th_args th_args_t;
-
-   struct st_th_args
-   {
-        comm_t    ab ;
-        void (*function)(th_args_t) ;
-     // mfs_param_t *params;
-   };
 
 
    /*
     * API
     */
 
-   int  mfs_pool_init      ( void ) ;
-   int  mfs_pool_launch    ( comm_t *wb, void (*worker_function)(th_args_t) ) ;
-   int  mfs_pool_waitall   ( void ) ;
+   int  mfs_workers_onrequest_init          ( void ) ;
+   int  mfs_workers_onrequest_launch_worker ( comm_t *wb, void (*worker_function)(struct st_th) ) ;
+   int  mfs_workers_onrequest_wait_workers  ( void ) ;
+   int  mfs_workers_onrequest_stats_show    ( char *prefix ) ;
 
 #endif
 

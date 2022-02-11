@@ -25,7 +25,6 @@
    #include "mfs_protocol.h"
    #include "mfs_server_stub.h"
    #include "mfs_workers.h"
-   #include "mfs_pool.h"
 
 
    // stats
@@ -47,8 +46,7 @@
        printf("INFO:\n") ;
    }
 
-   //void do_srv ( struct st_th th )
-   void do_srv ( struct st_th_args th )
+   void do_srv ( struct st_th th )
    {
        long      ret ;
        int       again ;
@@ -145,8 +143,7 @@ int main ( int argc, char **argv )
     mfs_params_show(&params) ;
 
     // Initialize workers
-    ret = mfs_pool_init() ;
-    //ret = mfs_workers_init() ;
+    ret = mfs_workers_init() ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: mfs_workers_init fails :-(", -1) ;
         return -1 ;
@@ -175,14 +172,12 @@ int main ( int argc, char **argv )
 
 	// new thread...
 	mfs_print(DBG_INFO, "Server[%d]: create new thread...\n", ab.rank) ;
-        //ret = mfs_workers_launch_worker(&ab, do_srv) ;
-        ret = mfs_pool_launch(&ab, do_srv) ;
+        ret = mfs_workers_launch_worker(&ab, do_srv) ;
     }
 
     // Wait for active_thread...
     mfs_print(DBG_INFO, "Server[%d]: wait for threads...\n", wb.rank) ;
-    // mfs_workers_wait_workers() ;
-    mfs_pool_waitall() ;
+    mfs_workers_wait_workers() ;
 
     // Finalize...
     mfs_print(DBG_INFO, "Server[%d]: ends.\n", wb.rank) ;
