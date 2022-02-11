@@ -31,7 +31,6 @@
     */
 
    #define POOL_MAX_REQUESTS  128
-   #define POOL_MAX_THREADS     5
 
 
    /*

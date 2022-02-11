@@ -30,6 +30,7 @@ int  is_running   = 0 ;
 int  pool_theend  = 0 ;
 int  buff_position_receptor = 0 ;
 int  buff_position_service  = 0 ;
+int  POOL_MAX_THREADS = 2 ;
 
 pthread_mutex_t  mutex ;
 pthread_cond_t   c_no_full ;
@@ -93,6 +94,9 @@ int  mfs_workers_pool_init ( void )
     pthread_cond_init (&c_no_empty, NULL) ;
     pthread_cond_init (&c_running,  NULL) ;
     pthread_cond_init (&c_stopped,  NULL) ;
+
+    // get number of cores
+    POOL_MAX_THREADS = sysconf(_SC_NPROCESSORS_ONLN) ;
 
     // malloc
     pool_buffer = (th_args_t *)malloc(POOL_MAX_REQUESTS * sizeof(th_args_t)) ;
