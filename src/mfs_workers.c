@@ -22,16 +22,16 @@
 #include "mfs_workers.h"
 
 
-int mfs_workers_init ( void )
+int mfs_workers_init ( params_t *params )
 {
        int ret ;
 
-       ret = mfs_workers_onrequest_init() ;
+       ret = mfs_workers_onrequest_init(params) ;
        if (ret < 0) {
 	   return ret ;
        }
 
-       ret = mfs_workers_pool_init() ;
+       ret = mfs_workers_pool_init(params) ;
        if (ret < 0) {
 	   return ret ;
        }
@@ -40,16 +40,16 @@ int mfs_workers_init ( void )
        return 1 ;
 }
 
-int mfs_workers_launch_worker ( params_t *params, comm_t * wb, void (*worker_function)(struct st_th) )
+int mfs_workers_launch_worker ( int th_type, comm_t * wb, void (*worker_function)(struct st_th) )
 {
        int ret ;
 
-       if (THREAD_USE_ONDEMAND == params->thread_launch) {
-           ret = mfs_workers_onrequest_launch_worker(params, wb, worker_function) ;
+       if (THREAD_USE_ONDEMAND == th_type) {
+           ret = mfs_workers_onrequest_launch_worker(wb, worker_function) ;
        }
 
-       if (THREAD_USE_POOL == params->thread_launch) {
-           ret = mfs_workers_pool_launch_worker(params, wb, worker_function) ;
+       if (THREAD_USE_POOL     == th_type) {
+           ret = mfs_workers_pool_launch_worker(wb, worker_function) ;
        }
 
        // Return OK/KO

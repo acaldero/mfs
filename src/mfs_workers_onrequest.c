@@ -22,23 +22,16 @@
 #include "mfs_workers_onrequest.h"
 
 
+/*
+ *  Internal
+ */
+
 int sync_copied = 0 ;
 int n_workers   = 0 ;
 pthread_mutex_t m_worker ;
 pthread_cond_t  c_worker ;
 pthread_cond_t  end_cond ;
-
-int mfs_workers_onrequest_init ( void )
-{
-       n_workers   = 0 ;
-       sync_copied = 0 ;
-       pthread_mutex_init(&m_worker, NULL) ;
-       pthread_cond_init (&c_worker, NULL) ;
-       pthread_cond_init (&end_cond, NULL) ;
-
-       // Return OK
-       return 1;
-}
+params_t *or_params ;
 
 void *mfs_workers_onrequest_worker_run ( void *arg )
 {
@@ -68,7 +61,25 @@ void *mfs_workers_onrequest_worker_run ( void *arg )
        return NULL ;
 }
 
-int mfs_workers_onrequest_launch_worker ( params_t *params, comm_t * wb, void (*worker_function)(struct st_th) )
+
+/*
+ * API
+ */
+
+int mfs_workers_onrequest_init ( params_t *params )
+{
+       n_workers   = 0 ;
+       sync_copied = 0 ;
+       pthread_mutex_init(&m_worker, NULL) ;
+       pthread_cond_init (&c_worker, NULL) ;
+       pthread_cond_init (&end_cond, NULL) ;
+       or_params   = params ;
+
+       // Return OK
+       return 1;
+}
+
+int mfs_workers_onrequest_launch_worker ( comm_t * wb, void (*worker_function)(struct st_th) )
 {
        int            ret;
        pthread_attr_t th_attr;
@@ -83,7 +94,6 @@ int mfs_workers_onrequest_launch_worker ( params_t *params, comm_t * wb, void (*
        // prepare arguments...
        st_worker.ab       = *wb ;
        st_worker.function = worker_function ;
-       st_worker.params   = params ;
 
        // create thread...
        ret = pthread_create(&th_worker, &th_attr, (mfs_workers_onrequest_worker_run), (void *)&st_worker);

@@ -47,7 +47,6 @@
    {
         comm_t    ab ;
         void (*function)(struct st_th) ;
-        params_t *params;
    };
 
 
@@ -55,8 +54,8 @@
     * API
     */
 
-   int  mfs_workers_init          ( void ) ;
-   int  mfs_workers_launch_worker ( params_t *params, comm_t *wb, void (*worker_function)(struct st_th) ) ;
+   int  mfs_workers_init          ( params_t *params ) ;
+   int  mfs_workers_launch_worker ( int th_type, comm_t * wb, void (*worker_function)(struct st_th) ) ;
    int  mfs_workers_wait_workers  ( void ) ;
    int  mfs_workers_stats_show    ( char *prefix ) ;
 

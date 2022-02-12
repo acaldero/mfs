@@ -22,6 +22,10 @@
 #include "mfs_workers_pool.h"
 
 
+/*
+ *  Internal
+ */
+
 th_args_t  *pool_buffer ;
 pthread_t  *pool_ths ;
 
@@ -31,6 +35,7 @@ int  pool_theend  = 0 ;
 int  buff_position_receptor = 0 ;
 int  buff_position_service  = 0 ;
 int  POOL_MAX_THREADS = 2 ;
+params_t *pool_params ;
 
 pthread_mutex_t  mutex ;
 pthread_cond_t   c_no_full ;
@@ -44,21 +49,21 @@ void * th_pool_service ( void * param )
       th_args_t p;
 
       // signal initializate...
-      pthread_mutex_lock(&mutex);
-      is_running = 1;
-      pthread_cond_signal(&c_running);
-      pthread_mutex_unlock(&mutex);
+      pthread_mutex_lock(&mutex) ;
+      is_running = 1 ;
+      pthread_cond_signal(&c_running) ;
+      pthread_mutex_unlock(&mutex) ;
 
       while (0 == pool_theend)
       {
 	   // lock when not empty and not ended...
            pthread_mutex_lock(&mutex);
-           while (pool_n_eltos == 0)
+           while (0 == pool_n_eltos)
 	   {
                 if (1 == pool_theend) {
-                     pthread_cond_signal(&c_stopped);
-                     pthread_mutex_unlock(&mutex);
-                     pthread_exit(0);
+                     pthread_cond_signal(&c_stopped) ;
+                     pthread_mutex_unlock(&mutex) ;
+                     pthread_exit(0) ;
                 }
 
                 pthread_cond_wait(&c_no_empty, &mutex);
@@ -70,8 +75,8 @@ void * th_pool_service ( void * param )
            pool_n_eltos--;
 
 	   // signal not full...
-           pthread_cond_signal(&c_no_full);
-           pthread_mutex_unlock(&mutex);
+           pthread_cond_signal(&c_no_full) ;
+           pthread_mutex_unlock(&mutex) ;
 
 	   // process and response...
 	   p.function(p) ;
@@ -86,7 +91,7 @@ void * th_pool_service ( void * param )
  *  API
  */
 
-int  mfs_workers_pool_init ( void )
+int  mfs_workers_pool_init ( params_t *params )
 {
     // initialize
     pthread_mutex_init(&mutex,      NULL) ;
@@ -94,6 +99,7 @@ int  mfs_workers_pool_init ( void )
     pthread_cond_init (&c_no_empty, NULL) ;
     pthread_cond_init (&c_running,  NULL) ;
     pthread_cond_init (&c_stopped,  NULL) ;
+    pool_params = params ;
 
     // get number of cores
     POOL_MAX_THREADS = sysconf(_SC_NPROCESSORS_ONLN) ;
@@ -117,7 +123,7 @@ int  mfs_workers_pool_init ( void )
 
           // wait for thread being started
           pthread_mutex_lock(&mutex) ;
-	  while (!is_running) {
+	  while (0 == is_running) {
                  pthread_cond_wait(&c_running, &mutex) ;
 	  }
           is_running = 0 ;
@@ -129,7 +135,7 @@ int  mfs_workers_pool_init ( void )
 }
 
 
-int  mfs_workers_pool_launch_worker  ( params_t *params, comm_t *wb, void (*worker_function)(th_args_t) )
+int  mfs_workers_pool_launch_worker  ( comm_t *wb, void (*worker_function)(th_args_t) )
 {
     // lock when not full...
     pthread_mutex_lock(&mutex);
@@ -140,7 +146,6 @@ int  mfs_workers_pool_launch_worker  ( params_t *params, comm_t *wb, void (*work
     // inserting element into the buffer
     pool_buffer[buff_position_receptor].ab       = *wb ;
     pool_buffer[buff_position_receptor].function = worker_function ;
-    pool_buffer[buff_position_receptor].params   = params ;
     buff_position_receptor = (buff_position_receptor +1) % POOL_MAX_REQUESTS;
     pool_n_eltos++;
 
@@ -156,10 +161,10 @@ int  mfs_workers_pool_wait_workers ( void )
 {
     // finalizar
     pool_theend = 1;
-    pthread_cond_broadcast(&c_no_empty);
+    pthread_cond_broadcast(&c_no_empty) ;
 
     for (int i=0; i<POOL_MAX_THREADS; i++) {
-         pthread_join(pool_ths[i], NULL);
+         pthread_join(pool_ths[i], NULL) ;
     }
 
     // free
@@ -167,11 +172,11 @@ int  mfs_workers_pool_wait_workers ( void )
     free(pool_ths) ;
 
     // destroy
-    pthread_mutex_destroy(&mutex);
-    pthread_cond_destroy(&c_no_full);
-    pthread_cond_destroy(&c_no_empty);
-    pthread_cond_destroy(&c_running);
-    pthread_cond_destroy(&c_stopped);
+    pthread_mutex_destroy(&mutex) ;
+    pthread_cond_destroy(&c_no_full) ;
+    pthread_cond_destroy(&c_no_empty) ;
+    pthread_cond_destroy(&c_running) ;
+    pthread_cond_destroy(&c_stopped) ;
 
     // return OK
     return 1;

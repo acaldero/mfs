@@ -29,8 +29,8 @@
     * API
     */
 
-   int  mfs_workers_onrequest_init          ( void ) ;
-   int  mfs_workers_onrequest_launch_worker ( params_t *params, comm_t *wb, void (*worker_function)(struct st_th) ) ;
+   int  mfs_workers_onrequest_init          ( params_t *params ) ;
+   int  mfs_workers_onrequest_launch_worker ( comm_t *wb, void (*worker_function)(struct st_th) ) ;
    int  mfs_workers_onrequest_wait_workers  ( void ) ;
 
    int  mfs_workers_onrequest_stats_show    ( char *prefix ) ;

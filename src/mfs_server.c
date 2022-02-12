@@ -143,7 +143,7 @@ int main ( int argc, char **argv )
     mfs_params_show(&params) ;
 
     // Initialize workers
-    ret = mfs_workers_init() ;
+    ret = mfs_workers_init(&params) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: mfs_workers_init fails :-(", -1) ;
         return -1 ;
@@ -172,7 +172,7 @@ int main ( int argc, char **argv )
 
 	// new thread...
 	mfs_print(DBG_INFO, "Server[%d]: create new thread...\n", ab.rank) ;
-        ret = mfs_workers_launch_worker(&params, &ab, do_srv) ;
+        ret = mfs_workers_launch_worker(params.thread_launch, &ab, do_srv) ;
     }
 
     // Wait for active_thread...
