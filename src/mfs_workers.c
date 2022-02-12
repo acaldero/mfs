@@ -22,6 +22,8 @@
 #include "mfs_workers.h"
 
 
+pool_t      th_pool ;
+
 int mfs_workers_init ( params_t *params )
 {
        int ret ;
@@ -31,7 +33,7 @@ int mfs_workers_init ( params_t *params )
 	   return ret ;
        }
 
-       ret = mfs_workers_pool_init(params) ;
+       ret = mfs_workers_pool_init(&th_pool, params) ;
        if (ret < 0) {
 	   return ret ;
        }
@@ -49,7 +51,7 @@ int mfs_workers_launch_worker ( int th_type, comm_t * wb, void (*worker_function
        }
 
        if (THREAD_USE_POOL     == th_type) {
-           ret = mfs_workers_pool_launch_worker(wb, worker_function) ;
+           ret = mfs_workers_pool_launch_worker(&th_pool, wb, worker_function) ;
        }
 
        // Return OK/KO
@@ -65,7 +67,7 @@ int mfs_workers_wait_workers ( void )
 	   return ret ;
        }
 
-       ret = mfs_workers_pool_wait_workers() ;
+       ret = mfs_workers_pool_wait_workers(&th_pool) ;
        if (ret < 0) {
 	   return ret ;
        }
@@ -83,7 +85,7 @@ int mfs_workers_stats_show ( char *prefix )
 	   return ret ;
        }
 
-       ret = mfs_workers_pool_stats_show(prefix) ;
+       ret = mfs_workers_pool_stats_show(&th_pool, prefix) ;
        if (ret < 0) {
 	   return ret ;
        }

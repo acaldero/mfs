@@ -19,64 +19,49 @@
  *
  */
 
+#include "mfs_workers.h"
 #include "mfs_workers_pool.h"
 
 
 /*
- *  Internal
+ * Auxiliar funciton
  */
-
-th_args_t  *pool_buffer ;
-pthread_t  *pool_ths ;
-
-int  pool_n_eltos = 0 ;
-int  is_running   = 0 ;
-int  pool_theend  = 0 ;
-int  buff_position_receptor = 0 ;
-int  buff_position_service  = 0 ;
-int  POOL_MAX_THREADS = 2 ;
-params_t *pool_params ;
-
-pthread_mutex_t  mutex ;
-pthread_cond_t   c_no_full ;
-pthread_cond_t   c_no_empty ;
-pthread_cond_t   c_running ;
-pthread_cond_t   c_stopped ;
-
 
 void * th_pool_service ( void * param )
 {
-      th_args_t p;
+      struct st_th  p ;
+      pool_t    *th_pool ;
 
       // signal initializate...
-      pthread_mutex_lock(&mutex) ;
-      is_running = 1 ;
-      pthread_cond_signal(&c_running) ;
-      pthread_mutex_unlock(&mutex) ;
+      th_pool = (pool_t *)param ;
+      pthread_mutex_lock(&(th_pool->mutex)) ;
+      th_pool->is_running = 1 ;
+      pthread_cond_signal(&(th_pool->c_running)) ;
+      pthread_mutex_unlock(&(th_pool->mutex)) ;
 
-      while (0 == pool_theend)
+      while (0 == th_pool->pool_theend)
       {
 	   // lock when not empty and not ended...
-           pthread_mutex_lock(&mutex);
-           while (0 == pool_n_eltos)
+           pthread_mutex_lock(&(th_pool->mutex)) ;
+           while (th_pool->pool_n_eltos == 0)
 	   {
-                if (1 == pool_theend) {
-                     pthread_cond_signal(&c_stopped) ;
-                     pthread_mutex_unlock(&mutex) ;
-                     pthread_exit(0) ;
+                if (1 == th_pool->pool_theend) {
+                     pthread_cond_signal(&(th_pool->c_stopped)) ;
+                     pthread_mutex_unlock(&(th_pool->mutex)) ;
+                     pthread_exit(0);
                 }
 
-                pthread_cond_wait(&c_no_empty, &mutex);
+                pthread_cond_wait(&(th_pool->c_no_empty), &(th_pool->mutex)) ;
            } // while
 
 	   // removing element from buffer...
-           memmove(&p, &(pool_buffer[buff_position_service]), sizeof(th_args_t)) ;
-           buff_position_service = (buff_position_service + 1) % POOL_MAX_REQUESTS ;
-           pool_n_eltos--;
+           memmove(&p, &(th_pool->pool_buffer[th_pool->buff_position_service]), sizeof(struct st_th)) ;
+           th_pool->buff_position_service = (th_pool->buff_position_service + 1) % POOL_MAX_REQUESTS ;
+           th_pool->pool_n_eltos--;
 
 	   // signal not full...
-           pthread_cond_signal(&c_no_full) ;
-           pthread_mutex_unlock(&mutex) ;
+           pthread_cond_signal(&(th_pool->c_no_full)) ;
+           pthread_mutex_unlock(&(th_pool->mutex)) ;
 
 	   // process and response...
 	   p.function(p) ;
@@ -91,43 +76,48 @@ void * th_pool_service ( void * param )
  *  API
  */
 
-int  mfs_workers_pool_init ( params_t *params )
+int  mfs_workers_pool_init ( pool_t *th_pool, params_t *params )
 {
-    // initialize
-    pthread_mutex_init(&mutex,      NULL) ;
-    pthread_cond_init (&c_no_full,  NULL) ;
-    pthread_cond_init (&c_no_empty, NULL) ;
-    pthread_cond_init (&c_running,  NULL) ;
-    pthread_cond_init (&c_stopped,  NULL) ;
-    pool_params = params ;
-
-    // get number of cores
-    POOL_MAX_THREADS = sysconf(_SC_NPROCESSORS_ONLN) ;
-
-    // malloc
-    pool_buffer = (th_args_t *)malloc(POOL_MAX_REQUESTS * sizeof(th_args_t)) ;
-    if (NULL == pool_buffer) {
+    // check arguments...
+    if (NULL == th_pool) {
 	return -1 ;
     }
 
-    pool_ths = (pthread_t *)malloc(POOL_MAX_THREADS * sizeof(pthread_t)) ;
-    if (NULL == pool_ths) {
+    // initialize
+    th_pool->params = params ;
+    pthread_mutex_init(&(th_pool->mutex),      NULL) ;
+    pthread_cond_init (&(th_pool->c_no_full),  NULL) ;
+    pthread_cond_init (&(th_pool->c_no_empty), NULL) ;
+    pthread_cond_init (&(th_pool->c_running),  NULL) ;
+    pthread_cond_init (&(th_pool->c_stopped),  NULL) ;
+
+    // malloc requests
+    th_pool->pool_buffer = (struct st_th *)malloc(POOL_MAX_REQUESTS * sizeof(struct st_th)) ;
+    if (NULL == th_pool->pool_buffer) {
+	return -1 ;
+    }
+
+    // malloc threads
+    th_pool->POOL_MAX_THREADS = sysconf(_SC_NPROCESSORS_ONLN) ;
+
+    th_pool->pool_ths = (pthread_t *)malloc(th_pool->POOL_MAX_THREADS * sizeof(pthread_t)) ;
+    if (NULL == th_pool->pool_ths) {
 	return -1 ;
     }
 
     // starting threads
-    for (int i=0; i<POOL_MAX_THREADS; i++)
+    for (int i=0; i<th_pool->POOL_MAX_THREADS; i++)
     {
 	  // create thread
-          pthread_create(&(pool_ths[i]), NULL, th_pool_service, NULL) ;
+          pthread_create(&(th_pool->pool_ths[i]), NULL, th_pool_service, th_pool) ;
 
           // wait for thread being started
-          pthread_mutex_lock(&mutex) ;
-	  while (0 == is_running) {
-                 pthread_cond_wait(&c_running, &mutex) ;
+          pthread_mutex_lock(&(th_pool->mutex)) ;
+	  while (0 == th_pool->is_running) {
+                 pthread_cond_wait(&(th_pool->c_running), &(th_pool->mutex)) ;
 	  }
-          is_running = 0 ;
-          pthread_mutex_unlock(&mutex) ;
+          th_pool->is_running = 0 ;
+          pthread_mutex_unlock(&(th_pool->mutex)) ;
     }
 
     // return OK
@@ -135,65 +125,78 @@ int  mfs_workers_pool_init ( params_t *params )
 }
 
 
-int  mfs_workers_pool_launch_worker  ( comm_t *wb, void (*worker_function)(th_args_t) )
+int  mfs_workers_pool_launch_worker  ( pool_t *th_pool, comm_t *wb, void (*worker_function)(struct st_th) )
 {
+    // Check params...
+    if (NULL == th_pool) {
+        return -1 ;
+    }
+
     // lock when not full...
-    pthread_mutex_lock(&mutex);
-    while (pool_n_eltos == POOL_MAX_REQUESTS) {
-           pthread_cond_wait(&c_no_full, &mutex);
+    pthread_mutex_lock(&(th_pool->mutex)) ;
+    while (th_pool->pool_n_eltos == POOL_MAX_REQUESTS) {
+           pthread_cond_wait(&(th_pool->c_no_full), &(th_pool->mutex)) ;
     }
 
     // inserting element into the buffer
-    pool_buffer[buff_position_receptor].ab       = *wb ;
-    pool_buffer[buff_position_receptor].function = worker_function ;
-    buff_position_receptor = (buff_position_receptor +1) % POOL_MAX_REQUESTS;
-    pool_n_eltos++;
+    th_pool->pool_buffer[th_pool->buff_position_receptor].ab       = *wb ;
+    th_pool->pool_buffer[th_pool->buff_position_receptor].function = worker_function ;
+    th_pool->buff_position_receptor = (th_pool->buff_position_receptor +1) % POOL_MAX_REQUESTS;
+    th_pool->pool_n_eltos++;
 
     // signal not empty...
-    pthread_cond_signal(&c_no_empty);
-    pthread_mutex_unlock(&mutex);
+    pthread_cond_signal(&(th_pool->c_no_empty)) ;
+    pthread_mutex_unlock(&(th_pool->mutex)) ;
 
     // return OK
     return 1;
 }
 
-int  mfs_workers_pool_wait_workers ( void )
+int  mfs_workers_pool_wait_workers ( pool_t *th_pool )
 {
-    // finalizar
-    pool_theend = 1;
-    pthread_cond_broadcast(&c_no_empty) ;
+    // Check params...
+    if (NULL == th_pool) {
+        return -1 ;
+    }
 
-    for (int i=0; i<POOL_MAX_THREADS; i++) {
-         pthread_join(pool_ths[i], NULL) ;
+    // finalizar
+    th_pool->pool_theend = 1 ;
+    pthread_cond_broadcast(&(th_pool->c_no_empty)) ;
+
+    for (int i=0; i<th_pool->POOL_MAX_THREADS; i++) {
+         pthread_join(th_pool->pool_ths[i], NULL);
     }
 
     // free
-    free(pool_buffer) ;
-    free(pool_ths) ;
+    free(th_pool->pool_buffer) ;
+    free(th_pool->pool_ths) ;
 
     // destroy
-    pthread_mutex_destroy(&mutex) ;
-    pthread_cond_destroy(&c_no_full) ;
-    pthread_cond_destroy(&c_no_empty) ;
-    pthread_cond_destroy(&c_running) ;
-    pthread_cond_destroy(&c_stopped) ;
+    pthread_mutex_destroy(&(th_pool->mutex)) ;
+    pthread_cond_destroy (&(th_pool->c_no_full)) ;
+    pthread_cond_destroy (&(th_pool->c_no_empty)) ;
+    pthread_cond_destroy (&(th_pool->c_running)) ;
+    pthread_cond_destroy (&(th_pool->c_stopped)) ;
 
     // return OK
     return 1;
 }
 
-int mfs_workers_pool_stats_show ( char *prefix )
+int mfs_workers_pool_stats_show ( pool_t *th_pool, char *prefix )
 {
     // Check params...
+    if (NULL == th_pool) {
+        return -1 ;
+    }
     if (NULL == prefix) {
         return -1 ;
     }
 
     // Print stats...
     printf("%s: Threads (pool):\n",       prefix) ;
-    printf("%s: + max. threads=%ld\n",    prefix, POOL_MAX_THREADS) ;
+    printf("%s: + max. threads=%ld\n",    prefix, th_pool->POOL_MAX_THREADS) ;
     printf("%s: + max. requests=%ld\n",   prefix, POOL_MAX_REQUESTS) ;
-    printf("%s: + active threads=%ld\n",  prefix, pool_n_eltos) ;
+    printf("%s: + active threads=%ld\n",  prefix, th_pool->pool_n_eltos) ;
 
     // Return OK
     return 1 ;
