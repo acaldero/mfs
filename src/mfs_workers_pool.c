@@ -152,7 +152,7 @@ int  mfs_workers_pool_launch_worker  ( pool_t *th_pool, comm_t *wb, void (*worke
     return 1;
 }
 
-int  mfs_workers_pool_wait_workers ( pool_t *th_pool )
+int  mfs_workers_pool_destroy ( pool_t *th_pool )
 {
     // Check params...
     if (NULL == th_pool) {

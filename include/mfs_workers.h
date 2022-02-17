@@ -21,42 +21,16 @@
 #ifndef __MFS_WORKERS_H__
 #define __MFS_WORKERS_H__
 
-   #include <pthread.h>
-   #include "mfs_lib.h"
-   #include "mfs_protocol.h"
+   #include "mfs_workers_common.h"
    #include "mfs_workers_onrequest.h"
    #include "mfs_workers_pool.h"
-   #include "mfs_params.h"
 
 
-   /*
-    * Constants
-    */
-
-   #define MAX_THREADS 1024 
-   #define STACK_SIZE (256*1024)
-
-
-   /*
-    * Datatype
-    */
-
-   typedef struct st_th th_args_t ;
-
-   struct st_th
-   {
-        comm_t    ab ;
-        void (*function)(struct st_th) ;
-   };
-
-
-   /*
-    * API
-    */
-
+   // API
    int  mfs_workers_init          ( params_t *params ) ;
    int  mfs_workers_launch_worker ( int th_type, comm_t * wb, void (*worker_function)(struct st_th) ) ;
-   int  mfs_workers_wait_workers  ( void ) ;
+   int  mfs_workers_destroy       ( void ) ;
+
    int  mfs_workers_stats_show    ( char *prefix ) ;
 
 #endif

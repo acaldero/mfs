@@ -177,7 +177,7 @@ int main ( int argc, char **argv )
 
     // Wait for active_thread...
     mfs_print(DBG_INFO, "Server[%d]: wait for threads...\n", wb.rank) ;
-    mfs_workers_wait_workers() ;
+    mfs_workers_destroy() ;
 
     // Finalize...
     mfs_print(DBG_INFO, "Server[%d]: ends.\n", wb.rank) ;

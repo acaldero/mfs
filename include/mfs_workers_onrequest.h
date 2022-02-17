@@ -21,7 +21,7 @@
 #ifndef __MFS_WORKERS_ONREQUEST_H__
 #define __MFS_WORKERS_ONREQUEST_H__
 
-   #include "mfs_workers.h"
+   #include "mfs_workers_common.h"
    #include "mfs_lib.h"
 
 
@@ -31,7 +31,7 @@
 
    int  mfs_workers_onrequest_init          ( params_t *params ) ;
    int  mfs_workers_onrequest_launch_worker ( comm_t *wb, void (*worker_function)(struct st_th) ) ;
-   int  mfs_workers_onrequest_wait_workers  ( void ) ;
+   int  mfs_workers_onrequest_destroy       ( void ) ;
 
    int  mfs_workers_onrequest_stats_show    ( char *prefix ) ;
 

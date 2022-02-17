@@ -114,7 +114,7 @@ int mfs_workers_onrequest_launch_worker ( comm_t * wb, void (*worker_function)(s
        return 1;
 }
 
-int mfs_workers_onrequest_wait_workers ( void )
+int mfs_workers_onrequest_destroy ( void )
 {
        // wait to n_workers be zero...
        pthread_mutex_lock(&m_worker) ;
@@ -122,6 +122,11 @@ int mfs_workers_onrequest_wait_workers ( void )
               pthread_cond_wait(&end_cond, &m_worker) ;
        }
        pthread_mutex_unlock(&m_worker) ;
+
+       // destroy
+       pthread_mutex_destroy(&m_worker) ;
+       pthread_cond_destroy (&c_worker) ;
+       pthread_cond_destroy (&end_cond) ;
 
        // Return OK
        return 1;

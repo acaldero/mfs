@@ -18,54 +18,35 @@
  *
  */
 
-#ifndef __MFS_WORKERS_POOL_H__
-#define __MFS_WORKERS_POOL_H__
+#ifndef __MFS_WORKERS_COMMON_H__
+#define __MFS_WORKERS_COMMON_H__
 
-   #include "mfs_workers_common.h"
+   #include <pthread.h>
    #include "mfs_lib.h"
+   #include "mfs_params.h"
+   #include "mfs_comm.h"
+   #include "mfs_protocol.h"
 
 
    /*
     * Constants
     */
 
-   #define POOL_MAX_REQUESTS  128
+   #define MAX_THREADS 1024 
+   #define STACK_SIZE (256*1024)
 
 
    /*
     * Datatype
     */
 
-   struct pool_t
+   typedef struct st_th th_args_t ;
+
+   struct st_th
    {
-	pthread_t    *pool_ths ;
-	struct st_th *pool_buffer ;
-
-	int  pool_n_eltos ;
-	int  is_running ;
-	int  pool_theend ;
-	int  buff_position_receptor ;
-	int  buff_position_service ;
-	int  POOL_MAX_THREADS ;
-	params_t *params ;
-
-	pthread_mutex_t  mutex ;
-	pthread_cond_t   c_no_full ;
-	pthread_cond_t   c_no_empty ;
-	pthread_cond_t   c_running ;
-	pthread_cond_t   c_stopped ;
+        comm_t    ab ;
+        void (*function)(struct st_th) ;
    };
-
-
-   /*
-    * API
-    */
-
-   int  mfs_workers_pool_init           ( pool_t *thpool, params_t *params ) ;
-   int  mfs_workers_pool_launch_worker  ( pool_t *thpool, comm_t *wb, void (*worker_function)(struct st_th) ) ;
-   int  mfs_workers_pool_destroy        ( pool_t *thpool ) ;
-
-   int  mfs_workers_pool_stats_show     ( pool_t *thpool, char *prefix ) ;
 
 #endif
 

@@ -58,16 +58,16 @@ int mfs_workers_launch_worker ( int th_type, comm_t * wb, void (*worker_function
        return ret ;
 }
 
-int mfs_workers_wait_workers ( void )
+int mfs_workers_destroy ( void )
 {
        int ret ;
 
-       ret = mfs_workers_onrequest_wait_workers() ;
+       ret = mfs_workers_onrequest_destroy() ;
        if (ret < 0) {
 	   return ret ;
        }
 
-       ret = mfs_workers_pool_wait_workers(&th_pool) ;
+       ret = mfs_workers_pool_destroy(&th_pool) ;
        if (ret < 0) {
 	   return ret ;
        }
