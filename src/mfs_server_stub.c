@@ -351,61 +351,88 @@ int serverstub_read ( comm_t *ab, file_t *fd, int count )
     return ret ;
 }
 
+#define MAX_BUFF_SIZE (10*1024*1024)
+
 int serverstub_write ( comm_t *ab, file_t *fd, int count )
 {
     int    ret ;
     char  *buff_data ;
+    int    buffer_size ;
+    long   remaining_size, current_size ;
 
     ret       = 0 ;
     buff_data = NULL ;
+    if (count > MAX_BUFF_SIZE) 
+         buffer_size = MAX_BUFF_SIZE ;
+    else buffer_size = count ;
 
     // prepare data buffer
-    //if (ret >= 0)
-    {
-        ret = mfs_malloc(&buff_data, count) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), count) ;
-        }
+    ret = mfs_malloc(&buff_data, buffer_size) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), count) ;
     }
 
-    // receive data
-    if (ret >= 0)
-    {
-	mfs_print(DBG_INFO, "Server[%d]: File[%ld]: write(bytes=%d) << client\n", mfs_comm_get_rank(ab), mfs_file_fd2long(fd), count) ;
-
-        ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_data, count, MPI_CHAR) ;
-        if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: data not received :-(", mfs_comm_get_rank(ab)) ;
-        }
+    // if error then send back error and return
+    if (ret < 0) {
+        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+	return -1 ;
     }
 
-    // write data
-    if (ret >= 0)
-    {
-        mfs_print(DBG_INFO, "Server[%d]: request 'write' %d bytes for file %d\n", mfs_comm_get_rank(ab), count, mfs_file_fd2long(fd)) ;
+    // send back buffer_size
+    ret = mfs_comm_send_data_to(ab, 0, &buffer_size, 1, MPI_INT) ;
+    if (ret < 0) {
+        mfs_print(DBG_WARNING, "Server[%d]: buffer_size cannot be sent :-(", mfs_comm_get_rank(ab)) ;
+    }
 
-        ret = mfs_file_write(fd, buff_data, count) ;
-        if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: data not written :-(", mfs_comm_get_rank(ab)) ;
+    // receive chunks
+    current_size   = 0 ;
+    remaining_size = count ;
+  //while ( (ret > 0) && (remaining_size > 0) )
+    while (remaining_size > 0)
+    {
+	if (remaining_size < buffer_size) {
+	    buffer_size = remaining_size ;
+	}
+
+        // receive data
+        //if (ret >= 0)
+        {
+	    mfs_print(DBG_INFO, "Server[%d]: File[%ld]: write(bytes=%d) << client\n", mfs_comm_get_rank(ab), mfs_file_fd2long(fd), buffer_size) ;
+
+            ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_data, buffer_size, MPI_CHAR) ;
+            if (ret < 0) {
+                mfs_print(DBG_WARNING, "Server[%d]: data not received :-(", mfs_comm_get_rank(ab)) ;
+            }
         }
+
+        // write data
+        //if (ret >= 0)
+        {
+            mfs_print(DBG_INFO, "Server[%d]: request 'write' %d bytes for file %d\n", mfs_comm_get_rank(ab), buffer_size, mfs_file_fd2long(fd)) ;
+
+            ret = mfs_file_write(fd, buff_data, buffer_size) ;
+            if (ret < 0) {
+                mfs_print(DBG_WARNING, "Server[%d]: data not written :-(", mfs_comm_get_rank(ab)) ;
+            }
+        }
+
+        current_size   = current_size   + buffer_size ;
+        remaining_size = remaining_size - buffer_size ;
     }
 
     // send back status
     if (ret >= 0)
     {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        ret = mfs_comm_send_data_to(ab, 0, &current_size, 1, MPI_INT) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(", mfs_comm_get_rank(ab)) ;
         }
     }
 
     // free data buffer
-    //if (ret >= 0)
-    {
-        ret = mfs_free(&buff_data) ;
-        if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", mfs_comm_get_rank(ab)) ;
-        }
+    ret = mfs_free(&buff_data) ;
+    if (ret < 0) {
+        mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", mfs_comm_get_rank(ab)) ;
     }
 
     // Return OK/KO

@@ -227,8 +227,9 @@ int clientstub_read ( comm_t *wb, long fd, void *buff_char, int count )
 
 int clientstub_write ( comm_t *wb, long fd, void *buff_char, int count )
 {
-    int ret = 0 ;
-    int status ;
+    int  ret = 0 ;
+    int  status, buffer_size ;
+    long remaining_size, current_size ;
 
     // Send write msg
     if (ret >= 0)
@@ -236,13 +237,35 @@ int clientstub_write ( comm_t *wb, long fd, void *buff_char, int count )
         ret = mfs_comm_request_send(wb, 0, REQ_ACTION_WRITE, fd, count) ;
     }
 
-    // Send data
+    // Receive buffer_size
     if (ret >= 0)
     {
-        ret = mfs_comm_send_data_to(wb, 0, buff_char, count, MPI_CHAR) ;
+        ret = mfs_comm_recv_data_from(wb, 0, &buffer_size, 1, MPI_INT) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: data cannot be sent :-(", mfs_comm_get_rank(wb)) ;
+            mfs_print(DBG_ERROR, "Client[%d]: buffer_size not received :-(", mfs_comm_get_rank(wb)) ;
         }
+
+        // if remote error then return
+	if (buffer_size < 0) {
+	    return -1 ;
+	}
+    }
+
+    current_size   = 0 ;
+    remaining_size = count ;
+    while ( (ret > 0) && (remaining_size > 0) )
+    {
+        // Send data
+        if (ret >= 0)
+        {
+            ret = mfs_comm_send_data_to(wb, 0, buff_char + current_size, buffer_size, MPI_CHAR) ;
+            if (ret < 0) {
+                mfs_print(DBG_ERROR, "Client[%d]: data cannot be sent :-(", mfs_comm_get_rank(wb)) ;
+            }
+        }
+
+        current_size   = current_size   + buffer_size ;
+        remaining_size = remaining_size - buffer_size ;
     }
 
     // Receive status
