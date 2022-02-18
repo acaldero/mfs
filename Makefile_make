@@ -14,8 +14,7 @@ BIN_DIR=bin
 LIB_DIR=lib
 BIN_FILES=$(BIN_DIR)/mfs_server
 LIB_FILES=$(LIB_DIR)/mfs_client.a
-OBJ_FILES=src/mfs_server_stub.o src/mfs_client_stub.o \
-	  src/mfs_workers.o  src/mfs_workers_pool.o src/mfs_workers_onrequest.o \
+OBJ_FILES=src/mfs_workers.o  src/mfs_workers_pool.o src/mfs_workers_onrequest.o \
 	  src/mfs_protocol.o src/mfs_comm.o \
 	  src/mfs_files.o    src/mfs_directories.o \
 	  src/mfs_params.o   src/mfs_lib.o
@@ -37,10 +36,10 @@ begin:
 end:
 	@echo " Done"
 
-lib/mfs_client.a: $(OBJ_FILES)
+lib/mfs_client.a:                  src/mfs_client_stub.o $(OBJ_FILES)
 	$(AR) rcs $@ $^
 
-bin/mfs_server: src/mfs_server.o $(OBJ_FILES)
+bin/mfs_server:   src/mfs_server.o src/mfs_server_stub.o $(OBJ_FILES)
 	$(CC) $^  $(LDFLAGS)  -o $@
 
 $(OBJ_DIR)/%.o: %.c

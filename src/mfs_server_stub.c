@@ -24,6 +24,20 @@
 
 
 /*
+ *  pre_main + post_main
+ */
+
+void  pre_main ()
+{
+}
+void post_main ()
+{
+}
+void __attribute__((constructor))  pre_main();
+void __attribute__((destructor))  post_main();
+
+
+/*
  *  Auxiliar (internal) functions
  */
 

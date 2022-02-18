@@ -23,6 +23,10 @@
 #include "mfs_client_stub.h"
 
 
+/*
+ *  pre_main + post_main
+ */
+
 comm_t *global_wb = NULL ;
 
 void at_exit_finalize ( void )
@@ -41,6 +45,17 @@ void at_exit_finalize ( void )
     remote_rank = (global_wb->rank % global_wb->n_servers) ;
     mfs_comm_request_send(global_wb, remote_rank, REQ_ACTION_ATEXIT, th_id, 0) ;
 }
+
+
+void  pre_main ()
+{
+}
+void post_main ()
+{
+    at_exit_finalize() ;
+}
+void __attribute__((constructor))  pre_main();
+void __attribute__((destructor))  post_main();
 
 
 /*
@@ -73,11 +88,11 @@ int clientstub_init ( comm_t *wb, params_t *params )
         }
     }
 
-    // atexit(...)
+    // at_exit_...
     if (ret >= 0)
     {
 	global_wb = wb ;
-	ret = atexit(at_exit_finalize) ;
+	// ret = atexit(at_exit_finalize) ;
     }
 
     // Return OK/KO
