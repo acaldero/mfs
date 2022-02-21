@@ -188,14 +188,14 @@ int serverstub_disconnect ( comm_t *ab )
  *  File System API
  */
 
-int serverstub_open ( comm_t *ab, file_t *fd, char *base_dirname, int pathname_length, int flags )
+int serverstub_open ( comm_t *ab, file_t *fh, int file_protocol, char *base_dirname, int pathname_length, int flags )
 {
     int   ret ;
     char *buff_data_sys ;
 
     // Check params...
     if (NULL == ab) { return -1 ; }
-    if (NULL == fd) { return -1 ; }
+    if (NULL == fh) { return -1 ; }
 
     // Initialize...
     ret = 0 ;
@@ -215,7 +215,7 @@ int serverstub_open ( comm_t *ab, file_t *fd, char *base_dirname, int pathname_l
     {
         mfs_print(DBG_INFO, "Server[%d]: request 'open' for filename %s\n", mfs_comm_get_rank(ab), buff_data_sys) ;
 
-	ret = mfs_file_open(fd, fd->file_protocol, buff_data_sys, flags) ;
+	ret = mfs_file_open(&(fh->file_fd), file_protocol, buff_data_sys, flags) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: file not opened :-(", mfs_comm_get_rank(ab)) ;
         }
@@ -224,10 +224,10 @@ int serverstub_open ( comm_t *ab, file_t *fd, char *base_dirname, int pathname_l
     // send back file descriptor
     //if (ret >= 0)
     {
-	long fh = mfs_file_fd2long(fd) ;
-        mfs_print(DBG_INFO, "Server[%d]: File[%ld]: open(flags=%d) >> client\n", mfs_comm_get_rank(ab), fh, flags) ;
+	long fref = mfs_file_fd2long(fh->file_fd) ;
+        mfs_print(DBG_INFO, "Server[%d]: File[%ld]: open(flags=%d) >> client\n", mfs_comm_get_rank(ab), fref, flags) ;
 
-        ret = mfs_comm_send_data_to(ab, 0, &fh, 1, MPI_LONG) ;
+        ret = mfs_comm_send_data_to(ab, 0, &(fref), 1, MPI_LONG) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: file descriptor cannot be sent :-(", mfs_comm_get_rank(ab)) ;
         }
@@ -246,7 +246,7 @@ int serverstub_open ( comm_t *ab, file_t *fd, char *base_dirname, int pathname_l
     return ret ;
 }
 
-int serverstub_close ( comm_t *ab, file_t *fd )
+int serverstub_close ( comm_t *ab, file_t *fh )
 {
     int  ret ;
 
@@ -255,11 +255,11 @@ int serverstub_close ( comm_t *ab, file_t *fd )
     // close file
     if (ret >= 0)
     {
-	mfs_print(DBG_INFO, "Server[%d]: File[%ld]: close()\n", mfs_comm_get_rank(ab), mfs_file_fd2long(fd)) ;
+	mfs_print(DBG_INFO, "Server[%d]: File[%ld]: close()\n", mfs_comm_get_rank(ab), fh->file_fd) ;
 
-        ret = mfs_file_close(fd) ;
+        ret = mfs_file_close(fh->file_fd) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Server[%d]: close(%d) fails :-(", mfs_comm_get_rank(ab), mfs_file_fd2long(fd)) ;
+            mfs_print(DBG_ERROR, "Server[%d]: close(%d) fails :-(", mfs_comm_get_rank(ab), fh->file_fd) ;
         }
     }
 
@@ -276,7 +276,7 @@ int serverstub_close ( comm_t *ab, file_t *fd )
     return ret ;
 }
 
-int serverstub_read ( comm_t *ab, file_t *fd, int count )
+int serverstub_read ( comm_t *ab, file_t *fh, int count )
 {
     int    ret ;
     int    is_dynamic ;
@@ -315,9 +315,9 @@ int serverstub_read ( comm_t *ab, file_t *fd, int count )
            // read data
            if (ret >= 0)
            {
-               mfs_print(DBG_INFO, "Server[%d]: request 'read' %d bytes for file %d\n", mfs_comm_get_rank(ab), count, mfs_file_fd2long(fd)) ;
+               mfs_print(DBG_INFO, "Server[%d]: request 'read' %d bytes for file %d\n", mfs_comm_get_rank(ab), count, fh->file_fd) ;
 
-               ret = readed = mfs_file_read(fd, buff_data, buff_size) ;
+               ret = readed = mfs_file_read(fh->file_fd, buff_data, buff_size) ;
                if (ret < 0) {
                    mfs_print(DBG_WARNING, "Server[%d]: data not read :-(", mfs_comm_get_rank(ab)) ;
                }
@@ -335,7 +335,7 @@ int serverstub_read ( comm_t *ab, file_t *fd, int count )
            // send data
            if ( (ret >= 0) && (readed > 0) )
            {
-	       mfs_print(DBG_INFO, "Server[%d]: File[%ld]: read(bytes=%d) >> client\n", mfs_comm_get_rank(ab), mfs_file_fd2long(fd), ret) ;
+	       mfs_print(DBG_INFO, "Server[%d]: File[%ld]: read(bytes=%d) >> client\n", mfs_comm_get_rank(ab), fh->file_fd, ret) ;
 
                ret = mfs_comm_send_data_to(ab, 0, buff_data, readed, MPI_CHAR) ;
                if (ret < 0) {
@@ -367,7 +367,7 @@ int serverstub_read ( comm_t *ab, file_t *fd, int count )
 
 #define MAX_BUFF_SIZE (10*1024*1024)
 
-int serverstub_write ( comm_t *ab, file_t *fd, int count )
+int serverstub_write ( comm_t *ab, file_t *fh, int count )
 {
     int    ret ;
     char  *buff_data ;
@@ -411,7 +411,7 @@ int serverstub_write ( comm_t *ab, file_t *fd, int count )
         // receive data
         //if (ret >= 0)
         {
-	    mfs_print(DBG_INFO, "Server[%d]: File[%ld]: write(bytes=%d) << client\n", mfs_comm_get_rank(ab), mfs_file_fd2long(fd), buffer_size) ;
+	    mfs_print(DBG_INFO, "Server[%d]: File[%ld]: write(bytes=%d) << client\n", mfs_comm_get_rank(ab), fh->file_fd, buffer_size) ;
 
             ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_data, buffer_size, MPI_CHAR) ;
             if (ret < 0) {
@@ -422,9 +422,9 @@ int serverstub_write ( comm_t *ab, file_t *fd, int count )
         // write data
         //if (ret >= 0)
         {
-            mfs_print(DBG_INFO, "Server[%d]: request 'write' %d bytes for file %d\n", mfs_comm_get_rank(ab), buffer_size, mfs_file_fd2long(fd)) ;
+            mfs_print(DBG_INFO, "Server[%d]: request 'write' %d bytes for file %d\n", mfs_comm_get_rank(ab), buffer_size, fh->file_fd) ;
 
-            ret = mfs_file_write(fd, buff_data, buffer_size) ;
+            ret = mfs_file_write(fh->file_fd, buff_data, buffer_size) ;
             if (ret < 0) {
                 mfs_print(DBG_WARNING, "Server[%d]: data not written :-(", mfs_comm_get_rank(ab)) ;
             }

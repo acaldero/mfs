@@ -5,7 +5,7 @@
 
 CC=mpic++
 AR=ar
-# CFLAGS=-w -g -O2 -Wall -I/usr/local/include/ -I./ -DDEBUG
+# CFLAGS=-w -g -O2 -Wall -I/usr/local/include/ -I./ -I./include -DDEBUG
   CFLAGS=-w -g -O2 -Wall -I/usr/local/include/ -I./ -I./include
 LDFLAGS=-lpthread
 

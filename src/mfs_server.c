@@ -50,7 +50,7 @@
    {
        long      ret ;
        int       again ;
-       file_t    fd ;
+       file_t    fh ;
        msg_t     msg ;
 
        // request loop...
@@ -78,23 +78,22 @@
 
               // Files
 	      case REQ_ACTION_OPEN:
-		   ret = mfs_file_long2fd(&fd, -1, params.file_protocol) ;
-                   ret = serverstub_open(&th.ab, &fd, params.data_prefix, msg.req_arg1, msg.req_arg2) ;
+                   ret = serverstub_open(&th.ab, &fh, params.file_protocol, params.data_prefix, msg.req_arg1, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_CLOSE:
-		   ret = mfs_file_long2fd(&fd, msg.req_arg1, params.file_protocol) ;
-                   ret = serverstub_close(&th.ab, &fd) ;
+		   ret = mfs_file_long2fd(&(fh.file_fd), msg.req_arg1, params.file_protocol) ;
+                   ret = serverstub_close(&th.ab, &fh) ;
 	           break;
 
 	      case REQ_ACTION_READ:
-		   ret = mfs_file_long2fd(&fd, msg.req_arg1, params.file_protocol) ;
-                   ret = serverstub_read(&th.ab, &fd, msg.req_arg2) ;
+		   ret = mfs_file_long2fd(&(fh.file_fd), msg.req_arg1, params.file_protocol) ;
+                   ret = serverstub_read(&th.ab, &fh, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_WRITE:
-		   ret = mfs_file_long2fd(&fd, msg.req_arg1, params.file_protocol) ;
-                   ret = serverstub_write(&th.ab, &fd, msg.req_arg2) ;
+		   ret = mfs_file_long2fd(&(fh.file_fd), msg.req_arg1, params.file_protocol) ;
+                   ret = serverstub_write(&th.ab, &fh, msg.req_arg2) ;
 	           break;
 
               // Directories

@@ -71,83 +71,88 @@ int mfs_write_buffer ( int write_fd, void *buffer, int buffer_size )
 }
 
 
-/*
- *  File System API
- */
+int    mfs_file_hash_neltos = 1024 ;
+file_t mfs_file_hash_eltos[1024] ;
 
-long  mfs_file_fd2long ( file_t *fd )
+int mfs_file_find_free ( void )
 {
-    // Check params...
-    if (NULL == fd) {
-	return -1 ;
-    }
-
-    switch (fd->file_protocol)
+    for (int i=0; i<mfs_file_hash_neltos; i++)
     {
-        case FILE_USE_POSIX:
-             return (long) fd->posix_fd ;
-             break ;
-        case FILE_USE_MPI_IO:
-             return (long) fd->mpiio_fd ;
-             break ;
-        default:
-	     return -1 ;
-             break ;
+	 if (0 == mfs_file_hash_eltos[i].been_used)
+	 {
+             memset(&(mfs_file_hash_eltos[i]), 0, sizeof(file_t)) ;
+	     mfs_file_hash_eltos[i].been_used = 1 ;
+	     mfs_file_hash_eltos[i].file_fd   = i ;
+	     return i ;
+	 }
     }
 
-    // Return KO
     return -1 ;
 }
 
-int mfs_file_long2fd ( file_t *fd, long fref, int file_protocol )
+void mfs_file_set_free ( int fd )
 {
+	     mfs_file_hash_eltos[fd].been_used = 0 ;
+	     mfs_file_hash_eltos[fd].file_fd   = -1 ;
+}
+
+
+/*
+ *  File System API: descriptors
+ */
+
+long  mfs_file_fd2long ( int fd )
+{
+    file_t *fh ;
+
     // Check params...
-    if (NULL == fd) {
+    if ( (fd < 0) || (fd >= mfs_file_hash_neltos) ) {
 	return -1 ;
     }
 
-    // initialize to empty
-    memset(fd, 0, sizeof(file_t)) ;
+    // Return file descriptor
+    fh = &(mfs_file_hash_eltos[fd]) ;
+    return fh->file_fd ;
+}
 
-    // set values
-    fd->file_protocol = file_protocol ;
-    switch (fd->file_protocol)
-    {
-        case FILE_USE_POSIX:
-             fd->posix_fd = (int)fref ;
-             fd->offset   = lseek(fd->posix_fd, 0L, SEEK_CUR) ;
-             fd->file_protocol_name = "POSIX" ;
-             break ;
-        case FILE_USE_MPI_IO:
-             fd->mpiio_fd = (MPI_File)fref ;
-             fd->offset   = 0 ;
-             fd->file_protocol_name = "MPI-IO" ;
-             break ;
-        default:
-             fd->file_protocol_name = "unknown" ;
-	     return -1 ;
-             break ;
+int mfs_file_long2fd ( int *fd, long fref, int file_protocol )
+{
+    file_t *fh ;
+
+    // Check params...
+    if ( (fref < 0) || (fref >= mfs_file_hash_neltos) ) {
+	return -1 ;
     }
 
     // Return OK
+    (*fd) = fref ;
     return 1 ;
 }
 
-int  mfs_file_stats_show ( file_t *fd, char *prefix )
+int  mfs_file_stats_show ( int fd, char *prefix )
 {
+    file_t *fh ;
+
     // Check params...
-    if (NULL == fd) {
+    if ( (fd < 0) || (fd >= mfs_file_hash_neltos) ) {
+	return -1 ;
+    }
+
+    fh = &(mfs_file_hash_eltos[fd]) ;
+    if (fh->been_used != 1) {
 	return -1 ;
     }
 
     // Print stats...
     printf("%s: File:\n",           prefix) ;
-    printf("%s: + protocol=%s\n",   prefix, fd->file_protocol_name) ;
-    printf("%s:   + posix_fd=%d\n", prefix, fd->posix_fd) ;
-    printf("%s:   + mpiio_fd=%d\n", prefix, fd->mpiio_fd) ;
-    printf("%s: + offset=%ld\n",    prefix, fd->offset) ;
-    printf("%s: + # read=%ld\n",    prefix, fd->n_read_req) ;
-    printf("%s: + # write=%ld\n",   prefix, fd->n_write_req) ;
+    printf("%s: + been_used=%d\n",  prefix, fh->been_used) ;
+    printf("%s: + file_fd=%d\n",    prefix, fh->file_fd) ;
+    printf("%s: + protocol=%s\n",   prefix, fh->file_protocol_name) ;
+    printf("%s:   + posix_fd=%d\n", prefix, fh->posix_fd) ;
+    printf("%s:   + mpiio_fd=%d\n", prefix, fh->mpiio_fd) ;
+    printf("%s: + offset=%ld\n",    prefix, fh->offset) ;
+    printf("%s: + # read=%ld\n",    prefix, fh->n_read_req) ;
+    printf("%s: + # write=%ld\n",   prefix, fh->n_write_req) ;
 
     // Return OK
     return 1 ;
@@ -158,9 +163,10 @@ int  mfs_file_stats_show ( file_t *fd, char *prefix )
  *  File System API
  */
 
-int  mfs_file_open ( file_t *fd, int file_protocol, const char *path_name, int flags )
+int  mfs_file_open ( int *fd, int file_protocol, const char *path_name, int flags )
 {
-    int ret = -1 ;
+    int    ret ;
+    file_t *fh ;
 
     // Check params...
     if (NULL == fd) {
@@ -168,31 +174,52 @@ int  mfs_file_open ( file_t *fd, int file_protocol, const char *path_name, int f
     }
 
     // Initialize fd
-    memset(fd, 0, sizeof(file_t)) ;
+    (*fd) = ret = mfs_file_find_free() ;
+    if (ret < 0) {
+	return -1 ;
+    }
 
     // Open file
-    fd->file_protocol = file_protocol ;
-    switch (fd->file_protocol)
+    fh = &(mfs_file_hash_eltos[ret]) ;
+    fh->file_protocol = file_protocol ;
+    switch (fh->file_protocol)
     {
         case FILE_USE_POSIX:
-             fd->file_protocol_name = "POSIX" ;
-             fd->posix_fd = (long)open(path_name, flags, 0755) ;
-             if (fd->posix_fd < 0) {
-    	         mfs_print(DBG_INFO,
-                           "[FILE]: ERROR on open(path_name='%s', flags=%d, mode=0755)\n", path_name, flags) ;
+             fh->file_protocol_name = "POSIX" ;
+             fh->posix_fd = (long)open(path_name, flags, 0755) ;
+             if (fh->posix_fd < 0) {
+    	         mfs_print(DBG_INFO, "[FILE]: ERROR on open(path_name='%s', flags=%d, mode=0755)\n", path_name, flags) ;
 	         return -1 ;
              }
              break ;
+
         case FILE_USE_MPI_IO:
-             fd->file_protocol_name = "MPI-IO" ;
+             fh->file_protocol_name = "MPI-IO" ;
 	     ret = MPI_File_open(MPI_COMM_SELF, path_name,
-                                 MPI_MODE_CREATE|MPI_MODE_RDWR, MPI_INFO_NULL, &(fd->mpiio_fd));
+                                 MPI_MODE_CREATE|MPI_MODE_RDWR, MPI_INFO_NULL, &(fh->mpiio_fd));
 	     if (ret != MPI_SUCCESS) {
 	         mfs_print(DBG_INFO, "[FILE]: ERROR on open('%s') file.\n", path_name) ;
 	         return -1 ;
 	     }
              break ;
+
+        case FILE_USE_REDIS:
+	     /*
+	     char *ip4_addr    = "127.0.0.1" ;
+	     int   ip4_port    = 6379 ;
+	     // connect
+	     fh->redis_ctxt = redisConnect(ip4_addr, ip4_port)  ;
+	     if (NULL == fh->redis_ctxt) {
+	         mfs_print(DBG_INFO, "[FILE]: ERROR on redisConnect('%s', %d).\n", ip4_addr, ip4_port) ;
+	         return -1 ;
+	     }
+	     // set key
+             fh->redis_key = strdup(path_name) ;
+	     */
+             break ;
+
         default:
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on file_protocol(%d).\n", fh->file_protocol) ;
 	     return -1 ;
              break ;
     }
@@ -201,111 +228,169 @@ int  mfs_file_open ( file_t *fd, int file_protocol, const char *path_name, int f
     return 1 ;
 }
 
-int   mfs_file_close ( file_t *fd )
+int   mfs_file_close ( int fd )
 {
-    int ret = -1 ;
+    int ret ;
+    file_t *fh ;
 
     // Check params...
-    if (NULL == fd) {
+    if ( (fd < 0) || (fd >= mfs_file_hash_neltos) ) {
+	return -1 ;
+    }
+
+    fh = &(mfs_file_hash_eltos[fd]) ;
+    if (fh->been_used != 1) {
 	return -1 ;
     }
 
     // Close file
-    switch (fd->file_protocol)
+    switch (fh->file_protocol)
     {
         case FILE_USE_POSIX:
-             ret = close(fd->posix_fd) ;
+             ret = close(fh->posix_fd) ;
              break ;
+
         case FILE_USE_MPI_IO:
-	     ret = MPI_File_close(&(fd->mpiio_fd)) ;
+	     ret = MPI_File_close(&(fh->mpiio_fd)) ;
              break ;
+
+        case FILE_USE_REDIS:
+	     /*
+	     ret = redisFree(&(fh->redis_ctxt)) ;
+             free(fh->redis_key) ;
+             fh->redis_key = NULL ;
+	     */
+             break ;
+
         default:
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on file_protocol(%d).\n", fh->file_protocol) ;
 	     return -1 ;
              break ;
     }
 
-    // Return OK/KO
-    return ret ;
+    // Return OK
+    mfs_file_set_free(fd) ;
+    return 1 ;
 }
 
-int   mfs_file_read  ( file_t *fd, void *buff_data, int count )
+int   mfs_file_read  ( int  fd, void *buff_data, int count )
 {
     int ret = -1 ;
-    long to_read ;
+    file_t *fh ;
 
     // Check params...
-    if (NULL == fd) {
+    if ( (fd < 0) || (fd >= mfs_file_hash_neltos) ) {
+	return -1 ;
+    }
+
+    fh = &(mfs_file_hash_eltos[fd]) ;
+    if (fh->been_used != 1) {
 	return -1 ;
     }
 
     // Read from file...
-    switch (fd->file_protocol)
+    switch (fh->file_protocol)
     {
         case FILE_USE_POSIX:
-             ret = mfs_read_buffer(fd->posix_fd, buff_data, count) ;
+             ret = mfs_read_buffer(fh->posix_fd, buff_data, count) ;
              if (ret < 0) {
-	         mfs_print(DBG_INFO, "[FILE]: ERROR on read %d bytes from file '%d'\n", count, fd->posix_fd) ;
+	         mfs_print(DBG_INFO, "[FILE]: ERROR on read %d bytes from file '%d'\n", count, fh->posix_fd) ;
 	         return -1 ;
              }
              break ;
+
         case FILE_USE_MPI_IO:
              MPI_Status status ;
-	     ret = MPI_File_read(fd->mpiio_fd, buff_data, count, MPI_CHAR, &status) ;
+	     ret = MPI_File_read(fh->mpiio_fd, buff_data, count, MPI_CHAR, &status) ;
 	     if (ret != MPI_SUCCESS) {
-	         mfs_print(DBG_INFO, "[FILE]: ERROR on read %d bytes from file '%d'\n", count, fd->mpiio_fd) ;
+	         mfs_print(DBG_INFO, "[FILE]: ERROR on read %d bytes from file '%d'\n", count, fh->mpiio_fd) ;
 	         return -1 ;
 	     }
 
 	     MPI_Get_count(&status, MPI_INT, &ret);
              break ;
+
+        case FILE_USE_REDIS:
+	     /*
+	     redisReply *reply = NULL ;
+             long to_read = count ;
+             reply = redisCommand(c,"GET %b", fh->redis_key, (size_t)strlen(fh->redis_key)) ;
+	     if (reply->length < (fh->offset + count)) {
+		 to_read = reply->length - fh->offset ;
+	     }
+	     memmove(buff_data, reply->str + fh->offset, to_read) ;
+	     fh->offset = fh->offset + to_read ;
+             freeReplyObject(reply) ;
+	     */
+             break ;
+
         default:
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on file_protocol(%d).\n", fh->file_protocol) ;
 	     return -1 ;
              break ;
     }
 
     // Stats...
-    (fd->n_read_req) ++ ;
+    (fh->n_read_req) ++ ;
 
     // Return number_bytes readed
     return ret ;
 }
 
-int   mfs_file_write  ( file_t *fd, void *buff_data, int count )
+int   mfs_file_write  ( int  fd, void *buff_data, int count )
 {
     int ret = -1 ;
+    file_t *fh ;
 
     // Check params...
-    if (NULL == fd) {
+    if ( (fd < 0) || (fd >= mfs_file_hash_neltos) ) {
+	return -1 ;
+    }
+
+    fh = &(mfs_file_hash_eltos[fd]) ;
+    if (fh->been_used != 1) {
 	return -1 ;
     }
 
     // Write into file...
-    switch (fd->file_protocol)
+    switch (fh->file_protocol)
     {
         case FILE_USE_POSIX:
-             ret = mfs_write_buffer(fd->posix_fd, buff_data, count) ;
+             ret = mfs_write_buffer(fh->posix_fd, buff_data, count) ;
              if (ret < 0) {
-    	         mfs_print(DBG_INFO, "[FILE]: ERROR on write %d bytes from file '%d'\n", count, fd->posix_fd) ;
+    	         mfs_print(DBG_INFO, "[FILE]: ERROR on write %d bytes from file '%d'\n", count, fh->posix_fd) ;
 	         return -1 ;
              }
              break ;
+
         case FILE_USE_MPI_IO:
 	     MPI_Status status ;
-	     ret = MPI_File_write(fd->mpiio_fd, buff_data, count, MPI_CHAR, &status) ;
+	     ret = MPI_File_write(fh->mpiio_fd, buff_data, count, MPI_CHAR, &status) ;
 	     if (ret != MPI_SUCCESS) {
-	         mfs_print(DBG_INFO, "[FILE]: ERROR on write %d bytes from file '%d'\n", count, fd->mpiio_fd) ;
+	         mfs_print(DBG_INFO, "[FILE]: ERROR on write %d bytes from file '%d'\n", count, fh->mpiio_fd) ;
 	         return -1 ;
 	     }
 
 	     MPI_Get_count(&status, MPI_INT, &ret);
              break ;
+
+        case FILE_USE_REDIS:
+	     /*
+	     redisReply *reply = NULL ;
+             reply = redisCommand(c,"APPEND %b %b", fh->redis_key, (size_t)strlen(fh->redis_key), buff_data, (size_t)count) ;
+	     ret = count ;
+             freeReplyObject(reply) ;
+	     */
+             break ;
+
         default:
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on file_protocol(%d).\n", fh->file_protocol) ;
 	     return -1 ;
              break ;
     }
 
     // Stats...
-    (fd->n_write_req) ++ ;
+    (fh->n_write_req) ++ ;
 
     // Return number_bytes / KO
     return ret ;

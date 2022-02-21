@@ -37,18 +37,27 @@
     // File protocol
     #define FILE_USE_POSIX  1
     #define FILE_USE_MPI_IO 2
+    #define FILE_USE_REDIS  3
 
 
     // Datatypes
     typedef struct
     {
+        int   been_used ;
+        int   file_fd ;
+
         // underlying protocol
         int   file_protocol ;
         char *file_protocol_name ;
 
         // descriptors
-        long     posix_fd ;
-	MPI_File mpiio_fd ;
+        long          posix_fd ;
+	MPI_File      mpiio_fd ;
+
+	/*
+	redisContext *redis_ctxt ;
+	char         *redis_key ;
+	*/
 
         // some stats
         long  offset ;
@@ -59,15 +68,15 @@
 
 
     // API
-    long  mfs_file_fd2long    ( file_t *fd ) ;
-    int   mfs_file_long2fd    ( file_t *fd, long fref, int file_protocol ) ;
-    int   mfs_file_stats_show ( file_t *fd, char *prefix ) ;
+    long  mfs_file_fd2long    ( int  fd ) ;
+    int   mfs_file_long2fd    ( int *fd, long fref, int file_protocol ) ;
+    int   mfs_file_stats_show ( int  fd, char *prefix ) ;
 
-    int   mfs_file_open   ( file_t *fd, int file_protocol, const char *path_name, int flags ) ;
-    int   mfs_file_close  ( file_t *fd ) ;
+    int   mfs_file_open       ( int *fd, int file_protocol, const char *path_name, int flags ) ;
+    int   mfs_file_close      ( int  fd ) ;
 
-    int   mfs_file_read   ( file_t *fd, void *buff_data, int count ) ;
-    int   mfs_file_write  ( file_t *fd, void *buff_data, int count ) ;
+    int   mfs_file_read       ( int  fd, void *buff_data, int count ) ;
+    int   mfs_file_write      ( int  fd, void *buff_data, int count ) ;
 
 #endif
 
