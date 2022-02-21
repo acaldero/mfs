@@ -71,11 +71,13 @@ int mfs_write_buffer ( int write_fd, void *buffer, int buffer_size )
 }
 
 
-int    mfs_file_hash_neltos = 1024 ;
-file_t mfs_file_hash_eltos[1024] ;
+            int mfs_file_hash_neltos = 1024 ;
+         file_t mfs_file_hash_eltos[1024] ;
+pthread_mutex_t mfs_file_mutex = PTHREAD_MUTEX_INITIALIZER ;
 
 int mfs_file_find_free ( void )
 {
+    pthread_mutex_lock(&mfs_file_mutex) ;
     for (int i=0; i<mfs_file_hash_neltos; i++)
     {
 	 if (0 == mfs_file_hash_eltos[i].been_used)
@@ -83,17 +85,21 @@ int mfs_file_find_free ( void )
              memset(&(mfs_file_hash_eltos[i]), 0, sizeof(file_t)) ;
 	     mfs_file_hash_eltos[i].been_used = 1 ;
 	     mfs_file_hash_eltos[i].file_fd   = i ;
+             pthread_mutex_unlock(&mfs_file_mutex) ;
 	     return i ;
 	 }
     }
 
+    pthread_mutex_unlock(&mfs_file_mutex) ;
     return -1 ;
 }
 
 void mfs_file_set_free ( int fd )
 {
-	     mfs_file_hash_eltos[fd].been_used = 0 ;
-	     mfs_file_hash_eltos[fd].file_fd   = -1 ;
+    pthread_mutex_lock(&mfs_file_mutex) ;
+     mfs_file_hash_eltos[fd].been_used = 0 ;
+     mfs_file_hash_eltos[fd].file_fd   = -1 ;
+    pthread_mutex_unlock(&mfs_file_mutex) ;
 }
 
 
