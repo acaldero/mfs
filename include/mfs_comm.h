@@ -34,6 +34,7 @@
     #include "mfs_lib.h"
     #include "mfs_params.h"
     #include "mfs_comm_mpi.h"
+    #include "mfs_comm_socket.h"
 
 
     // Communications

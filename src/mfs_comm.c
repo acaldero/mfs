@@ -45,16 +45,12 @@ int mfs_comm_init ( comm_t *cb, int comm_protocol, params_t *params )
     {
         case COMM_USE_SOCKET:
              cb->comm_protocol_name = "SOCKET" ;
-	     // TODO
+	     ret = mfs_comm_socket_init(cb, params) ;
              break ;
 
         case COMM_USE_MPI:
              cb->comm_protocol_name = "MPI" ;
 	     ret = mfs_comm_mpi_init(cb, params) ;
-	     if (ret < 0) {
-		 mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_init fails :-(") ;
-		 return -1 ;
-	     }
              break ;
 
         default:
@@ -64,7 +60,7 @@ int mfs_comm_init ( comm_t *cb, int comm_protocol, params_t *params )
     }
 
     // Return OK
-    return 1 ;
+    return ret ;
 }
 
 int mfs_comm_finalize ( comm_t *cb )
@@ -75,15 +71,11 @@ int mfs_comm_finalize ( comm_t *cb )
     switch (cb->comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     // TODO
+	     ret = mfs_comm_socket_finalize(cb) ;
              break ;
 
         case COMM_USE_MPI:
 	     ret = mfs_comm_mpi_finalize(cb) ;
-	     if (ret < 0) {
-		 mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_finalize fails :-(") ;
-		 return -1 ;
-	     }
              break ;
 
         default:
@@ -96,7 +88,7 @@ int mfs_comm_finalize ( comm_t *cb )
     cb->is_connected = 0 ;
 
     // Return OK
-    return 0 ;
+    return ret ;
 }
 
 
@@ -112,15 +104,11 @@ int mfs_comm_register ( comm_t *cb )
     switch (cb->comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     // TODO
+	     ret = mfs_comm_socket_register(cb) ;
              break ;
 
         case COMM_USE_MPI:
 	     ret = mfs_comm_mpi_register(cb) ;
-	     if (ret < 0) {
-		 mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_register fails :-(") ;
-		 return -1 ;
-	     }
              break ;
 
         default:
@@ -129,7 +117,7 @@ int mfs_comm_register ( comm_t *cb )
              break ;
     }
     // Return OK
-    return 1 ;
+    return ret ;
 }
 
 int mfs_comm_unregister ( comm_t *cb )
@@ -140,15 +128,11 @@ int mfs_comm_unregister ( comm_t *cb )
     switch (cb->comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     // TODO
+	     ret = mfs_comm_socket_unregister(cb) ;
              break ;
 
         case COMM_USE_MPI:
 	     ret = mfs_comm_mpi_unregister(cb) ;
-	     if (ret < 0) {
-		 mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_unregister fails :-(") ;
-		 return -1 ;
-	     }
              break ;
 
         default:
@@ -158,7 +142,7 @@ int mfs_comm_unregister ( comm_t *cb )
     }
 
     // Return OK
-    return 1 ;
+    return ret ;
 }
 
 int mfs_comm_accept ( comm_t *ab, comm_t *wb )
@@ -172,15 +156,11 @@ int mfs_comm_accept ( comm_t *ab, comm_t *wb )
     switch (ab->comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     // TODO
+	     ret = mfs_comm_socket_accept(ab) ;
              break ;
 
         case COMM_USE_MPI:
 	     ret = mfs_comm_mpi_accept(ab) ;
-	     if (ret < 0) {
-		 mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_accept fails :-(") ;
-		 return -1 ;
-	     }
              break ;
 
         default:
@@ -193,7 +173,7 @@ int mfs_comm_accept ( comm_t *ab, comm_t *wb )
     ab->is_connected = 1 ;
 
     // Return OK
-    return 0 ;
+    return ret ;
 }
 
 int mfs_comm_connect ( comm_t *cb )
@@ -204,15 +184,11 @@ int mfs_comm_connect ( comm_t *cb )
     switch (cb->comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     // TODO
+	     ret = mfs_comm_socket_connect(cb) ;
              break ;
 
         case COMM_USE_MPI:
 	     ret = mfs_comm_mpi_connect(cb) ;
-	     if (ret < 0) {
-		 mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_connect fails :-(") ;
-		 return -1 ;
-	     }
              break ;
 
         default:
@@ -225,7 +201,7 @@ int mfs_comm_connect ( comm_t *cb )
     cb->is_connected = 1 ;
 
     // Return OK
-    return 1 ;
+    return ret ;
 }
 
 int mfs_comm_disconnect ( comm_t *cb )
@@ -236,15 +212,11 @@ int mfs_comm_disconnect ( comm_t *cb )
     switch (cb->comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     // TODO
+	     ret = mfs_comm_socket_disconnect(cb) ;
              break ;
 
         case COMM_USE_MPI:
 	     ret = mfs_comm_mpi_disconnect(cb) ;
-	     if (ret < 0) {
-		 mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_disconnect fails :-(") ;
-		 return -1 ;
-	     }
              break ;
 
         default:
@@ -257,7 +229,7 @@ int mfs_comm_disconnect ( comm_t *cb )
     cb->is_connected = 0 ;
 
     // Return OK
-    return 1 ;
+    return ret ;
 }
 
 
@@ -367,15 +339,11 @@ int mfs_comm_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Da
     switch (cb->comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     // TODO
+	     ret = mfs_comm_socket_recv_data_from(cb, rank, buff, size, datatype) ;
              break ;
 
         case COMM_USE_MPI:
 	     ret = mfs_comm_mpi_recv_data_from(cb, rank, buff, size, datatype) ;
-	     if (ret < 0) {
-		 mfs_print(DBG_WARNING, "[COMM]: mfs_comm_mpi_recv_data_from fails :-(") ;
-		 return -1 ;
-	     }
              break ;
 
         default:
@@ -388,7 +356,7 @@ int mfs_comm_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Da
     cb->n_recv_req++ ;
 
     // Return OK
-    return 1 ;
+    return ret ;
 }
 
 int mfs_comm_send_data_to  ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype )
@@ -399,15 +367,11 @@ int mfs_comm_send_data_to  ( comm_t *cb, int rank, void *buff, int size, MPI_Dat
     switch (cb->comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     // TODO
+	     ret = mfs_comm_socket_send_data_to(cb, rank, buff, size, datatype) ;
              break ;
 
         case COMM_USE_MPI:
 	     ret = mfs_comm_mpi_send_data_to(cb, rank, buff, size, datatype) ;
-	     if (ret < 0) {
-		 mfs_print(DBG_WARNING, "[COMM]: mfs_comm_mpi_send_data_to fails :-(") ;
-		 return -1 ;
-	     }
              break ;
 
         default:
@@ -420,6 +384,6 @@ int mfs_comm_send_data_to  ( comm_t *cb, int rank, void *buff, int size, MPI_Dat
     cb->n_send_req++ ;
 
     // Return OK
-    return 1 ;
+    return ret ;
 }
 

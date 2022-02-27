@@ -131,8 +131,19 @@ int  mfs_file_init ( void )
 
     // initialize all protocols
     ret = mfs_file_posix_init() ;
+    if (ret < 0) {
+	return -1 ;
+    }
+
     ret = mfs_file_mpi_init() ;
+    if (ret < 0) {
+	return -1 ;
+    }
+
     ret = mfs_file_red_init() ;
+    if (ret < 0) {
+	return -1 ;
+    }
 
     // Return OK/KO
     return ret ;
@@ -144,8 +155,19 @@ int  mfs_file_finalize ( void )
 
     // finalize all protocols
     ret = mfs_file_posix_finalize() ;
+    if (ret < 0) {
+	return -1 ;
+    }
+
     ret = mfs_file_mpi_finalize() ;
+    if (ret < 0) {
+	return -1 ;
+    }
+
     ret = mfs_file_red_finalize() ;
+    if (ret < 0) {
+	return -1 ;
+    }
 
     // Return OK/KO
     return ret ;
@@ -175,28 +197,16 @@ int  mfs_file_open ( int *fd, int file_protocol, const char *path_name, int flag
         case FILE_USE_POSIX:
              fh->file_protocol_name = "POSIX" ;
              ret = (long)mfs_file_posix_open(&(fh->posix_fd), path_name, flags) ;
-             if (ret < 0) {
-    	         mfs_print(DBG_INFO, "[FILE]: ERROR on open(path_name='%s', flags=%d)\n", path_name, flags) ;
-	         return -1 ;
-             }
              break ;
 
         case FILE_USE_MPI_IO:
              fh->file_protocol_name = "MPI-IO" ;
              ret = mfs_file_mpi_open(&(fh->mpiio_fd), path_name) ;
-             if (ret < 0) {
-	         mfs_print(DBG_INFO, "[FILE]: ERROR on open('%s') file.\n", path_name) ;
-	         return -1 ;
-	     }
              break ;
 
         case FILE_USE_REDIS:
              fh->file_protocol_name = "REDIS" ;
              ret = mfs_file_red_open(&(fh->redis_ctxt), &(fh->redis_key), path_name) ;
-             if (ret < 0) {
-	         mfs_print(DBG_INFO, "[FILE]: ERROR on open('%s') file.\n", path_name) ;
-	         return -1 ;
-             }
              break ;
 
         default:
@@ -206,7 +216,7 @@ int  mfs_file_open ( int *fd, int file_protocol, const char *path_name, int flag
     }
 
     // Return OK
-    return 1 ;
+    return ret ;
 }
 
 int   mfs_file_close ( int fd )
@@ -247,7 +257,7 @@ int   mfs_file_close ( int fd )
 
     // Return OK
     mfs_file_set_free(fd) ;
-    return 1 ;
+    return ret ;
 }
 
 int   mfs_file_read  ( int  fd, void *buff_data, int count )
@@ -270,26 +280,14 @@ int   mfs_file_read  ( int  fd, void *buff_data, int count )
     {
         case FILE_USE_POSIX:
              ret = mfs_file_posix_read(fh->posix_fd, buff_data, count) ;
-             if (ret < 0) {
-	         mfs_print(DBG_INFO, "[FILE]: ERROR on read %d bytes from file '%d'\n", count, fh->posix_fd) ;
-	         return -1 ;
-             }
              break ;
 
         case FILE_USE_MPI_IO:
              ret = mfs_file_mpi_read(fh->mpiio_fd, buff_data, count) ;
-             if (ret < 0) {
-	         mfs_print(DBG_INFO, "[FILE]: ERROR on read %d bytes from file '%d'\n", count, fh->mpiio_fd) ;
-	         return -1 ;
-             }
              break ;
 
         case FILE_USE_REDIS:
              ret = mfs_file_red_read(fh->redis_ctxt, fh->redis_key, &(fh->offset), buff_data, count) ;
-             if (ret < 0) {
-    	         mfs_print(DBG_INFO, "[FILE]: ERROR on read %d bytes from inmemory '%p'\n", count, fh->redis_ctxt) ;
-	         return -1 ;
-             }
              break ;
 
         default:
@@ -325,26 +323,14 @@ int   mfs_file_write  ( int  fd, void *buff_data, int count )
     {
         case FILE_USE_POSIX:
              ret = mfs_file_posix_write(fh->posix_fd, buff_data, count) ;
-             if (ret < 0) {
-    	         mfs_print(DBG_INFO, "[FILE]: ERROR on write %d bytes to file '%d'\n", count, fh->posix_fd) ;
-	         return -1 ;
-             }
              break ;
 
         case FILE_USE_MPI_IO:
              ret = mfs_file_mpi_write(fh->mpiio_fd, buff_data, count) ;
-             if (ret < 0) {
-    	         mfs_print(DBG_INFO, "[FILE]: ERROR on write %d bytes to file '%d'\n", count, fh->mpiio_fd) ;
-	         return -1 ;
-             }
              break ;
 
         case FILE_USE_REDIS:
              ret = mfs_file_red_write(fh->redis_ctxt, fh->redis_key, &(fh->offset), buff_data, count) ;
-             if (ret < 0) {
-    	         mfs_print(DBG_INFO, "[FILE]: ERROR on write %d bytes to inmemory '%p'\n", count, fh->redis_ctxt) ;
-	         return -1 ;
-             }
              break ;
 
         default:
