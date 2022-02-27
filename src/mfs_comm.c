@@ -26,7 +26,7 @@
 // Init, Finalize
 //
 
-int mfs_comm_init ( comm_t *cb, params_t *params )
+int mfs_comm_init ( comm_t *cb, int comm_protocol, params_t *params )
 {
     int ret ;
 
@@ -39,11 +39,28 @@ int mfs_comm_init ( comm_t *cb, params_t *params )
         return -1 ;
     }
 
-    // MPI_Init
-    ret = mfs_comm_mpi_init(cb, params) ;
-    if (ret < 0) {
-        mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_init fails :-(") ;
-        return -1 ;
+    // Initialization
+    cb->comm_protocol = comm_protocol ;
+    switch (cb->comm_protocol)
+    {
+        case COMM_USE_SOCKET:
+             cb->comm_protocol_name = "SOCKET" ;
+	     // TODO
+             break ;
+
+        case COMM_USE_MPI:
+             cb->comm_protocol_name = "MPI" ;
+	     ret = mfs_comm_mpi_init(cb, params) ;
+	     if (ret < 0) {
+		 mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_init fails :-(") ;
+		 return -1 ;
+	     }
+             break ;
+
+        default:
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on comm_protocol(%d).\n", cb->comm_protocol) ;
+	     return -1 ;
+             break ;
     }
 
     // Return OK
@@ -55,10 +72,24 @@ int mfs_comm_finalize ( comm_t *cb )
     int ret ;
 
     // Finalize
-    ret = mfs_comm_mpi_finalize(cb) ;
-    if (ret < 0) {
-        mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_finalize fails :-(") ;
-        return -1 ;
+    switch (cb->comm_protocol)
+    {
+        case COMM_USE_SOCKET:
+	     // TODO
+             break ;
+
+        case COMM_USE_MPI:
+	     ret = mfs_comm_mpi_finalize(cb) ;
+	     if (ret < 0) {
+		 mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_finalize fails :-(") ;
+		 return -1 ;
+	     }
+             break ;
+
+        default:
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on comm_protocol(%d).\n", cb->comm_protocol) ;
+	     return -1 ;
+             break ;
     }
 
     // cb->... (stats)
@@ -78,12 +109,25 @@ int mfs_comm_register ( comm_t *cb )
     int ret ;
 
     // Open server port...
-    ret = mfs_comm_mpi_register(cb) ;
-    if (ret < 0) {
-        mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_register fails :-(") ;
-        return -1 ;
-    }
+    switch (cb->comm_protocol)
+    {
+        case COMM_USE_SOCKET:
+	     // TODO
+             break ;
 
+        case COMM_USE_MPI:
+	     ret = mfs_comm_mpi_register(cb) ;
+	     if (ret < 0) {
+		 mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_register fails :-(") ;
+		 return -1 ;
+	     }
+             break ;
+
+        default:
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on comm_protocol(%d).\n", cb->comm_protocol) ;
+	     return -1 ;
+             break ;
+    }
     // Return OK
     return 1 ;
 }
@@ -93,10 +137,24 @@ int mfs_comm_unregister ( comm_t *cb )
     int ret ;
 
     // Unpublish port name
-    ret = mfs_comm_mpi_unregister(cb) ;
-    if (ret < 0) {
-        mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_unregister fails :-(") ;
-        return -1 ;
+    switch (cb->comm_protocol)
+    {
+        case COMM_USE_SOCKET:
+	     // TODO
+             break ;
+
+        case COMM_USE_MPI:
+	     ret = mfs_comm_mpi_unregister(cb) ;
+	     if (ret < 0) {
+		 mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_unregister fails :-(") ;
+		 return -1 ;
+	     }
+             break ;
+
+        default:
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on comm_protocol(%d).\n", cb->comm_protocol) ;
+	     return -1 ;
+             break ;
     }
 
     // Return OK
@@ -111,10 +169,24 @@ int mfs_comm_accept ( comm_t *ab, comm_t *wb )
     memmove(ab, wb, sizeof(comm_t)) ;
 
     // Accept
-    ret = mfs_comm_mpi_accept(ab) ;
-    if (ret < 0) {
-        mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_accept fails :-(") ;
-        return -1 ;
+    switch (ab->comm_protocol)
+    {
+        case COMM_USE_SOCKET:
+	     // TODO
+             break ;
+
+        case COMM_USE_MPI:
+	     ret = mfs_comm_mpi_accept(ab) ;
+	     if (ret < 0) {
+		 mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_accept fails :-(") ;
+		 return -1 ;
+	     }
+             break ;
+
+        default:
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on comm_protocol(%d).\n", ab->comm_protocol) ;
+	     return -1 ;
+             break ;
     }
 
     // cb->... (stats)
@@ -128,10 +200,25 @@ int mfs_comm_connect ( comm_t *cb )
 {
     int ret ;
 
-    ret = mfs_comm_mpi_connect(cb) ;
-    if (ret < 0) {
-        mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_connect fails :-(") ;
-        return -1 ;
+    // Connect
+    switch (cb->comm_protocol)
+    {
+        case COMM_USE_SOCKET:
+	     // TODO
+             break ;
+
+        case COMM_USE_MPI:
+	     ret = mfs_comm_mpi_connect(cb) ;
+	     if (ret < 0) {
+		 mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_connect fails :-(") ;
+		 return -1 ;
+	     }
+             break ;
+
+        default:
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on comm_protocol(%d).\n", cb->comm_protocol) ;
+	     return -1 ;
+             break ;
     }
 
     // cb->... (stats)
@@ -146,10 +233,24 @@ int mfs_comm_disconnect ( comm_t *cb )
     int ret ;
 
     // Disconnect...
-    ret = mfs_comm_mpi_disconnect(cb) ;
-    if (ret < 0) {
-        mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_disconnect fails :-(") ;
-        return -1 ;
+    switch (cb->comm_protocol)
+    {
+        case COMM_USE_SOCKET:
+	     // TODO
+             break ;
+
+        case COMM_USE_MPI:
+	     ret = mfs_comm_mpi_disconnect(cb) ;
+	     if (ret < 0) {
+		 mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_disconnect fails :-(") ;
+		 return -1 ;
+	     }
+             break ;
+
+        default:
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on comm_protocol(%d).\n", cb->comm_protocol) ;
+	     return -1 ;
+             break ;
     }
 
     // cb->... (stats)
@@ -263,10 +364,24 @@ int mfs_comm_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Da
     int ret ;
 
     // Get CMD message
-    ret = mfs_comm_mpi_recv_data_from(cb, rank, buff, size, datatype) ;
-    if (ret < 0) {
-        mfs_print(DBG_WARNING, "[COMM]: mfs_comm_mpi_recv_data_from fails :-(") ;
-        return -1 ;
+    switch (cb->comm_protocol)
+    {
+        case COMM_USE_SOCKET:
+	     // TODO
+             break ;
+
+        case COMM_USE_MPI:
+	     ret = mfs_comm_mpi_recv_data_from(cb, rank, buff, size, datatype) ;
+	     if (ret < 0) {
+		 mfs_print(DBG_WARNING, "[COMM]: mfs_comm_mpi_recv_data_from fails :-(") ;
+		 return -1 ;
+	     }
+             break ;
+
+        default:
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on comm_protocol(%d).\n", cb->comm_protocol) ;
+	     return -1 ;
+             break ;
     }
 
     // cb->... (stats)
@@ -281,10 +396,24 @@ int mfs_comm_send_data_to  ( comm_t *cb, int rank, void *buff, int size, MPI_Dat
     int ret ;
 
     // Send answer
-    ret = mfs_comm_mpi_send_data_to(cb, rank, buff, size, datatype) ;
-    if (ret < 0) {
-        mfs_print(DBG_WARNING, "[COMM]: mfs_comm_mpi_send_data_to fails :-(") ;
-        return -1 ;
+    switch (cb->comm_protocol)
+    {
+        case COMM_USE_SOCKET:
+	     // TODO
+             break ;
+
+        case COMM_USE_MPI:
+	     ret = mfs_comm_mpi_send_data_to(cb, rank, buff, size, datatype) ;
+	     if (ret < 0) {
+		 mfs_print(DBG_WARNING, "[COMM]: mfs_comm_mpi_send_data_to fails :-(") ;
+		 return -1 ;
+	     }
+             break ;
+
+        default:
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on comm_protocol(%d).\n", cb->comm_protocol) ;
+	     return -1 ;
+             break ;
     }
 
     // cb->... (stats)

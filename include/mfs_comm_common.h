@@ -35,9 +35,18 @@
     #include "mfs_params.h"
 
 
+    // File protocol
+    #define COMM_USE_SOCKET  1
+    #define COMM_USE_MPI    2
+
+
     // Datatypes
     typedef struct
     {
+	// underlying protocol
+        int   comm_protocol ;
+        char *comm_protocol_name ;
+
         // server port and name
         char port_name[MPI_MAX_PORT_NAME] ;
         char  srv_name[MPI_MAX_PORT_NAME] ;
@@ -66,8 +75,10 @@
     // Macros
     #define mfs_comm_get_rank(pcb)         ((pcb != NULL) ? pcb->rank : -1)
     #define mfs_comm_get_size(pcb)         ((pcb != NULL) ? pcb->size : -1)
+
     #define mfs_comm_get_status_rank(pcb)  ((pcb != NULL) ? pcb->status_rank : -1)
-    #define mfs_comm_get_status_size(pcb)  ((pcb != NULL) ? pcb->status_size : -1)
+    #define mfs_comm_get_status_tag(pcb)   ((pcb != NULL) ? pcb->status_tag : -1)
+    #define mfs_comm_get_status_count(pcb) ((pcb != NULL) ? pcb->status_count : -1)
 
 #endif
 

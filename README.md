@@ -1,4 +1,4 @@
-# MPI_PFS (v0.9)
+# MPI_PFS (v0.92)
 Prototype of MPI_PFS
 
 ## Getting started
@@ -58,4 +58,13 @@ make -C test -f Makefile_make
   </tr>
   </table>
 </html>
+
+
+## About
+
+This project is part of the ADMIRE project:
+https://www.admire-eurohpc.eu/
+
+GNU LESSER GENERAL PUBLIC LICENSE Version 2.1
+Felix Garcia Carballeira + Diego Camarmas Alonso + Alejandro Calderon Mateos
 

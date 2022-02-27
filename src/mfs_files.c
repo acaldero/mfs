@@ -191,6 +191,7 @@ int  mfs_file_open ( int *fd, int file_protocol, const char *path_name, int flag
              break ;
 
         case FILE_USE_REDIS:
+             fh->file_protocol_name = "REDIS" ;
              ret = mfs_file_red_open(&(fh->redis_ctxt), &(fh->redis_key), path_name) ;
              if (ret < 0) {
 	         mfs_print(DBG_INFO, "[FILE]: ERROR on open('%s') file.\n", path_name) ;

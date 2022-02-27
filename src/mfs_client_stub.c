@@ -70,7 +70,7 @@ int clientstub_init ( comm_t *wb, params_t *params )
     // Initialize
     if (ret >= 0)
     {
-        ret = mfs_comm_init(wb, params) ;
+        ret = mfs_comm_init(wb, COMM_USE_MPI, params) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: initialization fails :-(", -1) ;
         }
