@@ -46,12 +46,20 @@ int mfs_workers_launch_worker ( int th_type, comm_t * wb, void (*worker_function
 {
        int ret ;
 
-       if (THREAD_USE_ONDEMAND == th_type) {
-           ret = mfs_workers_onrequest_launch_worker(wb, worker_function) ;
-       }
+       switch (th_type)
+       {
+           case THREAD_USE_ONDEMAND:
+                ret = mfs_workers_onrequest_launch_worker(wb, worker_function) ;
+                break ;
 
-       if (THREAD_USE_POOL     == th_type) {
-           ret = mfs_workers_pool_launch_worker(&th_pool, wb, worker_function) ;
+           case THREAD_USE_POOL:
+                ret = mfs_workers_pool_launch_worker(&th_pool, wb, worker_function) ;
+                break ;
+
+           default:
+                mfs_print(DBG_INFO, "[FILE]: ERROR on th_type(%d).\n", th_type) ;
+                return -1 ;
+                break ;
        }
 
        // Return OK/KO
