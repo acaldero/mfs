@@ -25,13 +25,10 @@
     // Includes
     #include "mpi.h"
     #include "mfs_lib.h"
+    #include "mfs_files_posix.h"
 
     #include <stdio.h>
     #include <stdlib.h>
-    #include <unistd.h>
-    #include <fcntl.h>
-    #include <sys/stat.h>
-    #include <sys/mman.h>
 
 
     // File protocol

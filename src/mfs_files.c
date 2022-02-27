@@ -27,50 +27,6 @@
  *  Auxiliar functions
  */
 
-int mfs_read_buffer ( int read_fd, void *buffer, int buffer_size )
-{
-     ssize_t bytes_read ;
-     ssize_t remaining_bytes ;
-
-     remaining_bytes = buffer_size ;
-     while (remaining_bytes > 0)
-     {
-         bytes_read = read(read_fd, buffer, remaining_bytes) ;
-         if (bytes_read < 0) {
-	     return -1 ;
-         }
-         if (bytes_read == 0) {
-	     return (buffer_size - remaining_bytes) ;
-         }
-
-         remaining_bytes -= bytes_read ;
-         buffer          += bytes_read ;
-     }
-
-     return buffer_size ;
-}
-
-int mfs_write_buffer ( int write_fd, void *buffer, int buffer_size )
-{
-     ssize_t write_num_bytes ;
-     ssize_t remaining_bytes ;
-
-     remaining_bytes = buffer_size ;
-     while (remaining_bytes > 0)
-     {
-         write_num_bytes = write(write_fd, buffer, remaining_bytes) ;
-         if (write_num_bytes == -1) {
-	     return -1 ;
-         }
-
-         remaining_bytes -= write_num_bytes ;
-         buffer          += write_num_bytes ;
-     }
-
-     return buffer_size ;
-}
-
-
             int mfs_file_hash_neltos = 1024 ;
          file_t mfs_file_hash_eltos[1024] ;
 pthread_mutex_t mfs_file_mutex = PTHREAD_MUTEX_INITIALIZER ;
@@ -192,7 +148,7 @@ int  mfs_file_open ( int *fd, int file_protocol, const char *path_name, int flag
     {
         case FILE_USE_POSIX:
              fh->file_protocol_name = "POSIX" ;
-             fh->posix_fd = (long)open(path_name, flags, 0755) ;
+             fh->posix_fd = (long)mfs_file_posix_open(path_name, flags) ;
              if (fh->posix_fd < 0) {
     	         mfs_print(DBG_INFO, "[FILE]: ERROR on open(path_name='%s', flags=%d, mode=0755)\n", path_name, flags) ;
 	         return -1 ;
@@ -253,7 +209,7 @@ int   mfs_file_close ( int fd )
     switch (fh->file_protocol)
     {
         case FILE_USE_POSIX:
-             ret = close(fh->posix_fd) ;
+             ret = mfs_file_posix_close(fh->posix_fd) ;
              break ;
 
         case FILE_USE_MPI_IO:
@@ -298,7 +254,7 @@ int   mfs_file_read  ( int  fd, void *buff_data, int count )
     switch (fh->file_protocol)
     {
         case FILE_USE_POSIX:
-             ret = mfs_read_buffer(fh->posix_fd, buff_data, count) ;
+             ret = mfs_file_posix_read(fh->posix_fd, buff_data, count) ;
              if (ret < 0) {
 	         mfs_print(DBG_INFO, "[FILE]: ERROR on read %d bytes from file '%d'\n", count, fh->posix_fd) ;
 	         return -1 ;
@@ -362,7 +318,7 @@ int   mfs_file_write  ( int  fd, void *buff_data, int count )
     switch (fh->file_protocol)
     {
         case FILE_USE_POSIX:
-             ret = mfs_write_buffer(fh->posix_fd, buff_data, count) ;
+             ret = mfs_file_posix_write(fh->posix_fd, buff_data, count) ;
              if (ret < 0) {
     	         mfs_print(DBG_INFO, "[FILE]: ERROR on write %d bytes from file '%d'\n", count, fh->posix_fd) ;
 	         return -1 ;
