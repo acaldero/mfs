@@ -62,9 +62,8 @@ make -C test -f Makefile_make
 
 ## About
 
+GNU LESSER GENERAL PUBLIC LICENSE Version 2.1</br>
+[Felix Garcia Carballeira](https://researchportal.uc3m.es/display/inv16287) + [Diego Camarmas Alonso](https://github.com/dcamarmas/) + [Alejandro Calderon Mateos](https://github.com/acaldero)
+
 This project is part of the ADMIRE project:
 https://www.admire-eurohpc.eu/
-
-GNU LESSER GENERAL PUBLIC LICENSE Version 2.1
-Felix Garcia Carballeira + Diego Camarmas Alonso + Alejandro Calderon Mateos
-
