@@ -26,6 +26,7 @@
     #include "mpi.h"
     #include "mfs_lib.h"
     #include "mfs_files_posix.h"
+    #include "mfs_files_red.h"
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -51,10 +52,8 @@
         long          posix_fd ;
 	MPI_File      mpiio_fd ;
 
-	/*
 	redisContext *redis_ctxt ;
 	char         *redis_key ;
-	*/
 
         // some stats
         long  offset ;

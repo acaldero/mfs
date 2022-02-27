@@ -131,6 +131,7 @@ int  mfs_file_init ( void )
 
     // initialize all protocols
     ret = mfs_file_posix_init() ;
+    ret = mfs_file_red_init() ;
 
     // Return OK/KO
     return ret ;
@@ -142,6 +143,7 @@ int  mfs_file_finalize ( void )
 
     // finalize all protocols
     ret = mfs_file_posix_finalize() ;
+    ret = mfs_file_red_finalize() ;
 
     // Return OK/KO
     return ret ;
@@ -188,18 +190,11 @@ int  mfs_file_open ( int *fd, int file_protocol, const char *path_name, int flag
              break ;
 
         case FILE_USE_REDIS:
-	     /*
-	     char *ip4_addr    = "127.0.0.1" ;
-	     int   ip4_port    = 6379 ;
-	     // connect
-	     fh->redis_ctxt = redisConnect(ip4_addr, ip4_port)  ;
-	     if (NULL == fh->redis_ctxt) {
-	         mfs_print(DBG_INFO, "[FILE]: ERROR on redisConnect('%s', %d).\n", ip4_addr, ip4_port) ;
+             ret = mfs_file_red_open(&(fh->redis_ctxt), &(fh->redis_key), path_name) ;
+             if (ret < 0) {
+	         mfs_print(DBG_INFO, "[FILE]: ERROR on open('%s') file.\n", path_name) ;
 	         return -1 ;
-	     }
-	     // set key
-             fh->redis_key = strdup(path_name) ;
-	     */
+             }
              break ;
 
         default:
@@ -239,11 +234,7 @@ int   mfs_file_close ( int fd )
              break ;
 
         case FILE_USE_REDIS:
-	     /*
-	     ret = redisFree(&(fh->redis_ctxt)) ;
-             free(fh->redis_key) ;
-             fh->redis_key = NULL ;
-	     */
+             ret = mfs_file_red_close(fh->redis_ctxt, &(fh->redis_key)) ;
              break ;
 
         default:
@@ -295,17 +286,11 @@ int   mfs_file_read  ( int  fd, void *buff_data, int count )
              break ;
 
         case FILE_USE_REDIS:
-	     /*
-	     redisReply *reply = NULL ;
-             long to_read = count ;
-             reply = redisCommand(c,"GET %b", fh->redis_key, (size_t)strlen(fh->redis_key)) ;
-	     if (reply->length < (fh->offset + count)) {
-		 to_read = reply->length - fh->offset ;
-	     }
-	     memmove(buff_data, reply->str + fh->offset, to_read) ;
-	     fh->offset = fh->offset + to_read ;
-             freeReplyObject(reply) ;
-	     */
+             ret = mfs_file_red_read(fh->redis_ctxt, fh->redis_key, &(fh->offset), buff_data, count) ;
+             if (ret < 0) {
+    	         mfs_print(DBG_INFO, "[FILE]: ERROR on read %d bytes from inmemory '%p'\n", count, fh->redis_ctxt) ;
+	         return -1 ;
+             }
              break ;
 
         default:
@@ -342,7 +327,7 @@ int   mfs_file_write  ( int  fd, void *buff_data, int count )
         case FILE_USE_POSIX:
              ret = mfs_file_posix_write(fh->posix_fd, buff_data, count) ;
              if (ret < 0) {
-    	         mfs_print(DBG_INFO, "[FILE]: ERROR on write %d bytes from file '%d'\n", count, fh->posix_fd) ;
+    	         mfs_print(DBG_INFO, "[FILE]: ERROR on write %d bytes to file '%d'\n", count, fh->posix_fd) ;
 	         return -1 ;
              }
              break ;
@@ -351,7 +336,7 @@ int   mfs_file_write  ( int  fd, void *buff_data, int count )
 	     MPI_Status status ;
 	     ret = MPI_File_write(fh->mpiio_fd, buff_data, count, MPI_CHAR, &status) ;
 	     if (ret != MPI_SUCCESS) {
-	         mfs_print(DBG_INFO, "[FILE]: ERROR on write %d bytes from file '%d'\n", count, fh->mpiio_fd) ;
+	         mfs_print(DBG_INFO, "[FILE]: ERROR on write %d bytes to file '%d'\n", count, fh->mpiio_fd) ;
 	         return -1 ;
 	     }
 
@@ -359,12 +344,11 @@ int   mfs_file_write  ( int  fd, void *buff_data, int count )
              break ;
 
         case FILE_USE_REDIS:
-	     /*
-	     redisReply *reply = NULL ;
-             reply = redisCommand(c,"APPEND %b %b", fh->redis_key, (size_t)strlen(fh->redis_key), buff_data, (size_t)count) ;
-	     ret = count ;
-             freeReplyObject(reply) ;
-	     */
+             ret = mfs_file_red_write(fh->redis_ctxt, fh->redis_key, &(fh->offset), buff_data, count) ;
+             if (ret < 0) {
+    	         mfs_print(DBG_INFO, "[FILE]: ERROR on write %d bytes to inmemory '%p'\n", count, fh->redis_ctxt) ;
+	         return -1 ;
+             }
              break ;
 
         default:
