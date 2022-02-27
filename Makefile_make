@@ -16,7 +16,7 @@ BIN_FILES=$(BIN_DIR)/mfs_server
 LIB_FILES=$(LIB_DIR)/mfs_client.a
 OBJ_FILES=src/mfs_workers.o  src/mfs_workers_pool.o src/mfs_workers_onrequest.o \
 	  src/mfs_protocol.o src/mfs_comm.o \
-	  src/mfs_files.o    src/mfs_directories.o  src/mfs_files_posix.o  src/mfs_files_red.o \
+	  src/mfs_files.o    src/mfs_directories.o  src/mfs_files_posix.o  src/mfs_files_mpi.o  src/mfs_files_red.o \
 	  src/mfs_params.o   src/mfs_lib.o
 
 

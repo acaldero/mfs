@@ -39,18 +39,18 @@ int  mfs_file_posix_finalize ( void )
     return 1 ;
 }
 
-int  mfs_file_posix_open ( const char *path_name, int flags )
+int  mfs_file_posix_open  ( long *fd, const char *path_name, int flags )
 {
      int  ret ;
 
      // Check params...
-     ret = open(path_name, flags, 0755) ;
-     if (ret < 0) {
+     (*fd) = open(path_name, flags, 0755) ;
+     if ((*fd) < 0) {
  	 return -1 ;
      }
 
-     // Return file descriptor
-     return ret ;
+     // Return OK
+     return 1 ;
 }
 
 int   mfs_file_posix_close ( int fd )
@@ -87,7 +87,7 @@ int   mfs_file_posix_read   ( int fd, void *buffer, int buffer_size )
      return buffer_size ;
 }
 
-int   mfs_file_posix_write   ( int fd, void *buffer, int buffer_size )
+int   mfs_file_posix_write  ( int fd, void *buffer, int buffer_size )
 {
      ssize_t write_num_bytes ;
      ssize_t remaining_bytes ;

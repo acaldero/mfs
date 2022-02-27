@@ -19,28 +19,26 @@
  *
  */
 
-#ifndef __MFS_FILES_POSIX_H__
-#define __MFS_FILES_POSIX_H__
+#ifndef __MFS_FILES_MPI_H__
+#define __MFS_FILES_MPI_H__
 
     // Includes
     #include "mfs_lib.h"
-
     #include <stdio.h>
     #include <stdlib.h>
     #include <unistd.h>
+    #include "mpi.h"
     #include <fcntl.h>
-    #include <sys/stat.h>
-    #include <sys/mman.h>
 
 
     // API
-    int  mfs_file_posix_init     ( void ) ;
-    int  mfs_file_posix_finalize ( void ) ;
+    int  mfs_file_mpi_init     ( void ) ;
+    int  mfs_file_mpi_finalize ( void ) ;
 
-    int  mfs_file_posix_open  ( long *fd, const char *path_name, int flags ) ;
-    int  mfs_file_posix_close ( int fd ) ;
-    int  mfs_file_posix_read  ( int fd, void *buffer, int buffer_size ) ;
-    int  mfs_file_posix_write ( int fd, void *buffer, int buffer_size ) ;
+    int  mfs_file_mpi_open  ( MPI_File *fd, const char *path_name ) ;
+    int  mfs_file_mpi_close ( MPI_File *fd ) ;
+    int  mfs_file_mpi_read  ( MPI_File  fd, void *buffer, int buffer_size ) ;
+    int  mfs_file_mpi_write ( MPI_File  fd, void *buffer, int buffer_size ) ;
 
 #endif
 

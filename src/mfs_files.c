@@ -131,6 +131,7 @@ int  mfs_file_init ( void )
 
     // initialize all protocols
     ret = mfs_file_posix_init() ;
+    ret = mfs_file_mpi_init() ;
     ret = mfs_file_red_init() ;
 
     // Return OK/KO
@@ -143,6 +144,7 @@ int  mfs_file_finalize ( void )
 
     // finalize all protocols
     ret = mfs_file_posix_finalize() ;
+    ret = mfs_file_mpi_finalize() ;
     ret = mfs_file_red_finalize() ;
 
     // Return OK/KO
@@ -172,18 +174,17 @@ int  mfs_file_open ( int *fd, int file_protocol, const char *path_name, int flag
     {
         case FILE_USE_POSIX:
              fh->file_protocol_name = "POSIX" ;
-             fh->posix_fd = (long)mfs_file_posix_open(path_name, flags) ;
-             if (fh->posix_fd < 0) {
-    	         mfs_print(DBG_INFO, "[FILE]: ERROR on open(path_name='%s', flags=%d, mode=0755)\n", path_name, flags) ;
+             ret = (long)mfs_file_posix_open(&(fh->posix_fd), path_name, flags) ;
+             if (ret < 0) {
+    	         mfs_print(DBG_INFO, "[FILE]: ERROR on open(path_name='%s', flags=%d)\n", path_name, flags) ;
 	         return -1 ;
              }
              break ;
 
         case FILE_USE_MPI_IO:
              fh->file_protocol_name = "MPI-IO" ;
-	     ret = MPI_File_open(MPI_COMM_SELF, path_name,
-                                 MPI_MODE_CREATE|MPI_MODE_RDWR, MPI_INFO_NULL, &(fh->mpiio_fd));
-	     if (ret != MPI_SUCCESS) {
+             ret = mfs_file_mpi_open(&(fh->mpiio_fd), path_name) ;
+             if (ret < 0) {
 	         mfs_print(DBG_INFO, "[FILE]: ERROR on open('%s') file.\n", path_name) ;
 	         return -1 ;
 	     }
@@ -230,7 +231,7 @@ int   mfs_file_close ( int fd )
              break ;
 
         case FILE_USE_MPI_IO:
-	     ret = MPI_File_close(&(fh->mpiio_fd)) ;
+             ret = mfs_file_mpi_close(&(fh->mpiio_fd)) ;
              break ;
 
         case FILE_USE_REDIS:
@@ -275,14 +276,11 @@ int   mfs_file_read  ( int  fd, void *buff_data, int count )
              break ;
 
         case FILE_USE_MPI_IO:
-             MPI_Status status ;
-	     ret = MPI_File_read(fh->mpiio_fd, buff_data, count, MPI_CHAR, &status) ;
-	     if (ret != MPI_SUCCESS) {
+             ret = mfs_file_mpi_read(fh->mpiio_fd, buff_data, count) ;
+             if (ret < 0) {
 	         mfs_print(DBG_INFO, "[FILE]: ERROR on read %d bytes from file '%d'\n", count, fh->mpiio_fd) ;
 	         return -1 ;
-	     }
-
-	     MPI_Get_count(&status, MPI_INT, &ret);
+             }
              break ;
 
         case FILE_USE_REDIS:
@@ -333,14 +331,11 @@ int   mfs_file_write  ( int  fd, void *buff_data, int count )
              break ;
 
         case FILE_USE_MPI_IO:
-	     MPI_Status status ;
-	     ret = MPI_File_write(fh->mpiio_fd, buff_data, count, MPI_CHAR, &status) ;
-	     if (ret != MPI_SUCCESS) {
-	         mfs_print(DBG_INFO, "[FILE]: ERROR on write %d bytes to file '%d'\n", count, fh->mpiio_fd) ;
+             ret = mfs_file_mpi_write(fh->mpiio_fd, buff_data, count) ;
+             if (ret < 0) {
+    	         mfs_print(DBG_INFO, "[FILE]: ERROR on write %d bytes to file '%d'\n", count, fh->mpiio_fd) ;
 	         return -1 ;
-	     }
-
-	     MPI_Get_count(&status, MPI_INT, &ret);
+             }
              break ;
 
         case FILE_USE_REDIS:

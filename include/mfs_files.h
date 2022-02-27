@@ -23,9 +23,9 @@
 #define __MFS_FILES_H__
 
     // Includes
-    #include "mpi.h"
     #include "mfs_lib.h"
     #include "mfs_files_posix.h"
+    #include "mfs_files_mpi.h"
     #include "mfs_files_red.h"
 
     #include <stdio.h>
