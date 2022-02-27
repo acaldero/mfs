@@ -27,6 +27,18 @@
  *  File System API
  */
 
+int  mfs_file_posix_init ( void )
+{
+    // Return OK
+    return 1 ;
+}
+
+int  mfs_file_posix_finalize ( void )
+{
+    // Return OK
+    return 1 ;
+}
+
 int  mfs_file_posix_open ( const char *path_name, int flags )
 {
      int  ret ;

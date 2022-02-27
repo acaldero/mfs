@@ -125,6 +125,28 @@ int  mfs_file_stats_show ( int fd, char *prefix )
  *  File System API
  */
 
+int  mfs_file_init ( void )
+{
+    int  ret ;
+
+    // initialize all protocols
+    ret = mfs_file_posix_init() ;
+
+    // Return OK/KO
+    return ret ;
+}
+
+int  mfs_file_finalize ( void )
+{
+    int  ret ;
+
+    // finalize all protocols
+    ret = mfs_file_posix_finalize() ;
+
+    // Return OK/KO
+    return ret ;
+}
+
 int  mfs_file_open ( int *fd, int file_protocol, const char *path_name, int flags )
 {
     int    ret ;

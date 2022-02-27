@@ -34,6 +34,9 @@
 
 
     // API
+    int  mfs_file_posix_init     ( void ) ;
+    int  mfs_file_posix_finalize ( void ) ;
+
     int  mfs_file_posix_open  ( const char *path_name, int flags ) ;
     int  mfs_file_posix_close ( int fd ) ;
     int  mfs_file_posix_read  ( int fd, void *buffer, int buffer_size ) ;

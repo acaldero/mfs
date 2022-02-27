@@ -65,6 +65,9 @@
 
 
     // API
+    int   mfs_file_init       ( void ) ;
+    int   mfs_file_finalize   ( void ) ;
+
     long  mfs_file_fd2long    ( int  fd ) ;
     int   mfs_file_long2fd    ( int *fd, long fref, int file_protocol ) ;
     int   mfs_file_stats_show ( int  fd, char *prefix ) ;

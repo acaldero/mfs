@@ -111,10 +111,17 @@ int serverstub_init ( comm_t *wb, params_t *params )
 {
     int ret ;
 
+    // Initialize files
+    ret = mfs_file_init() ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: initialization fails for files :-(", -1) ;
+        return -1 ;
+    }
+
     // Initialize
     ret = mfs_comm_init(wb, params) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Server[%d]: initialization fails :-(", -1) ;
+        mfs_print(DBG_ERROR, "Server[%d]: initialization fails for comm :-(", -1) ;
         return -1 ;
     }
 
