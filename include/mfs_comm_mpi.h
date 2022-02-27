@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef __MFS_COMM_H__
-#define __MFS_COMM_H__
+#ifndef __MFS_COMM_MPI_H__
+#define __MFS_COMM_MPI_H__
 
     // Includes
     #include <stdio.h>
@@ -33,29 +33,21 @@
     #include <mpi.h>
     #include "mfs_lib.h"
     #include "mfs_params.h"
-    #include "mfs_comm_mpi.h"
+    #include "mfs_comm_common.h"
 
 
-    // Communications
-    int mfs_comm_init       ( comm_t *cb, params_t *params ) ;
-    int mfs_comm_finalize   ( comm_t *cb ) ;
+    // API
+    int mfs_comm_mpi_init     ( comm_t *cb, params_t *params ) ;
+    int mfs_comm_mpi_finalize ( comm_t *cb ) ;
 
-    int mfs_comm_register   ( comm_t *cb ) ;
-    int mfs_comm_unregister ( comm_t *cb ) ;
+    int mfs_comm_mpi_register   ( comm_t *cb ) ;
+    int mfs_comm_mpi_unregister ( comm_t *cb ) ;
+    int mfs_comm_mpi_accept     ( comm_t *ab ) ;
+    int mfs_comm_mpi_connect    ( comm_t *cb ) ;
+    int mfs_comm_mpi_disconnect ( comm_t *cb ) ;
 
-    int mfs_comm_accept     ( comm_t *ab, comm_t *wb ) ;
-    int mfs_comm_connect    ( comm_t *cb ) ;
-    int mfs_comm_disconnect ( comm_t *cb ) ;
-
-    int mfs_comm_request_send       ( comm_t *cb, int rank, long  req_action, long  req_arg1, long  req_arg2 ) ;
-    int mfs_comm_request_receive    ( comm_t *cb,           long *req_action, long *req_arg1, long *req_arg2 ) ;
-
-    int mfs_comm_recv_data_from     ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
-    int mfs_comm_send_data_to       ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
-
-    int mfs_comm_stats_set_nservers ( comm_t *cb, params_t *params ) ;
-    int mfs_comm_stats_reset        ( comm_t *cb ) ;
-    int mfs_comm_stats_show         ( comm_t *cb, char *prefix ) ;
+    int mfs_comm_mpi_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
+    int mfs_comm_mpi_send_data_to   ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
 
 #endif
 

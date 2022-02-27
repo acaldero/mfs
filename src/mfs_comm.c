@@ -28,7 +28,7 @@
 
 int mfs_comm_init ( comm_t *cb, params_t *params )
 {
-    int ret, claimed, provided ;
+    int ret ;
 
     // cb->... (stats)
     cb->is_connected = 0 ;
@@ -40,38 +40,14 @@ int mfs_comm_init ( comm_t *cb, params_t *params )
     }
 
     // MPI_Init
-    ret = MPI_Init_thread(params->argc, params->argv, MPI_THREAD_MULTIPLE, &provided) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Init fails :-(") ;
+    ret = mfs_comm_mpi_init(cb, params) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_init fails :-(") ;
         return -1 ;
     }
-
-    // cb->rank = comm_rank()
-    ret = MPI_Comm_rank(MPI_COMM_WORLD, &(cb->rank));
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_rank fails :-(") ;
-        return -1 ;
-    }
-
-    MPI_Query_thread(&claimed) ;
-    if (claimed != provided) {
-        mfs_print(DBG_WARNING, "[COMM]: MPI_Init_thread with only %s :-/", provided) ;
-    }
-
-    // cb->size = comm_size()
-    ret = MPI_Comm_size(MPI_COMM_WORLD, &(cb->size));
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_size fails :-(") ;
-        return -1 ;
-    }
-
-    // cb->status_... 
-    cb->status_rank  = -1 ;
-    cb->status_tag   = -1 ;
-    cb->status_count = -1 ;
 
     // Return OK
-    return 0 ;
+    return 1 ;
 }
 
 int mfs_comm_finalize ( comm_t *cb )
@@ -79,9 +55,9 @@ int mfs_comm_finalize ( comm_t *cb )
     int ret ;
 
     // Finalize
-    ret = MPI_Finalize() ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Finalize fails :-(") ;
+    ret = mfs_comm_mpi_finalize(cb) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_finalize fails :-(") ;
         return -1 ;
     }
 
@@ -102,24 +78,14 @@ int mfs_comm_register ( comm_t *cb )
     int ret ;
 
     // Open server port...
-    ret = MPI_Open_port(MPI_INFO_NULL, cb->port_name);
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Open_port fails :-(") ;
-        return -1 ;
-    }
-
-    MPI_Info info ;
-    MPI_Info_create(&info) ;
-    MPI_Info_set(info, "ompi_global_scope", "true") ;
-
-    ret = MPI_Publish_name(cb->srv_name, info, cb->port_name) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Publish_name fails :-(") ;
+    ret = mfs_comm_mpi_register(cb) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_register fails :-(") ;
         return -1 ;
     }
 
     // Return OK
-    return 0 ;
+    return 1 ;
 }
 
 int mfs_comm_unregister ( comm_t *cb )
@@ -127,17 +93,14 @@ int mfs_comm_unregister ( comm_t *cb )
     int ret ;
 
     // Unpublish port name
-    ret = MPI_Unpublish_name(cb->srv_name, MPI_INFO_NULL, cb->port_name) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Unpublish_name fails :-(") ;
+    ret = mfs_comm_mpi_unregister(cb) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_unregister fails :-(") ;
         return -1 ;
     }
 
-    // Close port
-    MPI_Close_port(cb->port_name) ;
-
     // Return OK
-    return 0 ;
+    return 1 ;
 }
 
 int mfs_comm_accept ( comm_t *ab, comm_t *wb )
@@ -148,9 +111,9 @@ int mfs_comm_accept ( comm_t *ab, comm_t *wb )
     memmove(ab, wb, sizeof(comm_t)) ;
 
     // Accept
-    ret = MPI_Comm_accept(ab->port_name, MPI_INFO_NULL, 0, MPI_COMM_SELF, &(ab->endpoint)) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_accept fails :-(") ;
+    ret = mfs_comm_mpi_accept(ab) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_accept fails :-(") ;
         return -1 ;
     }
 
@@ -165,16 +128,9 @@ int mfs_comm_connect ( comm_t *cb )
 {
     int ret ;
 
-    ret = MPI_Lookup_name(cb->srv_name, MPI_INFO_NULL, cb->port_name) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Lookup_name fails :-(") ;
-        return -1 ;
-    }
-
-    // Connect...
-    ret = MPI_Comm_connect(cb->port_name, MPI_INFO_NULL, 0, MPI_COMM_SELF, &(cb->endpoint)) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_connect fails :-(") ;
+    ret = mfs_comm_mpi_connect(cb) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_connect fails :-(") ;
         return -1 ;
     }
 
@@ -190,9 +146,9 @@ int mfs_comm_disconnect ( comm_t *cb )
     int ret ;
 
     // Disconnect...
-    ret = MPI_Comm_disconnect(&(cb->endpoint)) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_disconnect fails :-(") ;
+    ret = mfs_comm_mpi_disconnect(cb) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "[COMM]: mfs_comm_mpi_disconnect fails :-(") ;
         return -1 ;
     }
 
@@ -305,19 +261,13 @@ int mfs_comm_request_receive ( comm_t *cb, long *req_action, long *req_arg1, lon
 int mfs_comm_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype )
 {
     int ret ;
-    MPI_Status status;
 
     // Get CMD message
-    ret = MPI_Recv(buff, size, datatype, rank, 0, cb->endpoint, &status) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_WARNING, "[COMM]: MPI_Recv fails :-(") ;
+    ret = mfs_comm_mpi_recv_data_from(cb, rank, buff, size, datatype) ;
+    if (ret < 0) {
+        mfs_print(DBG_WARNING, "[COMM]: mfs_comm_mpi_recv_data_from fails :-(") ;
         return -1 ;
     }
-
-    // Copy status
-    cb->status_rank = status.MPI_SOURCE ;
-    cb->status_tag  = status.MPI_TAG ;
-    MPI_Get_count(&status, datatype, &(cb->status_count));
 
     // cb->... (stats)
     cb->n_recv_req++ ;
@@ -331,9 +281,9 @@ int mfs_comm_send_data_to  ( comm_t *cb, int rank, void *buff, int size, MPI_Dat
     int ret ;
 
     // Send answer
-    ret = MPI_Send(buff, size, datatype, rank, 0, cb->endpoint) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_WARNING, "[COMM]: MPI_Send fails :-(") ;
+    ret = mfs_comm_mpi_send_data_to(cb, rank, buff, size, datatype) ;
+    if (ret < 0) {
+        mfs_print(DBG_WARNING, "[COMM]: mfs_comm_mpi_send_data_to fails :-(") ;
         return -1 ;
     }
 

@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef __MFS_COMM_H__
-#define __MFS_COMM_H__
+#ifndef __MFS_COMM_COMMON_H__
+#define __MFS_COMM_COMMON_H__
 
     // Includes
     #include <stdio.h>
@@ -33,29 +33,41 @@
     #include <mpi.h>
     #include "mfs_lib.h"
     #include "mfs_params.h"
-    #include "mfs_comm_mpi.h"
 
 
-    // Communications
-    int mfs_comm_init       ( comm_t *cb, params_t *params ) ;
-    int mfs_comm_finalize   ( comm_t *cb ) ;
+    // Datatypes
+    typedef struct
+    {
+        // server port and name
+        char port_name[MPI_MAX_PORT_NAME] ;
+        char  srv_name[MPI_MAX_PORT_NAME] ;
 
-    int mfs_comm_register   ( comm_t *cb ) ;
-    int mfs_comm_unregister ( comm_t *cb ) ;
+        // destination
+        MPI_Comm endpoint ;
 
-    int mfs_comm_accept     ( comm_t *ab, comm_t *wb ) ;
-    int mfs_comm_connect    ( comm_t *cb ) ;
-    int mfs_comm_disconnect ( comm_t *cb ) ;
+        // local identification
+        int  size ;
+        int  rank ;
 
-    int mfs_comm_request_send       ( comm_t *cb, int rank, long  req_action, long  req_arg1, long  req_arg2 ) ;
-    int mfs_comm_request_receive    ( comm_t *cb,           long *req_action, long *req_arg1, long *req_arg2 ) ;
+        // remote identification
+        int  status_rank ;
+        int  status_tag ;
+        int  status_count ;
 
-    int mfs_comm_recv_data_from     ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
-    int mfs_comm_send_data_to       ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
+        // some stats
+        char is_connected ;
+        long n_servers ;
+        long n_send_req ;
+        long n_recv_req ;
 
-    int mfs_comm_stats_set_nservers ( comm_t *cb, params_t *params ) ;
-    int mfs_comm_stats_reset        ( comm_t *cb ) ;
-    int mfs_comm_stats_show         ( comm_t *cb, char *prefix ) ;
+    } comm_t ;
+
+
+    // Macros
+    #define mfs_comm_get_rank(pcb)         ((pcb != NULL) ? pcb->rank : -1)
+    #define mfs_comm_get_size(pcb)         ((pcb != NULL) ? pcb->size : -1)
+    #define mfs_comm_get_status_rank(pcb)  ((pcb != NULL) ? pcb->status_rank : -1)
+    #define mfs_comm_get_status_size(pcb)  ((pcb != NULL) ? pcb->status_size : -1)
 
 #endif
 
