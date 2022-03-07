@@ -118,6 +118,13 @@ int serverstub_init ( comm_t *wb, params_t *params )
         return -1 ;
     }
 
+    // Initialize files
+    ret = mfs_directory_init() ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: initialization fails for directories :-(", -1) ;
+        return -1 ;
+    }
+
     // Initialize
     ret = mfs_comm_init(wb, COMM_USE_MPI, params) ;
     if (ret < 0) {
@@ -153,6 +160,20 @@ int serverstub_finalize ( comm_t *wb )
     ret = mfs_comm_finalize(wb) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: finalization fails :-(", mfs_comm_get_rank(wb)) ;
+        return -1 ;
+    }
+
+    // Finalize directories
+    ret = mfs_directory_finalize() ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: finalization fails for directories :-(", -1) ;
+        return -1 ;
+    }
+
+    // Finalize files
+    ret = mfs_file_finalize() ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: finalization fails for files :-(", -1) ;
         return -1 ;
     }
 
@@ -492,7 +513,7 @@ int serverstub_mkdir ( comm_t *ab, char *base_dirname, int pathname_length, int 
     {
         mfs_print(DBG_INFO, "Server[%d]: request 'mkdir' for dirname %s\n", mfs_comm_get_rank(ab), buff_data_sys) ;
 
-	ret = mfs_directory_mkdir(buff_data_sys, mode) ;
+	ret = mfs_directory_mkdir(DIRECTORY_USE_POSIX, buff_data_sys, mode) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: dir not opened :-(", mfs_comm_get_rank(ab)) ;
         }
@@ -547,7 +568,7 @@ int serverstub_rmdir ( comm_t *ab, char *base_dirname, int pathname_length )
     {
         mfs_print(DBG_INFO, "Server[%d]: request 'mkdir' for dirname %s\n", mfs_comm_get_rank(ab), buff_data_sys) ;
 
-	ret = mfs_directory_rmdir(buff_data_sys) ;
+	ret = mfs_directory_rmdir(DIRECTORY_USE_POSIX, buff_data_sys) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: dir not opened :-(", mfs_comm_get_rank(ab)) ;
         }

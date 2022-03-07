@@ -1,0 +1,111 @@
+
+/*
+ *  Copyright 2020-2022 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
+ *
+ *  This file is part of MPI_PFS.
+ *
+ *  MPI_PFS is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Lesser General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  MPI_PFS is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with MPI_PFS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+
+#include "mfs_directories_red.h"
+
+
+/*
+ *  File System API
+ */
+
+int  mfs_directory_red_init ( void )
+{
+    // Return OK
+    return 1 ;
+}
+
+int  mfs_directory_red_finalize ( void )
+{
+    // Return OK
+    return 1 ;
+}
+
+int  mfs_directory_red_opendir  ( redisContext **red_ctxt, char **red_key, const char *path_name )
+{
+    int ret = -1 ;
+
+    // TODO: ret = ...
+    if (ret < 0) {
+    	mfs_print(DBG_INFO, "[DIR]: ERROR on opendir(path_name='%s')\n", path_name) ;
+        return -1 ;
+    }
+
+    // Return OK
+    return 1 ;
+}
+
+int   mfs_directory_red_closedir ( redisContext  *red_ctxt, char **red_key )
+{
+    int ret = -1 ;
+
+    // TODO: ret = ...
+    if (ret < 0) {
+    	mfs_print(DBG_INFO, "[DIR]: ERROR on closedir(fd='%p')\n", red_ctxt) ;
+        return -1 ;
+    }
+
+    // Return OK
+    return 1 ;
+}
+
+int  mfs_directory_red_readdir   ( redisContext  *red_ctxt, char  *red_key, void *buffer, int buffer_size )
+{
+    int ret = -1 ;
+
+    // TODO: ret = ...
+    if (NULL == ret) {
+	mfs_print(DBG_INFO, "[DIR]: ERROR on read entry from directory '%p'\n", red_ctxt) ;
+	return NULL ;
+    }
+
+    // Return OK/KO
+    return ret ;
+}
+
+int   mfs_directory_red_mkdir  ( redisContext  *red_ctxt, char  *red_key, char *path_name, mode_t mode )
+{
+    int ret = -1 ;
+
+    // TODO: ret = ...
+    if (ret < 0) {
+	mfs_print(DBG_INFO, "[DIR]: ERROR on mkdir directory '%s'\n", path_name) ;
+	return -1 ;
+    }
+
+    // Return OK/KO
+    return ret ;
+}
+
+int   mfs_directory_red_rmdir  ( redisContext  *red_ctxt, char  *red_key, char *path_name )
+{
+    int ret = -1 ;
+
+    // TODO: ret = ...
+    if (ret < 0) {
+	mfs_print(DBG_INFO, "[DIR]: ERROR on rmdir directory '%s'\n", path_name) ;
+	return -1 ;
+    }
+
+    // Return OK/KO
+    return ret ;
+}
+

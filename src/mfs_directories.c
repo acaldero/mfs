@@ -24,57 +24,91 @@
 
 
 /*
- *  File System API
+ *  Auxiliar functions
  */
 
-long  mfs_directory_fd2long ( dir_t *fd )
+            int mfs_directory_hash_neltos = 1024 ;
+          dir_t mfs_directory_hash_eltos[1024] ;
+pthread_mutex_t mfs_directory_mutex = PTHREAD_MUTEX_INITIALIZER ;
+
+int mfs_directory_find_free ( void )
 {
-    // Check params...
-    if (NULL == fd) {
-	return -1 ;
+    pthread_mutex_lock(&mfs_directory_mutex) ;
+    for (int i=0; i<mfs_directory_hash_neltos; i++)
+    {
+	 if (0 == mfs_directory_hash_eltos[i].been_used)
+	 {
+             memset(&(mfs_directory_hash_eltos[i]), 0, sizeof(dir_t)) ;
+	     mfs_directory_hash_eltos[i].been_used      = 1 ;
+	     mfs_directory_hash_eltos[i].dir_descriptor = i ;
+             pthread_mutex_unlock(&mfs_directory_mutex) ;
+	     return i ;
+	 }
     }
 
-    if (DIRECTORY_USE_POSIX  == fd->file_protocol) {
-        return (long) fd->posix_fd ;
-    }
-
-    // Return KO
+    pthread_mutex_unlock(&mfs_directory_mutex) ;
     return -1 ;
 }
 
-int mfs_directory_long2fd ( dir_t *fd, long fref, int file_protocol )
+void mfs_directory_set_free ( int fd )
 {
+    pthread_mutex_lock(&mfs_directory_mutex) ;
+     mfs_directory_hash_eltos[fd].been_used      = 0 ;
+     mfs_directory_hash_eltos[fd].dir_descriptor = -1 ;
+    pthread_mutex_unlock(&mfs_directory_mutex) ;
+}
+
+
+/*
+ *  File System API: descriptors
+ */
+
+long  mfs_directory_fd2long ( int fd )
+{
+    dir_t *dh ;
+
     // Check params...
-    if (NULL == fd) {
-	return -1 ;
+    if ( (fd < 0) || (fd >= mfs_directory_hash_neltos) ) {
+	  return -1 ;
     }
 
-    fd->file_protocol = file_protocol ;
-    fd->posix_fd = 0 ;
+    // Return directory descriptor
+    dh = &(mfs_directory_hash_eltos[fd]) ;
+    return dh->dir_descriptor ;
+}
 
-    if (DIRECTORY_USE_POSIX  == fd->file_protocol) {
-        fd->posix_fd = (DIR *)fref ;
+int mfs_directory_long2fd ( int *fd, long fref, int directory_protocol )
+{
+    // Check params...
+    if ( (fref < 0) || (fref >= mfs_directory_hash_neltos) ) {
+	  return -1 ;
     }
 
     // Return OK
+    (*fd) = fref ;
     return 1 ;
 }
 
-int  mfs_directory_stats_show ( dir_t *fd, char *prefix )
+int  mfs_directory_stats_show ( int fd, char *prefix )
 {
+    dir_t *dh ;
+
     // Check params...
-    if (NULL == fd) {
+    if ( (fd < 0) || (fd >= mfs_directory_hash_neltos) ) {
+	  return -1 ;
+    }
+
+    dh = &(mfs_directory_hash_eltos[fd]) ;
+    if (dh->been_used != 1) {
 	return -1 ;
     }
 
-    char *proto = "unknow" ;
-    if (DIRECTORY_USE_POSIX == fd->file_protocol)
-        proto = "POSIX" ;
-
     // Print stats...
-    printf("%s: Directory:\n",      prefix) ;
-    printf("%s: + protocol=%s\n",   prefix, proto) ;
-    printf("%s: + posix_fd=%d\n",   prefix, fd->posix_fd) ;
+    printf("%s: Directory:\n",             prefix) ;
+    printf("%s: + been_used=%d\n",         prefix, dh->been_used) ;
+    printf("%s: + dir_descriptor=%d\n",    prefix, dh->dir_descriptor) ;
+    printf("%s: + protocol=%s\n",          prefix, dh->directory_protocol_name) ;
+    printf("%s:   + posix_fd=%d\n",        prefix, dh->posix_fd) ;
 
     // Return OK
     return 1 ;
@@ -85,91 +119,210 @@ int  mfs_directory_stats_show ( dir_t *fd, char *prefix )
  *  File System API
  */
 
-int  mfs_directory_opendir ( dir_t *fd, int file_protocol, const char *path_name )
+int  mfs_directory_init ( void )
 {
+    int  ret ;
+
+    // initialize all protocols
+    ret = mfs_directory_posix_init() ;
+    if (ret < 0) {
+	return -1 ;
+    }
+
+    ret = mfs_directory_red_init() ;
+    if (ret < 0) {
+	return -1 ;
+    }
+
+    // Return OK/KO
+    return ret ;
+}
+
+int  mfs_directory_finalize ( void )
+{
+    int  ret ;
+
+    // finalize all protocols
+    ret = mfs_directory_posix_finalize() ;
+    if (ret < 0) {
+	return -1 ;
+    }
+
+    ret = mfs_directory_red_finalize() ;
+    if (ret < 0) {
+	return -1 ;
+    }
+
+    // Return OK/KO
+    return ret ;
+}
+
+int  mfs_directory_opendir ( int *fd, int directory_protocol, const char *path_name )
+{
+    int    ret ;
+    dir_t *dh ;
+
     // Check params...
     if (NULL == fd) {
 	return -1 ;
     }
 
     // Initialize fd
-    fd->file_protocol = file_protocol ;
-    fd->posix_fd      = 0 ;
+    (*fd) = ret = mfs_directory_find_free() ;
+    if (ret < 0) {
+	return -1 ;
+    }
 
-    // Open file
-    fd->posix_fd = opendir(path_name) ;
-    if (NULL == fd->posix_fd) {
-    	mfs_print(DBG_INFO, "[DIR]: ERROR on opendir(path_name='%s')\n", path_name) ;
-        return -1 ;
+    // Open directory
+    dh = &(mfs_directory_hash_eltos[ret]) ;
+    dh->directory_protocol = directory_protocol ;
+    switch (dh->directory_protocol)
+    {
+        case DIRECTORY_USE_POSIX:
+             dh->directory_protocol_name = "POSIX" ;
+             ret = (long)mfs_directory_posix_opendir(&(dh->posix_fd), path_name) ;
+             break ;
+
+        case DIRECTORY_USE_REDIS:
+             dh->directory_protocol_name = "REDIS" ;
+             ret = mfs_directory_red_opendir(&(dh->redis_ctxt), &(dh->redis_key), path_name) ;
+             break ;
+
+        default:
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on directory_protocol(%d).\n", dh->directory_protocol) ;
+	     return -1 ;
+             break ;
     }
 
     // Return OK
-    return 1 ;
+    return ret ;
 }
 
-int   mfs_directory_closedir ( dir_t *fd )
+int   mfs_directory_closedir ( int  fd )
 {
-    int ret = -1 ;
+    int    ret ;
+    dir_t *dh ;
 
     // Check params...
-    if (NULL == fd) {
+    if ( (fd < 0) || (fd >= mfs_directory_hash_neltos) ) {
+	  return -1 ;
+    }
+
+    dh = &(mfs_directory_hash_eltos[fd]) ;
+    if (dh->been_used != 1) {
 	return -1 ;
     }
 
-    // Close file
-    ret = closedir(fd->posix_fd) ;
+    // Close directory
+    switch (dh->directory_protocol)
+    {
+        case DIRECTORY_USE_POSIX:
+             ret = mfs_directory_posix_closedir(dh->posix_fd) ;
+             break ;
 
-    // Return OK/KO
+        case DIRECTORY_USE_REDIS:
+             ret = mfs_directory_red_closedir((dh->redis_ctxt), &(dh->redis_key)) ;
+             break ;
+
+        default:
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on directory_protocol(%d).\n", dh->directory_protocol) ;
+	     return -1 ;
+             break ;
+    }
+
+    // Return OK
+    mfs_directory_set_free(fd) ;
     return ret ;
 }
 
-struct dirent *mfs_directory_readdir  ( dir_t *fd )
+int   mfs_directory_readdir  ( int fd, struct dirent *dent )
 {
-    struct dirent *ret ;
+    int ret = -1 ;
+    dir_t *dh ;
 
     // Check params...
-    if (NULL == fd) {
-	return NULL ;
+    if ( (fd < 0) || (fd >= mfs_directory_hash_neltos) ) {
+	  return -1 ;
     }
 
-    // Read from file...
-    ret = readdir(fd->posix_fd) ;
-    if (NULL == ret) {
-	mfs_print(DBG_INFO, "[DIR]: ERROR on read entry from directory '%d'\n", fd->posix_fd) ;
-	return NULL ;
-    }
-
-    // Return OK/KO
-    return ret ;
-}
-
-int   mfs_directory_mkdir  ( char *path_name, mode_t mode )
-{
-    int ret = -1 ;
-
-    // mkdir directory...
-    ret = mkdir(path_name, mode) ;
-    if (ret < 0) {
-	mfs_print(DBG_INFO, "[DIR]: ERROR on mkdir directory '%d'\n", path_name) ;
+    dh = &(mfs_directory_hash_eltos[fd]) ;
+    if (dh->been_used != 1) {
 	return -1 ;
     }
 
-    // Return OK/KO
+    // Read from directory...
+    switch (dh->directory_protocol)
+    {
+        case DIRECTORY_USE_POSIX:
+             dent = mfs_directory_posix_readdir(dh->posix_fd) ;
+	     if (NULL == dent) {
+		 return -1 ;
+	     }
+             break ;
+
+        case DIRECTORY_USE_REDIS:
+             ret = mfs_directory_red_readdir(dh->redis_ctxt, dh->redis_key, dent, sizeof(struct dirent)) ;
+             break ;
+
+        default:
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on directory_protocol(%d).\n", dh->directory_protocol) ;
+	     return -1 ;
+             break ;
+    }
+
+    // Return OK
     return ret ;
 }
 
-int   mfs_directory_rmdir  ( char *path_name )
+int   mfs_directory_mkdir  ( int directory_protocol, char *path_name, mode_t mode )
 {
     int ret = -1 ;
 
-    // Read from file...
-    ret = rmdir(path_name) ;
-    if (ret < 0) {
-	mfs_print(DBG_INFO, "[DIR]: ERROR on rmdir directory '%d'\n", path_name) ;
-	return -1 ;
+    // Read from directory...
+    switch (directory_protocol)
+    {
+        case DIRECTORY_USE_POSIX:
+             ret = mfs_directory_posix_mkdir(path_name, mode) ;
+             break ;
+
+        case DIRECTORY_USE_REDIS:
+	     // TODO:
+             // ret = mfs_directory_red_mkdir(fh->redis_ctxt, fh->redis_key, path_name, strlen(path_name)+1) ;
+             break ;
+
+        default:
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on directory_protocol(%d).\n", directory_protocol) ;
+	     return -1 ;
+             break ;
     }
 
-    // Return OK/KO
+    // Return OK
+    return ret ;
+}
+
+int   mfs_directory_rmdir  ( int directory_protocol, char *path_name )
+{
+    int ret = -1 ;
+
+    // Read from directory...
+    switch (directory_protocol)
+    {
+        case DIRECTORY_USE_POSIX:
+             ret = mfs_directory_posix_rmdir(path_name) ;
+             break ;
+
+        case DIRECTORY_USE_REDIS:
+	     // TODO:
+             // ret = mfs_directory_red_rmdir(fh->redis_ctxt, fh->redis_key, path_name, strlen(path_name)+1) ;
+             break ;
+
+        default:
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on directory_protocol(%d).\n", directory_protocol) ;
+	     return -1 ;
+             break ;
+    }
+
+    // Return OK
     return ret ;
 }
 

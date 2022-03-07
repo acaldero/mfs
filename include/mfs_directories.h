@@ -25,27 +25,30 @@
     // Includes
     #include "mpi.h"
     #include "mfs_lib.h"
-
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <unistd.h>
-    #include <fcntl.h>
-    #include <dirent.h>
-    #include <sys/stat.h>
+    #include "mfs_directories_posix.h"
+    #include "mfs_directories_red.h"
 
 
     // Directory protocol
     #define DIRECTORY_USE_POSIX  1
+    #define DIRECTORY_USE_REDIS  2
 
 
     // Datatypes
     typedef struct
     {
+        int   been_used ;
+        int   dir_descriptor ;
+
         // underlying protocol
-        int  file_protocol ;
+        int   directory_protocol ;
+        char *directory_protocol_name ;
 
         // descriptors
-        DIR *posix_fd ;
+        DIR  *posix_fd ;
+
+	redisContext *redis_ctxt ;
+	char         *redis_key ;
 
     } dir_t ;
 
@@ -53,15 +56,20 @@
 
 
     // API
-    long      mfs_directory_fd2long    ( dir_t *fd ) ;
-    int       mfs_directory_long2fd    ( dir_t *fd, long fref, int file_protocol ) ;
-    int       mfs_directory_stats_show ( dir_t *fd, char *prefix ) ;
+    int   mfs_directory_init       ( void ) ;
+    int   mfs_directory_finalize   ( void ) ;
 
-    int       mfs_directory_opendir  ( dir_t *fd, int file_protocol, const char *path_name ) ;
-    int       mfs_directory_closedir ( dir_t *fd ) ;
-    dirent_t *mfs_directory_readdir  ( dir_t *fd ) ;
-    int       mfs_directory_mkdir    ( char *path_name, mode_t mode ) ;
-    int       mfs_directory_rmdir    ( char *path_name ) ;
+    long  mfs_directory_fd2long    ( int  fd ) ;
+    int   mfs_directory_long2fd    ( int *fd, long fref, int directory_protocol ) ;
+    int   mfs_directory_stats_show ( int  fd, char *prefix ) ;
+
+    int   mfs_directory_opendir    ( int *fd, int directory_protocol, const char *path_name ) ;
+    int   mfs_directory_closedir   ( int  fd ) ;
+
+    int   mfs_directory_readdir    ( int  fd, struct dirent *dent ) ;
+
+    int   mfs_directory_mkdir      ( int directory_protocol, char *path_name, mode_t mode ) ;
+    int   mfs_directory_rmdir      ( int directory_protocol, char *path_name ) ;
 
 #endif
 
