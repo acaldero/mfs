@@ -37,7 +37,7 @@
 
     // File protocol
     #define COMM_USE_SOCKET  1
-    #define COMM_USE_MPI    2
+    #define COMM_USE_MPI     2
 
 
     // Datatypes
@@ -53,6 +53,7 @@
 
         // destination
         MPI_Comm endpoint ;
+        int      sd ;
 
         // local identification
         int  size ;

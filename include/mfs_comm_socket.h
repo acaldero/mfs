@@ -27,11 +27,19 @@
     #include <stdlib.h>
     #include <string.h>
     #include <stdarg.h>
+
     #include <sys/time.h>
     #include <fcntl.h>
     #include <unistd.h>
     #include <sys/types.h>
+
     #include <sys/socket.h>
+    #include <netinet/tcp.h>
+    #include <netinet/in.h>
+    #include <netdb.h>
+
+    #define _XOPEN_SOURCE_EXTENDED 1
+    #include <ndbm.h>
 
     #include "mfs_lib.h"
     #include "mfs_params.h"
