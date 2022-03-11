@@ -24,20 +24,6 @@
 
 
 /*
- *  pre_main + post_main
- */
-
-void  pre_main ()
-{
-}
-void post_main ()
-{
-}
-void __attribute__((constructor))  pre_main();
-void __attribute__((destructor))  post_main();
-
-
-/*
  *  Auxiliar (internal) functions
  */
 
@@ -150,6 +136,8 @@ int serverstub_finalize ( comm_t *wb )
     int ret ;
 
     // UnRegister
+    sprintf(wb->srv_name, "%s.%d", MFS_SERVER_STUB_PNAME, mfs_comm_get_rank(wb)) ;
+
     ret = mfs_comm_unregister(wb) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: port unregistration fails :-(", mfs_comm_get_rank(wb)) ;

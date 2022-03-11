@@ -24,41 +24,6 @@
 
 
 /*
- *  pre_main + post_main
- */
-
-comm_t *global_wb = NULL ;
-
-void at_exit_finalize ( void )
-{
-    long th_id ;
-    long remote_rank ;
-
-    if ( (NULL == global_wb) || (0 == global_wb->is_connected) )
-    {
-        return ;
-    }
-
-    mfs_get_thread_id(&th_id) ;
-    mfs_print(DBG_ERROR, "Client[th=%ld]: exit without disconnect !! :-(", th_id) ;
-
-    remote_rank = (global_wb->rank % global_wb->n_servers) ;
-    mfs_comm_request_send(global_wb, remote_rank, REQ_ACTION_ATEXIT, th_id, 0) ;
-}
-
-
-void  pre_main ()
-{
-}
-void post_main ()
-{
-    at_exit_finalize() ;
-}
-void __attribute__((constructor))  pre_main();
-void __attribute__((destructor))  post_main();
-
-
-/*
  *  File System API
  */
 
@@ -86,11 +51,6 @@ int clientstub_init ( comm_t *wb, params_t *params )
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: connection fails :-(", remote_rank) ;
         }
-    }
-
-    // at_exit_...
-    if (ret >= 0) {
-	global_wb = wb ;
     }
 
     // Return OK/KO

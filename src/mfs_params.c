@@ -20,8 +20,7 @@
  *
  */
 
-#include "mfs_params.h"
-
+ #include "mfs_params.h"
 
  void mfs_params_show ( params_t *params )
  {
@@ -31,7 +30,7 @@
       	printf("\t-t <ondemand | pool>:\t\t'%s'\n",    params->thread_launch_name) ;
       	printf("\t-n <# process in server>:\t'%d'\n",  params->num_servers) ;
  }
-      
+
  void mfs_params_show_usage ( void )
  {
       	printf("Usage:\n");
@@ -40,9 +39,22 @@
       	printf("\t-t <string>:  ondemand | pool\n") ;
       	printf("\t-n <integer>: number of servers\n") ;
  }
-      
+
+ struct option long_options[] =
+        {
+          { "verbose",            no_argument,       NULL, 'v' },
+          { "file_backend",       required_argument, NULL, 'p' },
+          { "base_directory",     required_argument, NULL, 'd' },
+          { "thread_backend",     required_argument, NULL, 't' },
+          { "process_in_server",  required_argument, NULL, 'n' },
+          { 0 }
+        } ;
+
  int mfs_params_get ( params_t *params, int *argc, char ***argv )
  {
+        int c ;
+	int option_index = 0;
+
       	// set default values
       	params->argc = argc ;
       	params->argv = argv ;
@@ -56,60 +68,58 @@
         params->thread_launch = THREAD_USE_ONDEMAND ;
         strcpy(params->thread_launch_name, "On demand") ;
 
-      	// update user requests
-      	for (int i=0; i<(*argc); i++)
-      	{
-      		switch ((*argv)[i][0])
-      		{
-      			case '-':
-      				switch ((*argv)[i][1])
-				{
-      					case 'p':
-						if (!strcmp("POSIX",  (*argv)[i+1]) ) {
-      						    params->file_protocol = FILE_USE_POSIX ;
-                                                    strcpy(params->file_protocol_name, "POSIX") ;
-						}
-						if (!strcmp("MPI-IO", (*argv)[i+1]) ) {
-      						    params->file_protocol = FILE_USE_MPI_IO ;
-                                                    strcpy(params->file_protocol_name, "MPI-IO") ;
-						}
-      						i++;
-      						break;
+	// getopt_long...
+        c = getopt_long(*argc, *argv, "vp:d:t:n:", long_options, &option_index) ;
+	while (c != -1)
+	{
+           switch (c)
+           {
+             case 'v':
+		  // verbose
+                  break ;
 
-      					case 'd':
-      						strcpy(params->data_prefix, (*argv)[i+1]) ;
-      						i++;
-      						break;					
+	     case 'p':
+		  if (!strcmp("POSIX",  optarg)) {
+		      params->file_protocol = FILE_USE_POSIX ;
+		      strcpy(params->file_protocol_name, "POSIX") ;
+		  }
+		  if (!strcmp("MPI-IO", optarg)) {
+		      params->file_protocol = FILE_USE_MPI_IO ;
+		      strcpy(params->file_protocol_name, "MPI-IO") ;
+		  }
+                  break ;
 
-      					case 'n':
-      						params->num_servers = atoi((*argv)[i+1]) ;
-      						i++;
-      						break;					
+	     case 'd':
+		  strcpy(params->data_prefix, optarg) ;
+                  break ;
 
-      					case 't':
-						if (!strcmp("ondemand",  (*argv)[i+1]) ) {
-                                                    params->thread_launch = THREAD_USE_ONDEMAND ;
-                                                    strcpy(params->thread_launch_name, "On Demand") ;
-						}
-						if (!strcmp("pool", (*argv)[i+1]) ) {
-                                                    params->thread_launch = THREAD_USE_POOL ;
-                                                    strcpy(params->thread_launch_name, "Pool") ;
-						}
-      						i++;
-      						break;
+	     case 't':
+		  if (!strcmp("ondemand", optarg) ) {
+		      params->thread_launch = THREAD_USE_ONDEMAND ;
+		      strcpy(params->thread_launch_name, "On Demand") ;
+		  }
+		  if (!strcmp("pool",     optarg) ) {
+		      params->thread_launch = THREAD_USE_POOL ;
+		      strcpy(params->thread_launch_name, "Pool") ;
+		  }
+                  break ;
 
-      					case 'h':
-      						return -1;
-      
-      					default:
-      						break;
-      				}
-      				break;
+	     case 'n':
+		  params->num_servers = atoi(optarg) ;
+                  break ;
 
-      			default:
-      				break;			
-      		}
-      	}
+             case '?':
+                  mfs_params_show_usage() ;
+                  exit(-1) ;
+                  break ;
+
+             default:
+                  mfs_params_show_usage() ;
+                  exit(-1) ;
+           }
+
+           c = getopt_long(*argc, *argv, "vp:d:t:n:", long_options, &option_index) ;
+	}
 
       	// return OK
       	return 1;

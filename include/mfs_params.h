@@ -24,7 +24,8 @@
    #include <stdlib.h>
    #include <stdio.h>
    #include <string.h>
-   #include "mpi.h"
+   #include <getopt.h>
+
    #include "mfs_lib.h"
    #include "mfs_files.h"
 
