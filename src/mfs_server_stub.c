@@ -196,12 +196,12 @@ int serverstub_accept ( comm_t *ab, comm_t *wb )
     return 0 ;
 }
 
-int serverstub_disconnect ( comm_t *ab )
+int serverstub_disconnect ( comm_t *ab, int remote_rank )
 {
     int ret ;
 
     // Disconnect
-    ret = mfs_comm_disconnect(ab) ;
+    ret = mfs_comm_disconnect(ab, remote_rank) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: disconnect fails :-(", mfs_comm_get_rank(ab)) ;
         return -1 ;

@@ -53,7 +53,7 @@
     int  serverstub_init         ( comm_t *wb, params_t *params ) ;
     int  serverstub_finalize     ( comm_t *wb ) ;
     int  serverstub_accept       ( comm_t *ab, comm_t *wb ) ;
-    int  serverstub_disconnect   ( comm_t *ab ) ;
+    int  serverstub_disconnect   ( comm_t *ab, int remote_rank ) ;
 
     // File System API
     int  serverstub_open    ( comm_t *ab, int *fd, int file_protocol, char *base_dirname, int pathname_length, int flags ) ;

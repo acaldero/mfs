@@ -53,22 +53,23 @@
 
         // destination
         MPI_Comm endpoint ;
-        int      sd ;
+        int    sd ;
+        int   *dd ;
 
         // local identification
-        int  size ;
-        int  rank ;
+        int   size ;
+        int   rank ;
 
         // remote identification
-        int  status_rank ;
-        int  status_tag ;
-        int  status_count ;
+        int   status_rank ;
+        int   status_tag ;
+        int   status_count ;
 
         // some stats
-        char is_connected ;
-        long n_servers ;
-        long n_send_req ;
-        long n_recv_req ;
+        char  is_connected ;
+        long  n_servers ;
+        long  n_send_req ;
+        long  n_recv_req ;
 
     } comm_t ;
 

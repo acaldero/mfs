@@ -143,7 +143,7 @@ int mfs_comm_mpi_accept ( comm_t *ab )
     return 1 ;
 }
 
-int mfs_comm_mpi_connect ( comm_t *cb )
+int mfs_comm_mpi_connect ( comm_t *cb, int remote_rank )
 {
     int ret ;
 
@@ -156,7 +156,7 @@ int mfs_comm_mpi_connect ( comm_t *cb )
     // Connect...
     ret = MPI_Comm_connect(cb->port_name, MPI_INFO_NULL, 0, MPI_COMM_SELF, &(cb->endpoint)) ;
     if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_connect fails :-(") ;
+        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_connect(%d) fails :-(", remote_rank) ;
         return -1 ;
     }
 
@@ -164,14 +164,14 @@ int mfs_comm_mpi_connect ( comm_t *cb )
     return 1 ;
 }
 
-int mfs_comm_mpi_disconnect ( comm_t *cb )
+int mfs_comm_mpi_disconnect ( comm_t *cb, int remote_rank )
 {
     int ret ;
 
     // Disconnect...
     ret = MPI_Comm_disconnect(&(cb->endpoint)) ;
     if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_disconnect fails :-(") ;
+        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_disconnect(%d) fails :-(", remote_rank) ;
         return -1 ;
     }
 

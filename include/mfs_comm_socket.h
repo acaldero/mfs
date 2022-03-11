@@ -56,8 +56,8 @@
     int mfs_comm_socket_register   ( comm_t *cb ) ;
     int mfs_comm_socket_unregister ( comm_t *cb ) ;
     int mfs_comm_socket_accept     ( comm_t *ab ) ;
-    int mfs_comm_socket_connect    ( comm_t *cb ) ;
-    int mfs_comm_socket_disconnect ( comm_t *cb ) ;
+    int mfs_comm_socket_connect    ( comm_t *cb, int remote_rank ) ;
+    int mfs_comm_socket_disconnect ( comm_t *cb, int remote_rank ) ;
 
     int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
     int mfs_comm_socket_send_data_to   ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;

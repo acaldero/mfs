@@ -82,17 +82,15 @@ int clientstub_init ( comm_t *wb, params_t *params )
         remote_rank = (mfs_comm_get_rank(wb) % wb->n_servers) ;
         sprintf(wb->srv_name, "%s.%d", MFS_SERVER_STUB_PNAME, remote_rank) ;
 
-        ret = mfs_comm_connect(wb) ;
+        ret = mfs_comm_connect(wb, remote_rank) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: connection fails :-(", remote_rank) ;
         }
     }
 
     // at_exit_...
-    if (ret >= 0)
-    {
+    if (ret >= 0) {
 	global_wb = wb ;
-	// ret = atexit(at_exit_finalize) ;
     }
 
     // Return OK/KO
@@ -112,7 +110,9 @@ int clientstub_finalize ( comm_t *wb )
     // Disconnect...
     if (ret >= 0)
     {
-        ret = mfs_comm_disconnect(wb) ;
+        int remote_rank = (mfs_comm_get_rank(wb) % wb->n_servers) ;
+
+        ret = mfs_comm_disconnect(wb, remote_rank) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: disconnect fails :-(", mfs_comm_get_rank(wb)) ;
         }
