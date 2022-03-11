@@ -9,7 +9,7 @@ Prototype of MPI_PFS
 sudo apt-get install -y build-essential cmake
 sudo apt-get install -y flex libtool
 sudo apt-get install -y mpich mpich-doc
-sudo apt-get install -y libhiredis-dev
+sudo apt-get install -y libhiredis-dev libgdbm-compat-dev libgdbm-dev
 ```
 
 ### Get MPI_PFS source code

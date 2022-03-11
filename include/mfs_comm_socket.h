@@ -37,13 +37,16 @@
     #include <netinet/tcp.h>
     #include <netinet/in.h>
     #include <netdb.h>
-
-    #define _XOPEN_SOURCE_EXTENDED 1
-    #include <ndbm.h>
+    #include <arpa/inet.h>
 
     #include "mfs_lib.h"
     #include "mfs_params.h"
     #include "mfs_comm_common.h"
+
+
+    // Consts
+    #define ONE_MB     (1024 * 1024)
+    #define MAXPATHLEN (1024)
 
 
     // API
