@@ -44,7 +44,7 @@
 
         // underlying file options
         char   *data_prefix ;
-        int     file_protocol ;
+        int     file_backend ;
 
     } srvstub_t ;
 
@@ -56,7 +56,7 @@
     int  serverstub_disconnect   ( comm_t *ab, int remote_rank ) ;
 
     // File System API
-    int  serverstub_open    ( comm_t *ab, int *fd, int file_protocol, char *base_dirname, int pathname_length, int flags ) ;
+    int  serverstub_open    ( comm_t *ab, int *fd, int file_backend, char *base_dirname, int pathname_length, int flags ) ;
     int  serverstub_close   ( comm_t *ab, int  fd ) ;
     int  serverstub_read    ( comm_t *ab, int  fd, int count ) ;
     int  serverstub_write   ( comm_t *ab, int  fd, int count ) ;

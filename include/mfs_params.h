@@ -28,6 +28,7 @@
 
    #include "mfs_lib.h"
    #include "mfs_files.h"
+   #include "mfs_directories.h"
 
 
    // Const
@@ -41,12 +42,17 @@
    typedef struct
    {
         // associated client
-        int   thread_launch ;
-        char  thread_launch_name[1024] ;
-        int   file_protocol ;
-        char  file_protocol_name[1024] ;
         char  data_prefix[1024] ;
         int   num_servers ;
+
+        int   file_backend ;
+        char  file_backend_name[1024] ;
+
+        int   directory_backend ;
+        char  directory_backend_name[1024] ;
+
+        int   thread_launch ;
+        char  thread_launch_name[1024] ;
 
         // server arguments
         int    *argc ;

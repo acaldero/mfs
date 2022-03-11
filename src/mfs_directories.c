@@ -77,7 +77,7 @@ long  mfs_directory_fd2long ( int fd )
     return dh->dir_descriptor ;
 }
 
-int mfs_directory_long2fd ( int *fd, long fref, int directory_protocol )
+int mfs_directory_long2fd ( int *fd, long fref, int directory_backend )
 {
     // Check params...
     if ( (fref < 0) || (fref >= mfs_directory_hash_neltos) ) {
@@ -107,7 +107,7 @@ int  mfs_directory_stats_show ( int fd, char *prefix )
     printf("%s: Directory:\n",             prefix) ;
     printf("%s: + been_used=%d\n",         prefix, dh->been_used) ;
     printf("%s: + dir_descriptor=%d\n",    prefix, dh->dir_descriptor) ;
-    printf("%s: + protocol=%s\n",          prefix, dh->directory_protocol_name) ;
+    printf("%s: + protocol=%s\n",          prefix, dh->directory_backend_name) ;
     printf("%s:   + posix_fd=%d\n",        prefix, dh->posix_fd) ;
 
     // Return OK
@@ -157,7 +157,7 @@ int  mfs_directory_finalize ( void )
     return ret ;
 }
 
-int  mfs_directory_opendir ( int *fd, int directory_protocol, const char *path_name )
+int  mfs_directory_opendir ( int *fd, int directory_backend, const char *path_name )
 {
     int    ret ;
     dir_t *dh ;
@@ -175,21 +175,21 @@ int  mfs_directory_opendir ( int *fd, int directory_protocol, const char *path_n
 
     // Open directory
     dh = &(mfs_directory_hash_eltos[ret]) ;
-    dh->directory_protocol = directory_protocol ;
-    switch (dh->directory_protocol)
+    dh->directory_backend = directory_backend ;
+    switch (dh->directory_backend)
     {
         case DIRECTORY_USE_POSIX:
-             dh->directory_protocol_name = "POSIX" ;
+             dh->directory_backend_name = "POSIX" ;
              ret = (long)mfs_directory_posix_opendir(&(dh->posix_fd), path_name) ;
              break ;
 
         case DIRECTORY_USE_REDIS:
-             dh->directory_protocol_name = "REDIS" ;
+             dh->directory_backend_name = "REDIS" ;
              ret = mfs_directory_red_opendir(&(dh->redis_ctxt), &(dh->redis_key), path_name) ;
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[FILE]: ERROR on directory_protocol(%d).\n", dh->directory_protocol) ;
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on directory_backend(%d).\n", dh->directory_backend) ;
 	     return -1 ;
              break ;
     }
@@ -214,7 +214,7 @@ int   mfs_directory_closedir ( int  fd )
     }
 
     // Close directory
-    switch (dh->directory_protocol)
+    switch (dh->directory_backend)
     {
         case DIRECTORY_USE_POSIX:
              ret = mfs_directory_posix_closedir(dh->posix_fd) ;
@@ -225,7 +225,7 @@ int   mfs_directory_closedir ( int  fd )
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[FILE]: ERROR on directory_protocol(%d).\n", dh->directory_protocol) ;
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on directory_backend(%d).\n", dh->directory_backend) ;
 	     return -1 ;
              break ;
     }
@@ -251,7 +251,7 @@ int   mfs_directory_readdir  ( int fd, struct dirent *dent )
     }
 
     // Read from directory...
-    switch (dh->directory_protocol)
+    switch (dh->directory_backend)
     {
         case DIRECTORY_USE_POSIX:
              dent = mfs_directory_posix_readdir(dh->posix_fd) ;
@@ -265,7 +265,7 @@ int   mfs_directory_readdir  ( int fd, struct dirent *dent )
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[FILE]: ERROR on directory_protocol(%d).\n", dh->directory_protocol) ;
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on directory_backend(%d).\n", dh->directory_backend) ;
 	     return -1 ;
              break ;
     }
@@ -274,12 +274,12 @@ int   mfs_directory_readdir  ( int fd, struct dirent *dent )
     return ret ;
 }
 
-int   mfs_directory_mkdir  ( int directory_protocol, char *path_name, mode_t mode )
+int   mfs_directory_mkdir  ( int directory_backend, char *path_name, mode_t mode )
 {
     int ret = -1 ;
 
     // Read from directory...
-    switch (directory_protocol)
+    switch (directory_backend)
     {
         case DIRECTORY_USE_POSIX:
              ret = mfs_directory_posix_mkdir(path_name, mode) ;
@@ -291,7 +291,7 @@ int   mfs_directory_mkdir  ( int directory_protocol, char *path_name, mode_t mod
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[FILE]: ERROR on directory_protocol(%d).\n", directory_protocol) ;
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on directory_backend(%d).\n", directory_backend) ;
 	     return -1 ;
              break ;
     }
@@ -300,12 +300,12 @@ int   mfs_directory_mkdir  ( int directory_protocol, char *path_name, mode_t mod
     return ret ;
 }
 
-int   mfs_directory_rmdir  ( int directory_protocol, char *path_name )
+int   mfs_directory_rmdir  ( int directory_backend, char *path_name )
 {
     int ret = -1 ;
 
     // Read from directory...
-    switch (directory_protocol)
+    switch (directory_backend)
     {
         case DIRECTORY_USE_POSIX:
              ret = mfs_directory_posix_rmdir(path_name) ;
@@ -317,7 +317,7 @@ int   mfs_directory_rmdir  ( int directory_protocol, char *path_name )
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[FILE]: ERROR on directory_protocol(%d).\n", directory_protocol) ;
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on directory_backend(%d).\n", directory_backend) ;
 	     return -1 ;
              break ;
     }

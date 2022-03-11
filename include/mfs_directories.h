@@ -41,8 +41,8 @@
         int   dir_descriptor ;
 
         // underlying protocol
-        int   directory_protocol ;
-        char *directory_protocol_name ;
+        int   directory_backend ;
+        char *directory_backend_name ;
 
         // descriptors
         DIR  *posix_fd ;
@@ -60,16 +60,16 @@
     int   mfs_directory_finalize   ( void ) ;
 
     long  mfs_directory_fd2long    ( int  fd ) ;
-    int   mfs_directory_long2fd    ( int *fd, long fref, int directory_protocol ) ;
+    int   mfs_directory_long2fd    ( int *fd, long fref, int directory_backend ) ;
     int   mfs_directory_stats_show ( int  fd, char *prefix ) ;
 
-    int   mfs_directory_opendir    ( int *fd, int directory_protocol, const char *path_name ) ;
+    int   mfs_directory_opendir    ( int *fd, int directory_backend, const char *path_name ) ;
     int   mfs_directory_closedir   ( int  fd ) ;
 
     int   mfs_directory_readdir    ( int  fd, struct dirent *dent ) ;
 
-    int   mfs_directory_mkdir      ( int directory_protocol, char *path_name, mode_t mode ) ;
-    int   mfs_directory_rmdir      ( int directory_protocol, char *path_name ) ;
+    int   mfs_directory_mkdir      ( int directory_backend, char *path_name, mode_t mode ) ;
+    int   mfs_directory_rmdir      ( int directory_backend, char *path_name ) ;
 
 #endif
 

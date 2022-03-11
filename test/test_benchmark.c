@@ -69,7 +69,7 @@ int main_simple2 ( params_t *params )
 	 t  = (double) ((t2-t1)/1000.0) / N_TIMES_BENCHMARK ;
 	 kb = (long)   (j*BUFFER_SIZE) / 1024 ;
 	 mb = (double) kb / 1024 ;
-         printf("%s\t\twrite;\t\t%d;\t\t%d;\t\t%lf;\n", params->file_protocol_name, wb.rank, kb, mb/t) ;
+         printf("%s\t\twrite;\t\t%d;\t\t%d;\t\t%lf;\n", params->file_backend_name, wb.rank, kb, mb/t) ;
     }
 
     // Benchmark: read
@@ -94,7 +94,7 @@ int main_simple2 ( params_t *params )
 	 t  = (double) ((t2-t1)/1000.0) / N_TIMES_BENCHMARK ;
 	 kb = (long)   (j*BUFFER_SIZE) / 1024 ;
 	 mb = (double) kb / 1024 ;
-         printf("%s\t\tread;\t\t%d;\t\t%d;\t\t%lf;\n", params->file_protocol_name, wb.rank, kb, mb/t) ;
+         printf("%s\t\tread;\t\t%d;\t\t%d;\t\t%lf;\n", params->file_backend_name, wb.rank, kb, mb/t) ;
     }
 
     // Finalize...

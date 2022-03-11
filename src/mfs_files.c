@@ -77,7 +77,7 @@ long  mfs_file_fd2long ( int fd )
     return fh->file_fd ;
 }
 
-int mfs_file_long2fd ( int *fd, long fref, int file_protocol )
+int mfs_file_long2fd ( int *fd, long fref, int file_backend )
 {
     file_t *fh ;
 
@@ -109,7 +109,7 @@ int  mfs_file_stats_show ( int fd, char *prefix )
     printf("%s: File:\n",           prefix) ;
     printf("%s: + been_used=%d\n",  prefix, fh->been_used) ;
     printf("%s: + file_fd=%d\n",    prefix, fh->file_fd) ;
-    printf("%s: + protocol=%s\n",   prefix, fh->file_protocol_name) ;
+    printf("%s: + protocol=%s\n",   prefix, fh->file_backend_name) ;
     printf("%s:   + posix_fd=%d\n", prefix, fh->posix_fd) ;
     printf("%s:   + mpiio_fd=%d\n", prefix, fh->mpiio_fd) ;
     printf("%s: + offset=%ld\n",    prefix, fh->offset) ;
@@ -173,7 +173,7 @@ int  mfs_file_finalize ( void )
     return ret ;
 }
 
-int  mfs_file_open ( int *fd, int file_protocol, const char *path_name, int flags )
+int  mfs_file_open ( int *fd, int file_backend, const char *path_name, int flags )
 {
     int    ret ;
     file_t *fh ;
@@ -191,26 +191,26 @@ int  mfs_file_open ( int *fd, int file_protocol, const char *path_name, int flag
 
     // Open file
     fh = &(mfs_file_hash_eltos[ret]) ;
-    fh->file_protocol = file_protocol ;
-    switch (fh->file_protocol)
+    fh->file_backend = file_backend ;
+    switch (fh->file_backend)
     {
         case FILE_USE_POSIX:
-             fh->file_protocol_name = "POSIX" ;
+             fh->file_backend_name = "POSIX" ;
              ret = (long)mfs_file_posix_open(&(fh->posix_fd), path_name, flags) ;
              break ;
 
         case FILE_USE_MPI_IO:
-             fh->file_protocol_name = "MPI-IO" ;
+             fh->file_backend_name = "MPI-IO" ;
              ret = mfs_file_mpi_open(&(fh->mpiio_fd), path_name) ;
              break ;
 
         case FILE_USE_REDIS:
-             fh->file_protocol_name = "REDIS" ;
+             fh->file_backend_name = "REDIS" ;
              ret = mfs_file_red_open(&(fh->redis_ctxt), &(fh->redis_key), path_name) ;
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[FILE]: ERROR on file_protocol(%d).\n", fh->file_protocol) ;
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on file_backend(%d).\n", fh->file_backend) ;
 	     return -1 ;
              break ;
     }
@@ -235,7 +235,7 @@ int   mfs_file_close ( int fd )
     }
 
     // Close file
-    switch (fh->file_protocol)
+    switch (fh->file_backend)
     {
         case FILE_USE_POSIX:
              ret = mfs_file_posix_close(fh->posix_fd) ;
@@ -250,7 +250,7 @@ int   mfs_file_close ( int fd )
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[FILE]: ERROR on file_protocol(%d).\n", fh->file_protocol) ;
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on file_backend(%d).\n", fh->file_backend) ;
 	     return -1 ;
              break ;
     }
@@ -276,7 +276,7 @@ int   mfs_file_read  ( int  fd, void *buff_data, int count )
     }
 
     // Read from file...
-    switch (fh->file_protocol)
+    switch (fh->file_backend)
     {
         case FILE_USE_POSIX:
              ret = mfs_file_posix_read(fh->posix_fd, buff_data, count) ;
@@ -291,7 +291,7 @@ int   mfs_file_read  ( int  fd, void *buff_data, int count )
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[FILE]: ERROR on file_protocol(%d).\n", fh->file_protocol) ;
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on file_backend(%d).\n", fh->file_backend) ;
 	     return -1 ;
              break ;
     }
@@ -319,7 +319,7 @@ int   mfs_file_write  ( int  fd, void *buff_data, int count )
     }
 
     // Write into file...
-    switch (fh->file_protocol)
+    switch (fh->file_backend)
     {
         case FILE_USE_POSIX:
              ret = mfs_file_posix_write(fh->posix_fd, buff_data, count) ;
@@ -334,7 +334,7 @@ int   mfs_file_write  ( int  fd, void *buff_data, int count )
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[FILE]: ERROR on file_protocol(%d).\n", fh->file_protocol) ;
+	     mfs_print(DBG_INFO, "[FILE]: ERROR on file_backend(%d).\n", fh->file_backend) ;
 	     return -1 ;
              break ;
     }

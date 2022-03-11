@@ -78,21 +78,21 @@
 
               // Files
 	      case REQ_ACTION_OPEN:
-                   ret = serverstub_open(&th.ab, &fd, params.file_protocol, params.data_prefix, msg.req_arg1, msg.req_arg2) ;
+                   ret = serverstub_open(&th.ab, &fd, params.file_backend, params.data_prefix, msg.req_arg1, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_CLOSE:
-		   ret = mfs_file_long2fd(&(fd), msg.req_arg1, params.file_protocol) ;
+		   ret = mfs_file_long2fd(&(fd), msg.req_arg1, params.file_backend) ;
                    ret = serverstub_close(&th.ab, fd) ;
 	           break;
 
 	      case REQ_ACTION_READ:
-		   ret = mfs_file_long2fd(&(fd), msg.req_arg1, params.file_protocol) ;
+		   ret = mfs_file_long2fd(&(fd), msg.req_arg1, params.file_backend) ;
                    ret = serverstub_read(&th.ab, fd, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_WRITE:
-		   ret = mfs_file_long2fd(&(fd), msg.req_arg1, params.file_protocol) ;
+		   ret = mfs_file_long2fd(&(fd), msg.req_arg1, params.file_backend) ;
                    ret = serverstub_write(&th.ab, fd, msg.req_arg2) ;
 	           break;
 

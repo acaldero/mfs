@@ -25,7 +25,7 @@
  void mfs_params_show ( params_t *params )
  {
  	printf("Current configuration:\n");
-      	printf("\t-p <POSIX | MPI-IO>:\t\t%s\n",       params->file_protocol_name) ;
+      	printf("\t-p <POSIX | MPI-IO>:\t\t%s\n",       params->file_backend_name) ;
       	printf("\t-d <base directory>:\t\t'%s'\n",     params->data_prefix) ;
       	printf("\t-t <ondemand | pool>:\t\t'%s'\n",    params->thread_launch_name) ;
       	printf("\t-n <# process in server>:\t'%d'\n",  params->num_servers) ;
@@ -50,10 +50,23 @@
           { 0 }
         } ;
 
+/*
+mfs_client_stub.c
+mfs_comm.c
+mfs_comm_mpi.c
+mfs_comm_socket.c
+mfs_directories.c
+mfs_directories_posix.c
+mfs_directories_red.c
+mfs_server.c
+mfs_server_stub.c
+ */
+
  int mfs_params_get ( params_t *params, int *argc, char ***argv )
  {
-        int c ;
-	int option_index = 0;
+        int   c = -1 ;
+	int   option_index = 0;
+	char *short_opt = NULL ;
 
       	// set default values
       	params->argc = argc ;
@@ -62,14 +75,18 @@
         params->num_servers   = 1 ;
         strcpy(params->data_prefix, DEFAULT_DATA_PREFIX) ;
 
-        params->file_protocol = FILE_USE_POSIX ;
-        strcpy(params->file_protocol_name, "POSIX") ;
+        params->file_backend = FILE_USE_POSIX ;
+        strcpy(params->file_backend_name, "POSIX") ;
+
+        params->directory_backend = DIRECTORY_USE_POSIX ;
+        strcpy(params->directory_backend_name, "POSIX") ;
 
         params->thread_launch = THREAD_USE_ONDEMAND ;
         strcpy(params->thread_launch_name, "On demand") ;
 
 	// getopt_long...
-        c = getopt_long(*argc, *argv, "vp:d:t:n:", long_options, &option_index) ;
+	short_opt = "vd:n:p:b:t:" ;
+        c = getopt_long(*argc, *argv, short_opt, long_options, &option_index) ;
 	while (c != -1)
 	{
            switch (c)
@@ -78,19 +95,34 @@
 		  // verbose
                   break ;
 
+	     case 'd':
+		  strcpy(params->data_prefix, optarg) ;
+                  break ;
+
+	     case 'n':
+		  params->num_servers = atoi(optarg) ;
+                  break ;
+
 	     case 'p':
 		  if (!strcmp("POSIX",  optarg)) {
-		      params->file_protocol = FILE_USE_POSIX ;
-		      strcpy(params->file_protocol_name, "POSIX") ;
+		      params->file_backend = FILE_USE_POSIX ;
+		      strcpy(params->file_backend_name, "POSIX") ;
 		  }
 		  if (!strcmp("MPI-IO", optarg)) {
-		      params->file_protocol = FILE_USE_MPI_IO ;
-		      strcpy(params->file_protocol_name, "MPI-IO") ;
+		      params->file_backend = FILE_USE_MPI_IO ;
+		      strcpy(params->file_backend_name, "MPI-IO") ;
 		  }
                   break ;
 
-	     case 'd':
-		  strcpy(params->data_prefix, optarg) ;
+	     case 'b':
+		  if (!strcmp("POSIX",  optarg)) {
+		      params->directory_backend = DIRECTORY_USE_POSIX ;
+		      strcpy(params->directory_backend_name, "POSIX") ;
+		  }
+		  if (!strcmp("REDIS", optarg)) {
+		      params->directory_backend = DIRECTORY_USE_REDIS ;
+		      strcpy(params->directory_backend_name, "REDIS") ;
+		  }
                   break ;
 
 	     case 't':
@@ -104,21 +136,16 @@
 		  }
                   break ;
 
-	     case 'n':
-		  params->num_servers = atoi(optarg) ;
-                  break ;
-
              case '?':
                   mfs_params_show_usage() ;
                   exit(-1) ;
                   break ;
 
              default:
-                  mfs_params_show_usage() ;
-                  exit(-1) ;
+                  break ;
            }
 
-           c = getopt_long(*argc, *argv, "vp:d:t:n:", long_options, &option_index) ;
+           c = getopt_long(*argc, *argv, short_opt, long_options, &option_index) ;
 	}
 
       	// return OK

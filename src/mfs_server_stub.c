@@ -204,7 +204,7 @@ int serverstub_disconnect ( comm_t *ab, int remote_rank )
  *  File System API
  */
 
-int serverstub_open ( comm_t *ab, int *fd, int file_protocol, char *base_dirname, int pathname_length, int flags )
+int serverstub_open ( comm_t *ab, int *fd, int file_backend, char *base_dirname, int pathname_length, int flags )
 {
     int   ret ;
     char *buff_data_sys ;
@@ -231,7 +231,7 @@ int serverstub_open ( comm_t *ab, int *fd, int file_protocol, char *base_dirname
     {
         mfs_print(DBG_INFO, "Server[%d]: request 'open' for filename %s\n", mfs_comm_get_rank(ab), buff_data_sys) ;
 
-	ret = mfs_file_open(fd, file_protocol, buff_data_sys, flags) ;
+	ret = mfs_file_open(fd, file_backend, buff_data_sys, flags) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: file not opened :-(", mfs_comm_get_rank(ab)) ;
         }
