@@ -20,26 +20,26 @@
  */
 
 
-#include "mfs_files_red.h"
+#include "mfs_files_redis.h"
 
 
 /*
  *  File System API
  */
 
-int  mfs_file_red_init ( void )
+int  mfs_file_redis_init ( void )
 {
     // Return OK
     return 1 ;
 }
 
-int  mfs_file_red_finalize ( void )
+int  mfs_file_redis_finalize ( void )
 {
     // Return OK
     return 1 ;
 }
 
-int  mfs_file_red_open  ( redisContext **red_ctxt, char **red_key, const char *path_name )
+int  mfs_file_redis_open  ( redisContext **red_ctxt, char **red_key, const char *path_name )
 {
      int  ret ;
 
@@ -59,7 +59,7 @@ int  mfs_file_red_open  ( redisContext **red_ctxt, char **red_key, const char *p
      return ret ;
 }
 
-int  mfs_file_red_close ( redisContext  *red_ctxt, char **red_key )
+int  mfs_file_redis_close ( redisContext  *red_ctxt, char **red_key )
 {
      // Close file
      redisFree(red_ctxt) ;
@@ -70,7 +70,7 @@ int  mfs_file_red_close ( redisContext  *red_ctxt, char **red_key )
      return 1 ;
 }
 
-int  mfs_file_red_read   ( redisContext  *red_ctxt, char  *red_key, long *offset, void *buffer, int buffer_size )
+int  mfs_file_redis_read   ( redisContext  *red_ctxt, char  *red_key, long *offset, void *buffer, int buffer_size )
 {
     redisReply *reply = NULL ;
     long to_read = buffer_size ;
@@ -88,7 +88,7 @@ int  mfs_file_red_read   ( redisContext  *red_ctxt, char  *red_key, long *offset
     return to_read ;
 }
 
-int  mfs_file_red_write  ( redisContext  *red_ctxt, char  *red_key, long *offset, void *buffer, int buffer_size )
+int  mfs_file_redis_write  ( redisContext  *red_ctxt, char  *red_key, long *offset, void *buffer, int buffer_size )
 {
     redisReply *reply = NULL ;
 

@@ -24,6 +24,68 @@
 
 
 /*
+ *  Auxiliar API
+ */
+
+long clientstub_action_over_named_resource ( comm_t *wb, const char *pathname, int pathname_size, int opt, int action )
+{
+    int  ret = 0 ;
+    long status ;
+
+    // Send action msg
+    if (ret >= 0)
+    {
+        ret = mfs_comm_request_send(wb, 0, action, pathname_size, opt) ;
+    }
+
+    // Send pathname
+    if (ret >= 0)
+    {
+        ret = mfs_comm_send_data_to(wb, 0, (void *)pathname, pathname_size, MPI_CHAR) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: pathname cannot be sent :-(", mfs_comm_get_rank(wb)) ;
+        }
+    }
+
+    // Receive status
+    if (ret >= 0)
+    {
+        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_LONG) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
+        }
+    }
+
+    // Return status
+    return status ;
+}
+
+int clientstub_action_over_fd_resource ( comm_t *wb, long fd, int opt, int action )
+{
+    int ret = 0 ;
+    int status ;
+
+    // Send action msg
+    if (ret >= 0)
+    {
+        ret = mfs_comm_request_send(wb, 0, action, fd, opt) ;
+    }
+
+    // Receive status
+    if (ret >= 0)
+    {
+        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
+        }
+    }
+
+    // Return OK/KO
+    return ret ;
+}
+
+
+/*
  *  File System API
  */
 
@@ -98,59 +160,12 @@ int clientstub_finalize ( comm_t *wb )
 
 long clientstub_open ( comm_t *wb, const char *pathname, int flags )
 {
-    int  ret = 0 ;
-    long fd  = -1 ;
-
-    // Send open msg
-    if (ret >= 0)
-    {
-        ret = mfs_comm_request_send(wb, 0, REQ_ACTION_OPEN, strlen(pathname) + 1, flags) ;
-    }
-
-    // Send pathname
-    if (ret >= 0)
-    {
-        ret = mfs_comm_send_data_to(wb, 0, (void *)pathname, strlen(pathname) + 1, MPI_CHAR) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: pathname cannot be sent :-(", mfs_comm_get_rank(wb)) ;
-        }
-    }
-
-    // Receive descriptor
-    if (ret >= 0)
-    {
-        ret = mfs_comm_recv_data_from(wb, 0, &fd, 1, MPI_LONG) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: file descriptor not received :-(", mfs_comm_get_rank(wb)) ;
-        }
-    }
-
-    // Return file descriptor
-    return fd ;
+     return clientstub_action_over_named_resource(wb, pathname, strlen(pathname) + 1, flags, REQ_ACTION_OPEN) ;
 }
 
-int clientstub_close ( comm_t *wb, long fd )
+int  clientstub_close ( comm_t *wb, long fd )
 {
-    int ret = 0 ;
-    int status ;
-
-    // Send close msg
-    if (ret >= 0)
-    {
-        ret = mfs_comm_request_send(wb, 0, REQ_ACTION_CLOSE, fd, 0) ;
-    }
-
-    // Receive status
-    if (ret >= 0)
-    {
-        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
-        }
-    }
-
-    // Return OK/KO
-    return ret ;
+     return clientstub_action_over_fd_resource(wb, fd, 0, REQ_ACTION_CLOSE) ;
 }
 
 int clientstub_read ( comm_t *wb, long fd, void *buff_char, int count )
@@ -263,68 +278,12 @@ int clientstub_write ( comm_t *wb, long fd, void *buff_char, int count )
 
 long clientstub_mkdir ( comm_t *wb, const char *pathname, int mode )
 {
-    int ret = 0 ;
-    int status ;
-
-    // Send open msg
-    if (ret >= 0)
-    {
-        ret = mfs_comm_request_send(wb, 0, REQ_ACTION_MKDIR, strlen(pathname) + 1, mode) ;
-    }
-
-    // Send pathname
-    if (ret >= 0)
-    {
-        ret = mfs_comm_send_data_to(wb, 0, (void *)pathname, strlen(pathname) + 1, MPI_CHAR) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: pathname cannot be sent :-(", mfs_comm_get_rank(wb)) ;
-        }
-    }
-
-    // Receive status
-    if (ret >= 0)
-    {
-        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
-        }
-    }
-
-    // Return status
-    return status ;
+     return clientstub_action_over_named_resource(wb, pathname, strlen(pathname) + 1, mode, REQ_ACTION_MKDIR) ;
 }
 
 long clientstub_rmdir ( comm_t *wb, const char *pathname )
 {
-    int ret = 0 ;
-    int status ;
-
-    // Send open msg
-    if (ret >= 0)
-    {
-        ret = mfs_comm_request_send(wb, 0, REQ_ACTION_RMDIR, strlen(pathname) + 1, 0) ;
-    }
-
-    // Send pathname
-    if (ret >= 0)
-    {
-        ret = mfs_comm_send_data_to(wb, 0, (void *)pathname, strlen(pathname) + 1, MPI_CHAR) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: pathname cannot be sent :-(", mfs_comm_get_rank(wb)) ;
-        }
-    }
-
-    // Receive status
-    if (ret >= 0)
-    {
-        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
-        }
-    }
-
-    // Return status
-    return status ;
+     return clientstub_action_over_named_resource(wb, pathname, strlen(pathname) + 1,    0, REQ_ACTION_RMDIR) ;
 }
 
 
@@ -334,59 +293,12 @@ long clientstub_rmdir ( comm_t *wb, const char *pathname )
 
 long clientstub_dbmopen ( comm_t *wb, const char *pathname, int flags )
 {
-    int  ret = 0 ;
-    long fd  = -1 ;
-
-    // Send open msg
-    if (ret >= 0)
-    {
-        ret = mfs_comm_request_send(wb, 0, REQ_ACTION_DBMOPEN, strlen(pathname) + 1, flags) ;
-    }
-
-    // Send pathname
-    if (ret >= 0)
-    {
-        ret = mfs_comm_send_data_to(wb, 0, (void *)pathname, strlen(pathname) + 1, MPI_CHAR) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: pathname cannot be sent :-(", mfs_comm_get_rank(wb)) ;
-        }
-    }
-
-    // Receive descriptor
-    if (ret >= 0)
-    {
-        ret = mfs_comm_recv_data_from(wb, 0, &fd, 1, MPI_LONG) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: file descriptor not received :-(", mfs_comm_get_rank(wb)) ;
-        }
-    }
-
-    // Return file descriptor
-    return fd ;
+     return clientstub_action_over_named_resource(wb, pathname, strlen(pathname) + 1, flags, REQ_ACTION_DBMOPEN) ;
 }
 
 int  clientstub_dbmclose ( comm_t *wb, long fd )
 {
-    int ret = 0 ;
-    int status ;
-
-    // Send close msg
-    if (ret >= 0)
-    {
-        ret = mfs_comm_request_send(wb, 0, REQ_ACTION_DBMCLOSE, fd, 0) ;
-    }
-
-    // Receive status
-    if (ret >= 0)
-    {
-        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
-        }
-    }
-
-    // Return OK/KO
-    return ret ;
+     return clientstub_action_over_fd_resource(wb, fd, 0, REQ_ACTION_DBMCLOSE) ;
 }
 
 int  clientstub_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int count_val )

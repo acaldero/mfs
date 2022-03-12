@@ -24,6 +24,7 @@
 
     // Includes
     #include "mfs_lib.h"
+    #include "mfs_descriptors.h"
     #include "mfs_dbm_ndbm.h"
 
     #include <stdio.h>

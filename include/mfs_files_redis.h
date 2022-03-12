@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef __MFS_DIRECTORIES_RED_H__
-#define __MFS_DIRECTORIES_RED_H__
+#ifndef __MFS_FILES_RED_H__
+#define __MFS_FILES_RED_H__
 
     // Includes
     #include "mfs_lib.h"
@@ -32,13 +32,13 @@
 
 
     // API
-    int   mfs_directory_red_init     ( void ) ;
-    int   mfs_directory_red_finalize ( void ) ;
-    int   mfs_directory_red_opendir  ( redisContext **red_ctxt, char **red_key, const char *path_name ) ;
-    int   mfs_directory_red_closedir ( redisContext  *red_ctxt, char **red_key ) ;
-    int   mfs_directory_red_readdir  ( redisContext  *red_ctxt, char  *red_key, void *buffer, int buffer_size ) ;
-    int   mfs_directory_red_mkdir    ( redisContext  *red_ctxt, char  *red_key, char *path_name, mode_t mode ) ;
-    int   mfs_directory_red_rmdir    ( redisContext  *red_ctxt, char  *red_key, char *path_name ) ;
+    int  mfs_file_redis_init     ( void ) ;
+    int  mfs_file_redis_finalize ( void ) ;
+
+    int  mfs_file_redis_open  ( redisContext **red_ctxt, char **red_key, const char *path_name ) ;
+    int  mfs_file_redis_close ( redisContext  *red_ctxt, char **red_key ) ;
+    int  mfs_file_redis_read  ( redisContext  *red_ctxt, char  *red_key, long *offset, void *buffer, int buffer_size ) ;
+    int  mfs_file_redis_write ( redisContext  *red_ctxt, char  *red_key, long *offset, void *buffer, int buffer_size ) ;
 
 #endif
 

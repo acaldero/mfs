@@ -25,8 +25,9 @@
     // Includes
     #include "mpi.h"
     #include "mfs_lib.h"
+    #include "mfs_descriptors.h"
     #include "mfs_directories_posix.h"
-    #include "mfs_directories_red.h"
+    #include "mfs_directories_redis.h"
 
 
     // Directory protocol

@@ -20,26 +20,26 @@
  */
 
 
-#include "mfs_directories_red.h"
+#include "mfs_directories_redis.h"
 
 
 /*
  *  File System API
  */
 
-int  mfs_directory_red_init ( void )
+int  mfs_directory_redis_init ( void )
 {
     // Return OK
     return 1 ;
 }
 
-int  mfs_directory_red_finalize ( void )
+int  mfs_directory_redis_finalize ( void )
 {
     // Return OK
     return 1 ;
 }
 
-int  mfs_directory_red_opendir  ( redisContext **red_ctxt, char **red_key, const char *path_name )
+int  mfs_directory_redis_opendir  ( redisContext **red_ctxt, char **red_key, const char *path_name )
 {
     int ret = -1 ;
 
@@ -53,7 +53,7 @@ int  mfs_directory_red_opendir  ( redisContext **red_ctxt, char **red_key, const
     return 1 ;
 }
 
-int   mfs_directory_red_closedir ( redisContext  *red_ctxt, char **red_key )
+int   mfs_directory_redis_closedir ( redisContext  *red_ctxt, char **red_key )
 {
     int ret = -1 ;
 
@@ -67,7 +67,7 @@ int   mfs_directory_red_closedir ( redisContext  *red_ctxt, char **red_key )
     return 1 ;
 }
 
-int  mfs_directory_red_readdir   ( redisContext  *red_ctxt, char  *red_key, void *buffer, int buffer_size )
+int  mfs_directory_redis_readdir   ( redisContext  *red_ctxt, char  *red_key, void *buffer, int buffer_size )
 {
     int ret = -1 ;
 
@@ -81,7 +81,7 @@ int  mfs_directory_red_readdir   ( redisContext  *red_ctxt, char  *red_key, void
     return ret ;
 }
 
-int   mfs_directory_red_mkdir  ( redisContext  *red_ctxt, char  *red_key, char *path_name, mode_t mode )
+int   mfs_directory_redis_mkdir  ( redisContext  *red_ctxt, char  *red_key, char *path_name, mode_t mode )
 {
     int ret = -1 ;
 
@@ -95,7 +95,7 @@ int   mfs_directory_red_mkdir  ( redisContext  *red_ctxt, char  *red_key, char *
     return ret ;
 }
 
-int   mfs_directory_red_rmdir  ( redisContext  *red_ctxt, char  *red_key, char *path_name )
+int   mfs_directory_redis_rmdir  ( redisContext  *red_ctxt, char  *red_key, char *path_name )
 {
     int ret = -1 ;
 

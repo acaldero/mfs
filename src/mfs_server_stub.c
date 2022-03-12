@@ -476,7 +476,7 @@ int serverstub_write ( comm_t *ab, int fd, int count )
 
 int serverstub_mkdir ( comm_t *ab, char *base_dirname, int pathname_length, int mode )
 {
-    int   ret ;
+    long  ret ;
     char *buff_data_sys ;
 
     // Check params...
@@ -510,7 +510,7 @@ int serverstub_mkdir ( comm_t *ab, char *base_dirname, int pathname_length, int 
     // send back status
     if (ret >= 0)
     {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_LONG) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(", mfs_comm_get_rank(ab)) ;
         }
@@ -531,7 +531,7 @@ int serverstub_mkdir ( comm_t *ab, char *base_dirname, int pathname_length, int 
 
 int serverstub_rmdir ( comm_t *ab, char *base_dirname, int pathname_length )
 {
-    int   ret ;
+    long  ret ;
     char *buff_data_sys ;
 
     // Check params...
@@ -565,7 +565,7 @@ int serverstub_rmdir ( comm_t *ab, char *base_dirname, int pathname_length )
     // send back status
     if (ret >= 0)
     {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_LONG) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(", mfs_comm_get_rank(ab)) ;
         }
@@ -667,7 +667,7 @@ int serverstub_dbmclose ( comm_t *ab, int fd )
     // send back status
     if (ret >= 0)
     {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_LONG) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(", mfs_comm_get_rank(ab)) ;
         }

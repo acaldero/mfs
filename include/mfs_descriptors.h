@@ -19,26 +19,35 @@
  *
  */
 
-#ifndef __MFS_FILES_RED_H__
-#define __MFS_FILES_RED_H__
+#ifndef __MFS_DESCRIPTORS_H__
+#define __MFS_DESCRIPTORS_H__
 
     // Includes
     #include "mfs_lib.h"
-    #include <hiredis/hiredis.h>
+
     #include <stdio.h>
     #include <stdlib.h>
-    #include <unistd.h>
-    #include <fcntl.h>
+
+
+    // Datatypes
+    typedef struct {
+         pthread_mutex_t   mutex ;
+         int               hash_neltos ;
+         void             *hash_eltos ;
+         int              *been_used ;
+         int              *file_fd ;
+    } descriptor_t ;
 
 
     // API
-    int  mfs_file_red_init     ( void ) ;
-    int  mfs_file_red_finalize ( void ) ;
+    int   mfs_descriptor_init      ( descriptor_t *des, int neltos, int elto_size ) ;
+    int   mfs_descriptor_finalize  ( descriptor_t *des ) ;
 
-    int  mfs_file_red_open  ( redisContext **red_ctxt, char **red_key, const char *path_name ) ;
-    int  mfs_file_red_close ( redisContext  *red_ctxt, char **red_key ) ;
-    int  mfs_file_red_read  ( redisContext  *red_ctxt, char  *red_key, long *offset, void *buffer, int buffer_size ) ;
-    int  mfs_file_red_write ( redisContext  *red_ctxt, char  *red_key, long *offset, void *buffer, int buffer_size ) ;
+    int   mfs_descriptor_find_free ( descriptor_t *des, int elto_size ) ;
+    void  mfs_descriptor_set_free  ( descriptor_t *des, int fd ) ;
+    int   mfs_descriptor_is_free   ( descriptor_t *des, int fd ) ;
+
+    void *mfs_descriptor_fd2fh     ( descriptor_t *des, int fd, int elto_size ) ;
 
 #endif
 

@@ -24,70 +24,40 @@
 
 
 /*
- *  Auxiliar functions
- */
-
-            int mfs_file_hash_neltos = 1024 ;
-         file_t mfs_file_hash_eltos[1024] ;
-pthread_mutex_t mfs_file_mutex = PTHREAD_MUTEX_INITIALIZER ;
-
-int mfs_file_find_free ( void )
-{
-    pthread_mutex_lock(&mfs_file_mutex) ;
-    for (int i=0; i<mfs_file_hash_neltos; i++)
-    {
-	 if (0 == mfs_file_hash_eltos[i].been_used)
-	 {
-             memset(&(mfs_file_hash_eltos[i]), 0, sizeof(file_t)) ;
-	     mfs_file_hash_eltos[i].been_used = 1 ;
-	     mfs_file_hash_eltos[i].file_fd   = i ;
-             pthread_mutex_unlock(&mfs_file_mutex) ;
-	     return i ;
-	 }
-    }
-
-    pthread_mutex_unlock(&mfs_file_mutex) ;
-    return -1 ;
-}
-
-void mfs_file_set_free ( int fd )
-{
-    pthread_mutex_lock(&mfs_file_mutex) ;
-     mfs_file_hash_eltos[fd].been_used = 0 ;
-     mfs_file_hash_eltos[fd].file_fd   = -1 ;
-    pthread_mutex_unlock(&mfs_file_mutex) ;
-}
-
-
-/*
  *  File System API: descriptors
  */
+
+descriptor_t mfs_files_des ;
+
 
 long  mfs_file_fd2long ( int fd )
 {
     file_t *fh ;
 
-    // Check params...
-    if ( (fd < 0) || (fd >= mfs_file_hash_neltos) ) {
+    // Get file handler
+    fh = (file_t *)mfs_descriptor_fd2fh(&mfs_files_des, fd, sizeof(file_t)) ;
+    if (NULL == fh) {
 	return -1 ;
     }
 
     // Return file descriptor
-    fh = &(mfs_file_hash_eltos[fd]) ;
-    return fh->file_fd ;
+    return (long)fd ;
 }
 
-int mfs_file_long2fd ( int *fd, long fref, int file_backend )
+int mfs_file_long2fd ( int *fd, long fref )
 {
     file_t *fh ;
 
-    // Check params...
-    if ( (fref < 0) || (fref >= mfs_file_hash_neltos) ) {
+    // Get file handler
+    fh = (file_t *)mfs_descriptor_fd2fh(&mfs_files_des, fref, sizeof(file_t)) ;
+    if (NULL == fh) {
 	return -1 ;
     }
 
-    // Return OK
+    // Get associated file descriptor (itself)
     (*fd) = fref ;
+
+    // Return OK
     return 1 ;
 }
 
@@ -95,26 +65,22 @@ int  mfs_file_stats_show ( int fd, char *prefix )
 {
     file_t *fh ;
 
-    // Check params...
-    if ( (fd < 0) || (fd >= mfs_file_hash_neltos) ) {
-	return -1 ;
-    }
-
-    fh = &(mfs_file_hash_eltos[fd]) ;
-    if (fh->been_used != 1) {
+    // Get file handler
+    fh = (file_t *)mfs_descriptor_fd2fh(&mfs_files_des, fd, sizeof(file_t)) ;
+    if (NULL == fh) {
 	return -1 ;
     }
 
     // Print stats...
-    printf("%s: File:\n",           prefix) ;
-    printf("%s: + been_used=%d\n",  prefix, fh->been_used) ;
-    printf("%s: + file_fd=%d\n",    prefix, fh->file_fd) ;
-    printf("%s: + protocol=%s\n",   prefix, fh->file_backend_name) ;
-    printf("%s:   + posix_fd=%d\n", prefix, fh->posix_fd) ;
-    printf("%s:   + mpiio_fd=%d\n", prefix, fh->mpiio_fd) ;
-    printf("%s: + offset=%ld\n",    prefix, fh->offset) ;
-    printf("%s: + # read=%ld\n",    prefix, fh->n_read_req) ;
-    printf("%s: + # write=%ld\n",   prefix, fh->n_write_req) ;
+    printf("%s: File:\n",            prefix) ;
+    printf("%s: + been_used=1\n",    prefix) ;
+    printf("%s: + file_fd=%d\n",     prefix, fd) ;
+    printf("%s: + protocol=%s\n",    prefix, fh->file_backend_name) ;
+    printf("%s:   + posix_fd=%d\n",  prefix, fh->posix_fd) ;
+    printf("%s:   + mpiio_fd=%d\n",  prefix, fh->mpiio_fd) ;
+    printf("%s: + offset=%ld\n",     prefix, fh->offset) ;
+    printf("%s: + # read=%ld\n",     prefix, fh->n_read_req) ;
+    printf("%s: + # write=%ld\n",    prefix, fh->n_write_req) ;
 
     // Return OK
     return 1 ;
@@ -129,6 +95,12 @@ int  mfs_file_init ( void )
 {
     int  ret ;
 
+    // initialize descriptors
+    ret = mfs_descriptor_init(&mfs_files_des, 1024, sizeof(file_t)) ;
+    if (ret < 0) {
+	return -1 ;
+    }
+
     // initialize all protocols
     ret = mfs_file_posix_init() ;
     if (ret < 0) {
@@ -140,7 +112,7 @@ int  mfs_file_init ( void )
 	return -1 ;
     }
 
-    ret = mfs_file_red_init() ;
+    ret = mfs_file_redis_init() ;
     if (ret < 0) {
 	return -1 ;
     }
@@ -164,7 +136,13 @@ int  mfs_file_finalize ( void )
 	return -1 ;
     }
 
-    ret = mfs_file_red_finalize() ;
+    ret = mfs_file_redis_finalize() ;
+    if (ret < 0) {
+	return -1 ;
+    }
+
+    // finalize descriptors
+    ret = mfs_descriptor_finalize(&mfs_files_des) ;
     if (ret < 0) {
 	return -1 ;
     }
@@ -184,13 +162,13 @@ int  mfs_file_open ( int *fd, int file_backend, const char *path_name, int flags
     }
 
     // Initialize fd
-    (*fd) = ret = mfs_file_find_free() ;
+    (*fd) = ret = mfs_descriptor_find_free(&mfs_files_des, sizeof(file_t)) ;
     if (ret < 0) {
 	return -1 ;
     }
 
     // Open file
-    fh = &(mfs_file_hash_eltos[ret]) ;
+    fh = (file_t *)mfs_descriptor_fd2fh(&mfs_files_des, ret, sizeof(file_t)) ;
     fh->file_backend = file_backend ;
     switch (fh->file_backend)
     {
@@ -206,7 +184,7 @@ int  mfs_file_open ( int *fd, int file_backend, const char *path_name, int flags
 
         case FILE_USE_REDIS:
              fh->file_backend_name = "REDIS" ;
-             ret = mfs_file_red_open(&(fh->redis_ctxt), &(fh->redis_key), path_name) ;
+             ret = mfs_file_redis_open(&(fh->redis_ctxt), &(fh->redis_key), path_name) ;
              break ;
 
         default:
@@ -225,12 +203,8 @@ int   mfs_file_close ( int fd )
     file_t *fh ;
 
     // Check params...
-    if ( (fd < 0) || (fd >= mfs_file_hash_neltos) ) {
-	return -1 ;
-    }
-
-    fh = &(mfs_file_hash_eltos[fd]) ;
-    if (fh->been_used != 1) {
+    fh = (file_t *)mfs_descriptor_fd2fh(&mfs_files_des, fd, sizeof(file_t)) ;
+    if (NULL == fh) {
 	return -1 ;
     }
 
@@ -246,7 +220,7 @@ int   mfs_file_close ( int fd )
              break ;
 
         case FILE_USE_REDIS:
-             ret = mfs_file_red_close(fh->redis_ctxt, &(fh->redis_key)) ;
+             ret = mfs_file_redis_close(fh->redis_ctxt, &(fh->redis_key)) ;
              break ;
 
         default:
@@ -256,7 +230,7 @@ int   mfs_file_close ( int fd )
     }
 
     // Return OK
-    mfs_file_set_free(fd) ;
+    mfs_descriptor_set_free(&mfs_files_des, fd) ;
     return ret ;
 }
 
@@ -266,12 +240,8 @@ int   mfs_file_read  ( int  fd, void *buff_data, int count )
     file_t *fh ;
 
     // Check params...
-    if ( (fd < 0) || (fd >= mfs_file_hash_neltos) ) {
-	return -1 ;
-    }
-
-    fh = &(mfs_file_hash_eltos[fd]) ;
-    if (fh->been_used != 1) {
+    fh = (file_t *)mfs_descriptor_fd2fh(&mfs_files_des, fd, sizeof(file_t)) ;
+    if (NULL == fh) {
 	return -1 ;
     }
 
@@ -287,7 +257,7 @@ int   mfs_file_read  ( int  fd, void *buff_data, int count )
              break ;
 
         case FILE_USE_REDIS:
-             ret = mfs_file_red_read(fh->redis_ctxt, fh->redis_key, &(fh->offset), buff_data, count) ;
+             ret = mfs_file_redis_read(fh->redis_ctxt, fh->redis_key, &(fh->offset), buff_data, count) ;
              break ;
 
         default:
@@ -309,12 +279,8 @@ int   mfs_file_write  ( int  fd, void *buff_data, int count )
     file_t *fh ;
 
     // Check params...
-    if ( (fd < 0) || (fd >= mfs_file_hash_neltos) ) {
-	return -1 ;
-    }
-
-    fh = &(mfs_file_hash_eltos[fd]) ;
-    if (fh->been_used != 1) {
+    fh = (file_t *)mfs_descriptor_fd2fh(&mfs_files_des, fd, sizeof(file_t)) ;
+    if (NULL == fh) {
 	return -1 ;
     }
 
@@ -330,7 +296,7 @@ int   mfs_file_write  ( int  fd, void *buff_data, int count )
              break ;
 
         case FILE_USE_REDIS:
-             ret = mfs_file_red_write(fh->redis_ctxt, fh->redis_key, &(fh->offset), buff_data, count) ;
+             ret = mfs_file_redis_write(fh->redis_ctxt, fh->redis_key, &(fh->offset), buff_data, count) ;
              break ;
 
         default:

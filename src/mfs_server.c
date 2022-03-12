@@ -81,17 +81,17 @@
 	           break;
 
 	      case REQ_ACTION_CLOSE:
-		   ret = mfs_file_long2fd(&(fd), msg.req_arg1, params.file_backend) ;
+		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
                    ret = serverstub_close(&th.ab, fd) ;
 	           break;
 
 	      case REQ_ACTION_READ:
-		   ret = mfs_file_long2fd(&(fd), msg.req_arg1, params.file_backend) ;
+		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
                    ret = serverstub_read(&th.ab, fd, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_WRITE:
-		   ret = mfs_file_long2fd(&(fd), msg.req_arg1, params.file_backend) ;
+		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
                    ret = serverstub_write(&th.ab, fd, msg.req_arg2) ;
 	           break;
 
@@ -110,22 +110,22 @@
 	           break;
 
 	      case REQ_ACTION_DBMCLOSE:
-		   ret = mfs_file_long2fd(&(fd), msg.req_arg1, params.file_backend) ;
+		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
                    ret = serverstub_dbmclose(&th.ab, fd) ;
 	           break;
 
 	      case REQ_ACTION_DBMSTORE:
-		   ret = mfs_file_long2fd(&(fd), msg.req_arg1, params.file_backend) ;
+		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
                    ret = serverstub_dbmstore(&th.ab, fd, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_DBMFETCH:
-		   ret = mfs_file_long2fd(&(fd), msg.req_arg1, params.file_backend) ;
+		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
                    ret = serverstub_dbmfetch(&th.ab, fd, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_DBMDELETE:
-		   ret = mfs_file_long2fd(&(fd), msg.req_arg1, params.file_backend) ;
+		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
                    ret = serverstub_dbmdelete(&th.ab, fd, msg.req_arg2) ;
 	           break;
 

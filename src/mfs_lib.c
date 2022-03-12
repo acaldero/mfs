@@ -95,6 +95,7 @@ int mfs_malloc ( char **ptr, long size )
     // alloc buffer
     (*ptr) = (char *)malloc(size) ;
     if (NULL == (*ptr)) {
+	perror("malloc: ") ;
 	return -1 ;
     }
 

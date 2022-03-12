@@ -24,9 +24,10 @@
 
     // Includes
     #include "mfs_lib.h"
+    #include "mfs_descriptors.h"
     #include "mfs_files_posix.h"
     #include "mfs_files_mpi.h"
-    #include "mfs_files_red.h"
+    #include "mfs_files_redis.h"
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -41,9 +42,6 @@
     // Datatypes
     typedef struct
     {
-        int   been_used ;
-        int   file_fd ;
-
         // underlying protocol
         int   file_backend ;
         char *file_backend_name ;
@@ -68,7 +66,7 @@
     int   mfs_file_finalize   ( void ) ;
 
     long  mfs_file_fd2long    ( int  fd ) ;
-    int   mfs_file_long2fd    ( int *fd, long fref, int file_backend ) ;
+    int   mfs_file_long2fd    ( int *fd, long fref ) ;
     int   mfs_file_stats_show ( int  fd, char *prefix ) ;
 
     int   mfs_file_open       ( int *fd, int file_backend, const char *path_name, int flags ) ;
