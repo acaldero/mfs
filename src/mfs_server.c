@@ -28,7 +28,7 @@
 
 
    // stats
-   char    *ver     = "0.9" ;
+   char    *ver     = "0.92" ;
    int      the_end = 0 ;
    long     t1      = 0L ;
    params_t params ;
@@ -71,7 +71,6 @@
 	           break;
 
               case REQ_ACTION_DISCONNECT:
-              case REQ_ACTION_ATEXIT:
 	           mfs_print(DBG_INFO, "Server[%d]: request 'disconnect'\n", th.ab.rank) ;
 	           again = 0 ;
 	           break;
@@ -105,6 +104,32 @@
                    ret = serverstub_rmdir(&th.ab, params.data_prefix, msg.req_arg1) ;
 	           break;
 
+              // DBM Files
+	      case REQ_ACTION_DBMOPEN:
+                   ret = serverstub_dbmopen(&th.ab, &fd, params.file_backend, params.data_prefix, msg.req_arg1, msg.req_arg2) ;
+	           break;
+
+	      case REQ_ACTION_DBMCLOSE:
+		   ret = mfs_file_long2fd(&(fd), msg.req_arg1, params.file_backend) ;
+                   ret = serverstub_dbmclose(&th.ab, fd) ;
+	           break;
+
+	      case REQ_ACTION_DBMSTORE:
+		   ret = mfs_file_long2fd(&(fd), msg.req_arg1, params.file_backend) ;
+                   ret = serverstub_dbmstore(&th.ab, fd, msg.req_arg2) ;
+	           break;
+
+	      case REQ_ACTION_DBMFETCH:
+		   ret = mfs_file_long2fd(&(fd), msg.req_arg1, params.file_backend) ;
+                   ret = serverstub_dbmfetch(&th.ab, fd, msg.req_arg2) ;
+	           break;
+
+	      case REQ_ACTION_DBMDELETE:
+		   ret = mfs_file_long2fd(&(fd), msg.req_arg1, params.file_backend) ;
+                   ret = serverstub_dbmdelete(&th.ab, fd, msg.req_arg2) ;
+	           break;
+
+	      // Default
               default:
 	           mfs_print(DBG_ERROR, "Server[%d]: unexpected message type: %d\n", th.ab.rank, msg.req_action) ;
           }

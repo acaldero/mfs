@@ -24,10 +24,13 @@
 
     // Includes
     #include "mpi.h"
+
     #include "mfs_lib.h"
     #include "mfs_protocol.h"
+
     #include "mfs_files.h"
     #include "mfs_directories.h"
+    #include "mfs_dbm.h"
 
 
     // Define
@@ -64,6 +67,13 @@
     // Directory API
     int  serverstub_mkdir   ( comm_t *ab, char *base_dirname, int pathname_length, int mode ) ;
     int  serverstub_rmdir   ( comm_t *ab, char *base_dirname, int pathname_length ) ;
+
+     // DBM File API
+     int serverstub_dbmopen   ( comm_t *ab, int *fd, int dbmfile_backend, char *base_dirname, int pathname_length, int flags ) ;
+     int serverstub_dbmclose  ( comm_t *ab, int  fd ) ;
+     int serverstub_dbmstore  ( comm_t *ab, int  fd, int count ) ;
+     int serverstub_dbmfetch  ( comm_t *ab, int  fd, int count ) ;
+     int serverstub_dbmdelete ( comm_t *ab, int  fd, int count ) ;
 
 #endif
 

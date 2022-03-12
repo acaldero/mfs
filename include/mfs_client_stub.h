@@ -33,14 +33,21 @@
     int clientstub_finalize ( comm_t *wb ) ;
 
     // File API
-    long clientstub_open  ( comm_t *wb, const char *pathname, int flags ) ;
-    int  clientstub_close ( comm_t *wb, long fd ) ;
-    int  clientstub_read  ( comm_t *wb, long fd, void *buf, int count ) ;
-    int  clientstub_write ( comm_t *wb, long fd, void *buf, int count ) ;
+    long clientstub_open    ( comm_t *wb, const char *pathname, int flags ) ;
+    int  clientstub_close   ( comm_t *wb, long fd ) ;
+    int  clientstub_read    ( comm_t *wb, long fd, void *buf, int count ) ;
+    int  clientstub_write   ( comm_t *wb, long fd, void *buf, int count ) ;
 
     // Directory API
-    long clientstub_mkdir ( comm_t *wb, const char *pathname, int mode ) ;
-    long clientstub_rmdir ( comm_t *wb, const char *pathname ) ;
+    long clientstub_mkdir   ( comm_t *wb, const char *pathname, int mode ) ;
+    long clientstub_rmdir   ( comm_t *wb, const char *pathname ) ;
+
+    // DBM File API
+    long clientstub_dbmopen   ( comm_t *wb, const char *pathname, int flags ) ;
+    int  clientstub_dbmclose  ( comm_t *wb, long fd ) ;
+    int  clientstub_dbmstore  ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int  count_val ) ;
+    int  clientstub_dbmfetch  ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int *count_val ) ;
+    int  clientstub_dbmdelete ( comm_t *wb, long fd, void *buff_key, int count_key ) ;
 
 #endif
 

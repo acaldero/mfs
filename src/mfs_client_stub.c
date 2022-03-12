@@ -327,3 +327,168 @@ long clientstub_rmdir ( comm_t *wb, const char *pathname )
     return status ;
 }
 
+
+/*
+ *  DBM File API
+ */
+
+long clientstub_dbmopen ( comm_t *wb, const char *pathname, int flags )
+{
+    int  ret = 0 ;
+    long fd  = -1 ;
+
+    // Send open msg
+    if (ret >= 0)
+    {
+        ret = mfs_comm_request_send(wb, 0, REQ_ACTION_DBMOPEN, strlen(pathname) + 1, flags) ;
+    }
+
+    // Send pathname
+    if (ret >= 0)
+    {
+        ret = mfs_comm_send_data_to(wb, 0, (void *)pathname, strlen(pathname) + 1, MPI_CHAR) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: pathname cannot be sent :-(", mfs_comm_get_rank(wb)) ;
+        }
+    }
+
+    // Receive descriptor
+    if (ret >= 0)
+    {
+        ret = mfs_comm_recv_data_from(wb, 0, &fd, 1, MPI_LONG) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: file descriptor not received :-(", mfs_comm_get_rank(wb)) ;
+        }
+    }
+
+    // Return file descriptor
+    return fd ;
+}
+
+int  clientstub_dbmclose ( comm_t *wb, long fd )
+{
+    int ret = 0 ;
+    int status ;
+
+    // Send close msg
+    if (ret >= 0)
+    {
+        ret = mfs_comm_request_send(wb, 0, REQ_ACTION_DBMCLOSE, fd, 0) ;
+    }
+
+    // Receive status
+    if (ret >= 0)
+    {
+        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
+        }
+    }
+
+    // Return OK/KO
+    return ret ;
+}
+
+int  clientstub_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int count_val )
+{
+    int  ret = 0 ;
+    int  status, buffer_size ;
+    long remaining_size, current_size ;
+
+    // Send write msg
+    if (ret >= 0)
+    {
+        ret = mfs_comm_request_send(wb, 0, REQ_ACTION_DBMSTORE, fd, count_key) ;
+    }
+
+    // Receive buffer_size
+    if (ret >= 0)
+    {
+        ret = mfs_comm_recv_data_from(wb, 0, &buffer_size, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: buffer_size not received :-(", mfs_comm_get_rank(wb)) ;
+        }
+
+        // if remote error then return
+	if (buffer_size < 0) {
+	    return -1 ;
+	}
+    }
+
+    // Send key
+    current_size   = 0 ;
+    remaining_size = count_key ;
+    while ( (ret > 0) && (remaining_size > 0) )
+    {
+        if (ret >= 0)
+        {
+            ret = mfs_comm_send_data_to(wb, 0, buff_key + current_size, buffer_size, MPI_CHAR) ;
+            if (ret < 0) {
+                mfs_print(DBG_ERROR, "Client[%d]: key cannot be sent :-(", mfs_comm_get_rank(wb)) ;
+            }
+        }
+
+        current_size   = current_size   + buffer_size ;
+        remaining_size = remaining_size - buffer_size ;
+    }
+
+    // Send value size (in bytes)
+    ret = mfs_comm_send_data_to(wb, 0, &count_val, 1, MPI_INT) ;
+    if (ret < 0) {
+	mfs_print(DBG_ERROR, "Client[%d]: value size cannot be sent :-(", mfs_comm_get_rank(wb)) ;
+    }
+
+    // Send value
+    current_size   = 0 ;
+    remaining_size = count_val ;
+    while ( (ret > 0) && (remaining_size > 0) )
+    {
+        if (ret >= 0)
+        {
+            ret = mfs_comm_send_data_to(wb, 0, buff_val + current_size, buffer_size, MPI_CHAR) ;
+            if (ret < 0) {
+                mfs_print(DBG_ERROR, "Client[%d]: value cannot be sent :-(", mfs_comm_get_rank(wb)) ;
+            }
+        }
+
+        current_size   = current_size   + buffer_size ;
+        remaining_size = remaining_size - buffer_size ;
+    }
+
+    // Receive status
+    if (ret >= 0)
+    {
+        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
+        }
+    }
+
+    // Return bytes written
+    return status ;
+}
+
+int  clientstub_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int *count_val )
+{
+    int  ret ;
+
+    ret = 0 ;
+
+    // TODO !
+
+    // Return OK/KO
+    return ret ;
+}
+
+int  clientstub_dbmdelete ( comm_t *wb, long fd, void *buff_key, int count_key )
+{
+    int  ret ;
+
+    ret = 0 ;
+
+    // TODO !
+
+    // Return OK/KO
+    return ret ;
+}
+

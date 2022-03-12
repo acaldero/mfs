@@ -27,19 +27,31 @@
     #include "mfs_comm.h"
 
 
-    // Messages
-    #define REQ_ACTION_NONE       0
-    #define REQ_ACTION_DISCONNECT 1
-    #define REQ_ACTION_ATEXIT     2
-    #define REQ_ACTION_SHUTDOWN   3
+    /* 
+     * Messages 
+     */
 
-    #define REQ_ACTION_OPEN       10
-    #define REQ_ACTION_CLOSE      11
-    #define REQ_ACTION_READ       12
-    #define REQ_ACTION_WRITE      13
+    // Connection
+    #define REQ_ACTION_NONE         0
+    #define REQ_ACTION_DISCONNECT   1
+    #define REQ_ACTION_SHUTDOWN     2
 
-    #define REQ_ACTION_MKDIR      20
-    #define REQ_ACTION_RMDIR      21
+    // Files
+    #define REQ_ACTION_OPEN        10
+    #define REQ_ACTION_CLOSE       11
+    #define REQ_ACTION_READ        12
+    #define REQ_ACTION_WRITE       13
+
+    // Directories 
+    #define REQ_ACTION_MKDIR       20
+    #define REQ_ACTION_RMDIR       21
+
+    // DBM Files
+    #define REQ_ACTION_DBMOPEN     30
+    #define REQ_ACTION_DBMCLOSE    31
+    #define REQ_ACTION_DBMSTORE    32
+    #define REQ_ACTION_DBMFETCH    33
+    #define REQ_ACTION_DBMDELETE   34
 
 
     // Datatypes

@@ -5,9 +5,9 @@
 
 CC=mpic++
 AR=ar
-# CFLAGS=-w -g -O2 -Wall -I/usr/local/include/ -I./ -I./include -DDEBUG
-  CFLAGS=-w -g -O2 -Wall -I/usr/local/include/ -I./ -I./include
-LDFLAGS=-lpthread -lhiredis
+#CFLAGS=-w -g -O2 -Wall -I/usr/local/include/ -I./ -I./include -DDEBUG
+ CFLAGS=-w -g -O2 -Wall -I/usr/local/include/ -I./ -I./include
+LDFLAGS=-lpthread  -lhiredis  -lgdbm
 
 OBJ_DIR=src
 BIN_DIR=bin
@@ -19,6 +19,7 @@ OBJ_FILES=src/mfs_workers.o      src/mfs_workers_pool.o      src/mfs_workers_onr
 	  src/mfs_comm.o         src/mfs_comm_mpi.o          src/mfs_comm_socket.o \
 	  src/mfs_files.o        src/mfs_files_posix.o       src/mfs_files_mpi.o    src/mfs_files_red.o \
 	  src/mfs_directories.o  src/mfs_directories_posix.o                        src/mfs_directories_red.o \
+          src/mfs_dbm.o          src/mfs_dbm_ndbm.o \
 	  src/mfs_params.o       src/mfs_lib.o
 
 

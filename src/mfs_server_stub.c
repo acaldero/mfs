@@ -201,7 +201,7 @@ int serverstub_disconnect ( comm_t *ab, int remote_rank )
 
 
 /*
- *  File System API
+ *  File API
  */
 
 int serverstub_open ( comm_t *ab, int *fd, int file_backend, char *base_dirname, int pathname_length, int flags )
@@ -580,6 +580,139 @@ int serverstub_rmdir ( comm_t *ab, char *base_dirname, int pathname_length )
         }
     }
 
+    // Return OK/KO
+    return ret ;
+}
+
+
+/*
+ *  DBM File API
+ */
+
+int serverstub_dbmopen ( comm_t *ab, int *fd, int dbmfile_backend, char *base_dirname, int pathname_length, int flags )
+{
+    int   ret ;
+    char *buff_data_sys ;
+
+    // Check params...
+    if (NULL == ab) { return -1 ; }
+    if (NULL == fd) { return -1 ; }
+
+    // Initialize...
+    ret = 0 ;
+    buff_data_sys  = NULL ;
+
+    // read filename
+    //if (ret >= 0)
+    {
+        ret = stub_read_name(ab, &buff_data_sys, base_dirname, pathname_length) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), pathname_length) ;
+        }
+    }
+
+    // open file
+    if (ret >= 0)
+    {
+        mfs_print(DBG_INFO, "Server[%d]: request 'open' for filename %s\n", mfs_comm_get_rank(ab), buff_data_sys) ;
+
+	ret = mfs_dbm_open(fd, dbmfile_backend, buff_data_sys, flags) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: file not opened :-(", mfs_comm_get_rank(ab)) ;
+        }
+    }
+
+    // send back file descriptor
+    //if (ret >= 0)
+    {
+	long fref = mfs_file_fd2long(*fd) ;
+        mfs_print(DBG_INFO, "Server[%d]: File[%ld]: open(flags=%d) >> client\n", mfs_comm_get_rank(ab), fref, flags) ;
+
+        ret = mfs_comm_send_data_to(ab, 0, &(fref), 1, MPI_LONG) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: file descriptor cannot be sent :-(", mfs_comm_get_rank(ab)) ;
+        }
+    }
+
+    // free filename buffer
+    //if (ret >= 0)
+    {
+        ret = mfs_free(&buff_data_sys) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", mfs_comm_get_rank(ab)) ;
+        }
+    }
+
+    // Return OK/KO
+    return ret ;
+}
+
+int serverstub_dbmclose ( comm_t *ab, int fd )
+{
+    int  ret ;
+
+    ret = 0 ;
+
+    // close file
+    if (ret >= 0)
+    {
+	mfs_print(DBG_INFO, "Server[%d]: File[%ld]: close()\n", mfs_comm_get_rank(ab), fd) ;
+
+        ret = mfs_dbm_close(fd) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Server[%d]: close(%d) fails :-(", mfs_comm_get_rank(ab), fd) ;
+        }
+    }
+
+    // send back status
+    if (ret >= 0)
+    {
+        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(", mfs_comm_get_rank(ab)) ;
+        }
+    }
+    
+    // Return OK/KO
+    return ret ;
+}
+
+int serverstub_dbmstore ( comm_t *ab, int fd, int count )
+{
+    int  ret ;
+
+    ret = 0 ;
+
+    // TODO !
+    // int  clientstub_dbmstore  ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int  count_val ) ;
+    
+    // Return OK/KO
+    return ret ;
+}
+
+int serverstub_dbmfetch ( comm_t *ab, int fd, int count )
+{
+    int  ret ;
+
+    ret = 0 ;
+
+    // TODO !
+    // int  clientstub_dbmfetch  ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int *count_val ) ;
+
+    
+    // Return OK/KO
+    return ret ;
+}
+
+int serverstub_dbmdelete ( comm_t *ab, int fd, int count )
+{
+    int  ret ;
+
+    ret = 0 ;
+
+    // TODO !
+    // int  clientstub_dbmdelete ( comm_t *wb, long fd, void *buff_key, int count_key ) ;
+    
     // Return OK/KO
     return ret ;
 }
