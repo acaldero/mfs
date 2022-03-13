@@ -41,8 +41,9 @@ int  mfs_file_redis_finalize ( void )
 
 int  mfs_file_redis_open  ( redisContext **red_ctxt, char **red_key, const char *path_name )
 {
-     int  ret ;
+     int  ret = -1 ;
 
+#ifdef HAVE_HIREDIS_H
      char *ip4_addr = "127.0.0.1" ;
      int   ip4_port = 6379 ;
 
@@ -54,6 +55,7 @@ int  mfs_file_redis_open  ( redisContext **red_ctxt, char **red_key, const char 
      }
      // set key
      (*red_key) = strdup(path_name) ;
+#endif
 
      // Return file descriptor
      return ret ;
@@ -62,9 +64,11 @@ int  mfs_file_redis_open  ( redisContext **red_ctxt, char **red_key, const char 
 int  mfs_file_redis_close ( redisContext  *red_ctxt, char **red_key )
 {
      // Close file
+#ifdef HAVE_HIREDIS_H
      redisFree(red_ctxt) ;
      free((*red_key)) ;
      (*red_key) = NULL ;
+#endif
 
      // Return OK/KO
      return 1 ;
@@ -72,8 +76,9 @@ int  mfs_file_redis_close ( redisContext  *red_ctxt, char **red_key )
 
 int  mfs_file_redis_read   ( redisContext  *red_ctxt, char  *red_key, long *offset, void *buffer, int buffer_size )
 {
-    redisReply *reply = NULL ;
     long to_read = buffer_size ;
+#ifdef HAVE_HIREDIS_H
+    redisReply *reply = NULL ;
 
     reply = (redisReply *)redisCommand(red_ctxt, "GET %b", red_key, (size_t)strlen(red_key)) ;
     if (reply->len < ((*offset) + buffer_size)) {
@@ -83,6 +88,7 @@ int  mfs_file_redis_read   ( redisContext  *red_ctxt, char  *red_key, long *offs
     memmove(buffer, reply->str + (*offset), to_read) ;
     (*offset) = (*offset) + to_read ;
     freeReplyObject(reply) ;
+#endif
 
     // Return OK
     return to_read ;
@@ -90,11 +96,13 @@ int  mfs_file_redis_read   ( redisContext  *red_ctxt, char  *red_key, long *offs
 
 int  mfs_file_redis_write  ( redisContext  *red_ctxt, char  *red_key, long *offset, void *buffer, int buffer_size )
 {
+#ifdef HAVE_HIREDIS_H
     redisReply *reply = NULL ;
 
     reply = (redisReply *)redisCommand(red_ctxt, "APPEND %b %b", red_key, (size_t)strlen(red_key), buffer, (size_t)buffer_size) ;
     (*offset) = (*offset) + buffer_size ;
     freeReplyObject(reply) ;
+#endif
 
     // Return OK
     return buffer_size ;

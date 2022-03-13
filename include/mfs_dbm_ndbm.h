@@ -30,8 +30,12 @@
     #include <unistd.h>
     #include <fcntl.h>
 
-    // #define _XOPEN_SOURCE_EXTENDED 1
+#ifdef HAVE_GDBM_H
+    #define _XOPEN_SOURCE_EXTENDED 1
     #include <gdbm.h>
+#else
+    #define GDBM_FILE  void *
+#endif
 
 
     // API

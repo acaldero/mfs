@@ -23,46 +23,67 @@
 #include <stdio.h>
 #include "mfs_client_api.h"
 
+#define STR_SIZE 1024
 
-int main_simple1 ( params_t *params )
+int main_simple1 ( params_t *params, comm_t *wb )
 {
     int    ret ;
-    comm_t wb ;
     long   fd ;
-    #define STR_SIZE 1024
     char   str[STR_SIZE] ;
-
-    // Initialize...
-    ret = mfs_api_init(&wb, params) ;
-    if (ret < 0) {
-        mfs_print(DBG_ERROR, "Client[%d]: mfs_api_init fails :-(", -1) ;
-        return -1 ;
-    }
 
     // Example
     strcpy(str, "hello word") ;
 
-    printf("Client[%d]: creat(...) + write(...) + close(...)\n", wb.rank) ;
-    fd = mfs_api_open(&wb, "test1.txt", O_WRONLY | O_CREAT | O_TRUNC) ;
-    mfs_api_write(&wb, fd, str, strlen(str)) ;
-    mfs_api_close(&wb, fd) ;
+    printf("Client[%d]: creat(...) + write(...) + close(...)\n", wb->rank) ;
+    fd = mfs_api_open(wb, "test1.txt", O_WRONLY | O_CREAT | O_TRUNC) ;
+    mfs_api_write(wb, fd, str, strlen(str)) ;
+    mfs_api_close(wb, fd) ;
 
-    printf("Client[%d]: open(...) + read(...) + close(...)\n", wb.rank) ;
-    fd = mfs_api_open(&wb, "test1.txt", O_RDONLY) ;
-    mfs_api_read( &wb, fd, str, STR_SIZE) ;
-    mfs_api_close(&wb, fd) ;
+    printf("Client[%d]: open(...) + read(...) + close(...)\n", wb->rank) ;
+    fd = mfs_api_open(wb, "test1.txt", O_RDONLY) ;
+     mfs_api_read(wb, fd, str, STR_SIZE) ;
+    mfs_api_close(wb, fd) ;
 
-    // Finalize...
-    printf("Client[%d]: finalize...\n", wb.rank) ;
-    mfs_api_finalize(&wb) ;
+    return 0;
+}
+
+int main_simple2 ( params_t *params, comm_t *wb )
+{
+    int    ret ;
+    long   fd ;
+    char   str1[STR_SIZE] ;
+    char   str2[STR_SIZE] ;
+    int    str2_len ;
+
+    // Example
+    strcpy(str1, "m1") ;
+    strcpy(str2, "hello word") ;
+
+    printf("Client[%d]: dbmopen(...) + dbmstore(...) + dbmclose(...)\n", wb->rank) ;
+    fd = mfs_api_dbmopen(wb, "test1.txt", O_WRONLY | O_CREAT | O_TRUNC) ;
+    //mfs_api_dbmstore(wb, fd, str1, strlen(str1), str2, strlen(str2)) ;
+    mfs_api_dbmclose(wb, fd) ;
+
+    strcpy(str2, "") ;
+
+    printf("Client[%d]: dbmopen(...) + dbmfetch(...) + dbmclose(...)\n", wb->rank) ;
+    fd = mfs_api_dbmopen(wb, "test1.txt", O_RDONLY) ;
+    //mfs_api_dbmfetch(wb, fd, str1, strlen(str1), &str2, &str2_len) ;
+    mfs_api_dbmclose(wb, fd) ;
+
+    printf("Client[%d]: dbmopen(...) + dbmdelete(...) + dbmclose(...)\n", wb->rank) ;
+    fd = mfs_api_dbmopen(wb, "test1.txt", O_RDONLY) ;
+    //mfs_api_dbmdelete(wb, fd, str1, strlen(str1)) ;
+    mfs_api_dbmclose(wb, fd) ;
 
     return 0;
 }
 
 int main ( int argc, char **argv )
 {
-    int  ret ;
+    int      ret ;
     params_t params ;
+    comm_t   wb ;
 
     // Welcome...
     printf("\n"
@@ -80,8 +101,28 @@ int main ( int argc, char **argv )
     printf("Client[%d]: initializing...\n", -1) ;
     mfs_params_show(&params) ;
 
-    // simple main...
-    ret = main_simple1(&params) ;
+    // Initialize...
+    ret = mfs_api_init(&wb, &params) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Client[%d]: mfs_api_init fails :-(", -1) ;
+        return -1 ;
+    }
+
+    // simple main 1...
+    ret = main_simple1(&params, &wb) ;
+    if (ret < 0) {
+	return -1 ;
+    }
+
+    // simple main 2...
+    ret = main_simple2(&params, &wb) ;
+    if (ret < 0) {
+	return -1 ;
+    }
+
+    // Finalize...
+    printf("Client[%d]: finalize...\n", wb.rank) ;
+    mfs_api_finalize(&wb) ;
 
     // Return OK/KO
     return ret ;

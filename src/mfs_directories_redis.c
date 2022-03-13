@@ -43,11 +43,13 @@ int  mfs_directory_redis_opendir  ( redisContext **red_ctxt, char **red_key, con
 {
     int ret = -1 ;
 
+#ifdef HAVE_HIREDIS_H
     // TODO: ret = ...
     if (ret < 0) {
     	mfs_print(DBG_INFO, "[DIR]: ERROR on opendir(path_name='%s')\n", path_name) ;
         return -1 ;
     }
+#endif
 
     // Return OK
     return 1 ;
@@ -57,11 +59,13 @@ int   mfs_directory_redis_closedir ( redisContext  *red_ctxt, char **red_key )
 {
     int ret = -1 ;
 
+#ifdef HAVE_HIREDIS_H
     // TODO: ret = ...
     if (ret < 0) {
     	mfs_print(DBG_INFO, "[DIR]: ERROR on closedir(fd='%p')\n", red_ctxt) ;
         return -1 ;
     }
+#endif
 
     // Return OK
     return 1 ;
@@ -71,11 +75,13 @@ int  mfs_directory_redis_readdir   ( redisContext  *red_ctxt, char  *red_key, vo
 {
     int ret = -1 ;
 
+#ifdef HAVE_HIREDIS_H
     // TODO: ret = ...
     if (NULL == ret) {
 	mfs_print(DBG_INFO, "[DIR]: ERROR on read entry from directory '%p'\n", red_ctxt) ;
 	return NULL ;
     }
+#endif
 
     // Return OK/KO
     return ret ;
@@ -85,11 +91,13 @@ int   mfs_directory_redis_mkdir  ( redisContext  *red_ctxt, char  *red_key, char
 {
     int ret = -1 ;
 
+#ifdef HAVE_HIREDIS_H
     // TODO: ret = ...
     if (ret < 0) {
 	mfs_print(DBG_INFO, "[DIR]: ERROR on mkdir directory '%s'\n", path_name) ;
 	return -1 ;
     }
+#endif
 
     // Return OK/KO
     return ret ;
@@ -99,11 +107,13 @@ int   mfs_directory_redis_rmdir  ( redisContext  *red_ctxt, char  *red_key, char
 {
     int ret = -1 ;
 
+#ifdef HAVE_HIREDIS_H
     // TODO: ret = ...
     if (ret < 0) {
 	mfs_print(DBG_INFO, "[DIR]: ERROR on rmdir directory '%s'\n", path_name) ;
 	return -1 ;
     }
+#endif
 
     // Return OK/KO
     return ret ;

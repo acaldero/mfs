@@ -42,11 +42,13 @@ int  mfs_dbm_ndbm_finalize ( void )
 
 int  mfs_dbm_ndbm_open  ( GDBM_FILE  *fd, const char *path_name, int flags )
 {
+#ifdef HAVE_GDBM_H
      // Check params...
      (*fd) = gdbm_open((char *)path_name, 8*1024, flags, 0755, NULL) ;
      if (NULL == (*fd)) {
          return -1 ;
      }
+#endif
 
      // Return OK
      return 1 ;
@@ -54,10 +56,12 @@ int  mfs_dbm_ndbm_open  ( GDBM_FILE  *fd, const char *path_name, int flags )
 
 int   mfs_dbm_ndbm_close ( GDBM_FILE  fd )
 {
+#ifdef HAVE_GDBM_H
      // Close file
      if (NULL != fd) {
          gdbm_close(fd) ;
      }
+#endif
 
      // Return OK
      return 1 ;
@@ -65,7 +69,8 @@ int   mfs_dbm_ndbm_close ( GDBM_FILE  fd )
 
 int   mfs_dbm_ndbm_store   ( GDBM_FILE  fd, void *buff_key, int count_key, void  *buff_val, int  count_val )
 {
-     int ret ;
+     int ret = -1 ;
+#ifdef HAVE_GDBM_H
      datum key, value ;
 
      // Build key+val
@@ -76,6 +81,7 @@ int   mfs_dbm_ndbm_store   ( GDBM_FILE  fd, void *buff_key, int count_key, void 
 
      // Store key+val
      ret = gdbm_store(fd, key, value, GDBM_REPLACE) ;
+#endif
 
      // Return OK/KO
      return ret ;
@@ -83,6 +89,7 @@ int   mfs_dbm_ndbm_store   ( GDBM_FILE  fd, void *buff_key, int count_key, void 
 
 int   mfs_dbm_ndbm_fetch  ( GDBM_FILE  fd, void *buff_key, int count_key, void **buff_val, int *count_val )
 {
+#ifdef HAVE_GDBM_H
      datum key, value ;
 
      // Build key
@@ -98,11 +105,16 @@ int   mfs_dbm_ndbm_fetch  ( GDBM_FILE  fd, void *buff_key, int count_key, void *
 
      // Return OK/KO
      return (value.dptr != NULL) ;
+#else
+     // Return KO
+     return -1 ;
+#endif
 }
 
 int   mfs_dbm_ndbm_delete  ( GDBM_FILE  fd, void *buff_key, int count_key )
 {
-     int ret ;
+     int ret = -1 ;
+#ifdef HAVE_GDBM_H
      datum key, value ;
 
      // Build key
@@ -111,6 +123,7 @@ int   mfs_dbm_ndbm_delete  ( GDBM_FILE  fd, void *buff_key, int count_key )
 
      // Fetch key+val
      ret = gdbm_delete(fd, key) ;
+#endif
 
      // Return OK/KO
      return ret ;

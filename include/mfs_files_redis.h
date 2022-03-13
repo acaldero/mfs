@@ -24,11 +24,17 @@
 
     // Includes
     #include "mfs_lib.h"
-    #include <hiredis/hiredis.h>
+
     #include <stdio.h>
     #include <stdlib.h>
     #include <unistd.h>
     #include <fcntl.h>
+
+#ifdef HAVE_HIREDIS_H
+    #include <hiredis/hiredis.h>
+#else
+    #define redisContext int
+#endif
 
 
     // API

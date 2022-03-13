@@ -665,9 +665,9 @@ int serverstub_dbmclose ( comm_t *ab, int fd )
     }
 
     // send back status
-    if (ret >= 0)
+    //if (ret >= 0)
     {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_LONG) ;
+        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(", mfs_comm_get_rank(ab)) ;
         }

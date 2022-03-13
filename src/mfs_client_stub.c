@@ -74,7 +74,9 @@ int clientstub_action_over_fd_resource ( comm_t *wb, long fd, int opt, int actio
     // Receive status
     if (ret >= 0)
     {
+printf("close: antes recv data from\n") ;
         ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+printf("close: despues recv data from\n") ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
         }
