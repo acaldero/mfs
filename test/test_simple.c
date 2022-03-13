@@ -21,9 +21,7 @@
 
 
 #include <stdio.h>
-#include "mfs_protocol.h"
-#include "mfs_params.h"
-#include "mfs_client_stub.h"
+#include "mfs_client_api.h"
 
 
 int main_simple1 ( params_t *params )
@@ -35,9 +33,9 @@ int main_simple1 ( params_t *params )
     char   str[STR_SIZE] ;
 
     // Initialize...
-    ret = clientstub_init(&wb, params) ;
+    ret = mfs_api_init(&wb, params) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Client[%d]: clientstub_init fails :-(", -1) ;
+        mfs_print(DBG_ERROR, "Client[%d]: mfs_api_init fails :-(", -1) ;
         return -1 ;
     }
 
@@ -45,18 +43,18 @@ int main_simple1 ( params_t *params )
     strcpy(str, "hello word") ;
 
     printf("Client[%d]: creat(...) + write(...) + close(...)\n", wb.rank) ;
-    fd = clientstub_open(&wb, "test1.txt", O_WRONLY | O_CREAT | O_TRUNC) ;
-    clientstub_write(&wb, fd, str, strlen(str)) ;
-    clientstub_close(&wb, fd) ;
+    fd = mfs_api_open(&wb, "test1.txt", O_WRONLY | O_CREAT | O_TRUNC) ;
+    mfs_api_write(&wb, fd, str, strlen(str)) ;
+    mfs_api_close(&wb, fd) ;
 
     printf("Client[%d]: open(...) + read(...) + close(...)\n", wb.rank) ;
-    fd = clientstub_open(&wb, "test1.txt", O_RDONLY) ;
-    clientstub_read( &wb, fd, str, STR_SIZE) ;
-    clientstub_close(&wb, fd) ;
+    fd = mfs_api_open(&wb, "test1.txt", O_RDONLY) ;
+    mfs_api_read( &wb, fd, str, STR_SIZE) ;
+    mfs_api_close(&wb, fd) ;
 
     // Finalize...
     printf("Client[%d]: finalize...\n", wb.rank) ;
-    clientstub_finalize(&wb) ;
+    mfs_api_finalize(&wb) ;
 
     return 0;
 }

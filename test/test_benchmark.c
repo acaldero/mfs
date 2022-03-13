@@ -21,9 +21,7 @@
 
 
 #include <stdio.h>
-#include "mfs_protocol.h"
-#include "mfs_params.h"
-#include "mfs_client_stub.h"
+#include "mfs_client_api.h"
 
 #define N_TIMES_BENCHMARK 10
 #define N_SIZES_BENCHMARK 2*1024
@@ -39,9 +37,9 @@ int main_simple2 ( params_t *params )
     double mb, t ;
 
     // Initialize...
-    ret = clientstub_init(&wb, params) ;
+    ret = mfs_api_init(&wb, params) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Client[%d]: clientstub_init fails :-(", -1) ;
+        mfs_print(DBG_ERROR, "Client[%d]: mfs_api_init fails :-(", -1) ;
         return -1 ;
     }
 
@@ -54,16 +52,16 @@ int main_simple2 ( params_t *params )
          t1 = mfs_get_time() ;
          for (int i=0; i<N_TIMES_BENCHMARK; i++)
          {
-              fd = clientstub_open(&wb, "test1.txt", O_RDWR | O_CREAT) ;
+              fd = mfs_api_open(&wb, "test1.txt", O_RDWR | O_CREAT) ;
 	      if (fd < 0) {
-                  clientstub_finalize(&wb) ;
+                  mfs_api_finalize(&wb) ;
 		  exit(-1) ;
 	      }
 
               for (int k=0; k<j; k++) {
-                   clientstub_write(&wb, fd, buffer, BUFFER_SIZE) ;
+                   mfs_api_write(&wb, fd, buffer, BUFFER_SIZE) ;
 	      }
-              clientstub_close(&wb, fd) ;
+              mfs_api_close(&wb, fd) ;
          }
          t2 = mfs_get_time() ;
 	 t  = (double) ((t2-t1)/1000.0) / N_TIMES_BENCHMARK ;
@@ -79,16 +77,16 @@ int main_simple2 ( params_t *params )
          t1 = mfs_get_time() ;
          for (int i=0; i<N_TIMES_BENCHMARK; i++)
          {
-              fd = clientstub_open(&wb, "test1.txt", O_RDONLY) ;
+              fd = mfs_api_open(&wb, "test1.txt", O_RDONLY) ;
 	      if (fd < 0) {
-                  clientstub_finalize(&wb) ;
+                  mfs_api_finalize(&wb) ;
 		  exit(-1) ;
 	      }
 
               for (int k=0; k<j; k++) {
-                   clientstub_read( &wb, fd, buffer, BUFFER_SIZE) ;
+                   mfs_api_read( &wb, fd, buffer, BUFFER_SIZE) ;
 	      }
-              clientstub_close(&wb, fd) ;
+              mfs_api_close(&wb, fd) ;
          }
          t2 = mfs_get_time() ;
 	 t  = (double) ((t2-t1)/1000.0) / N_TIMES_BENCHMARK ;
@@ -99,7 +97,7 @@ int main_simple2 ( params_t *params )
 
     // Finalize...
     mfs_print(DBG_INFO, "Client[%d]: finalize...\n", wb.rank) ;
-    clientstub_finalize(&wb) ;
+    mfs_api_finalize(&wb) ;
 
     return 0;
 }
