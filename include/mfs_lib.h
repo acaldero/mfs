@@ -33,9 +33,6 @@
   #include <mpi.h>
 
 
-  // publish name prefix
-  #define MFS_SERVER_STUB_PNAME    "mfs_server_v1"
-
   // debug: levels
   #define DBG_ERROR    1, __FILE__, __LINE__, stderr
   #define DBG_WARNING  2, __FILE__, __LINE__, stderr

@@ -25,14 +25,14 @@
     // Includes
     #include "mfs_lib.h"
     #include "mfs_descriptors.h"
-    #include "mfs_dbm_ndbm.h"
+    #include "mfs_dbm_gdbm.h"
 
     #include <stdio.h>
     #include <stdlib.h>
 
 
     // File protocol
-    #define DBM_USE_NDBM   1
+    #define DBM_USE_GDBM   1
     #define DBM_USE_REDIS  2
 
 
@@ -47,7 +47,7 @@
         char *dbm_backend_name ;
 
         // descriptors
-        GDBM_FILE  ndbm_fd ;
+        GDBM_FILE  gdbm_fd ;
 
 	//redisContext *redis_ctxt ;
 	//char         *redis_key ;

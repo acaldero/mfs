@@ -74,9 +74,7 @@ int clientstub_action_over_fd_resource ( comm_t *wb, long fd, int opt, int actio
     // Receive status
     if (ret >= 0)
     {
-printf("close: antes recv data from\n") ;
         ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
-printf("close: despues recv data from\n") ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
         }
@@ -99,7 +97,7 @@ int clientstub_init ( comm_t *wb, params_t *params )
     // Initialize
     if (ret >= 0)
     {
-        ret = mfs_comm_init(wb, COMM_USE_MPI, params) ;
+        ret = mfs_comm_init(wb, params->comm_backend, params) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: initialization fails :-(", -1) ;
         }
@@ -109,7 +107,7 @@ int clientstub_init ( comm_t *wb, params_t *params )
     if (ret >= 0)
     {
         remote_rank = (mfs_comm_get_rank(wb) % wb->n_servers) ;
-        sprintf(wb->srv_name, "%s.%d", MFS_SERVER_STUB_PNAME, remote_rank) ;
+        sprintf(wb->srv_name, "%s.%d", params->mfs_server_stub_pname, remote_rank) ;
 
         ret = mfs_comm_connect(wb, remote_rank) ;
         if (ret < 0) {

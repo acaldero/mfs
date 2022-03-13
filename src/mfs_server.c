@@ -77,56 +77,56 @@
 
               // Files
 	      case REQ_ACTION_OPEN:
-                   ret = serverstub_open(&th.ab, &fd, params.file_backend, params.data_prefix, msg.req_arg1, msg.req_arg2) ;
+                   ret = serverstub_open(&th.ab, &params, &fd, msg.req_arg1, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_CLOSE:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_close(&th.ab, fd) ;
+                   ret = serverstub_close(&th.ab, &params, fd) ;
 	           break;
 
 	      case REQ_ACTION_READ:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_read(&th.ab, fd, msg.req_arg2) ;
+                   ret = serverstub_read(&th.ab, &params, fd, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_WRITE:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_write(&th.ab, fd, msg.req_arg2) ;
+                   ret = serverstub_write(&th.ab, &params, fd, msg.req_arg2) ;
 	           break;
 
               // Directories
 	      case REQ_ACTION_MKDIR:
-                   ret = serverstub_mkdir(&th.ab, params.data_prefix, msg.req_arg1, msg.req_arg2) ;
+                   ret = serverstub_mkdir(&th.ab, &params, msg.req_arg1, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_RMDIR:
-                   ret = serverstub_rmdir(&th.ab, params.data_prefix, msg.req_arg1) ;
+                   ret = serverstub_rmdir(&th.ab, &params, msg.req_arg1) ;
 	           break;
 
               // DBM Files
 	      case REQ_ACTION_DBMOPEN:
-                   ret = serverstub_dbmopen(&th.ab, &fd, params.file_backend, params.data_prefix, msg.req_arg1, msg.req_arg2) ;
+                   ret = serverstub_dbmopen(&th.ab, &params, &fd, msg.req_arg1, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_DBMCLOSE:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_dbmclose(&th.ab, fd) ;
+                   ret = serverstub_dbmclose(&th.ab, &params, fd) ;
 	           break;
 
 	      case REQ_ACTION_DBMSTORE:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_dbmstore(&th.ab, fd, msg.req_arg2) ;
+                   ret = serverstub_dbmstore(&th.ab, &params, fd, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_DBMFETCH:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_dbmfetch(&th.ab, fd, msg.req_arg2) ;
+                   ret = serverstub_dbmfetch(&th.ab, &params, fd, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_DBMDELETE:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_dbmdelete(&th.ab, fd, msg.req_arg2) ;
+                   ret = serverstub_dbmdelete(&th.ab, &params, fd, msg.req_arg2) ;
 	           break;
 
 	      // Default
@@ -136,7 +136,7 @@
        }
 
        // disconnect from server
-       serverstub_disconnect(&(th.ab), 0) ; // TODO: 0 -> rank of remote node
+       serverstub_disconnect(&(th.ab), &params, 0) ; // TODO: 0 -> rank of remote node
    }
 
 
@@ -189,7 +189,7 @@ int main ( int argc, char **argv )
     {
 	// To serve next request...
         mfs_print(DBG_INFO, "Server[%d]: accepting...\n", wb.rank) ;
-        ret = serverstub_accept(&ab, &wb) ;
+        ret = serverstub_accept(&ab, &params, &wb) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Server[%d]: accept fails :-(", -1) ;
         }
@@ -205,7 +205,7 @@ int main ( int argc, char **argv )
 
     // Finalize...
     mfs_print(DBG_INFO, "Server[%d]: ends.\n", wb.rank) ;
-    serverstub_finalize(&wb) ;
+    serverstub_finalize(&wb, &params) ;
 
     return 0 ;
 }

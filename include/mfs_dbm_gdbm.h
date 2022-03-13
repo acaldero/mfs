@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef __MFS_DBM_NDBM_H__
-#define __MFS_DBM_NDBM_H__
+#ifndef __MFS_DBM_GDBM_H__
+#define __MFS_DBM_GDBM_H__
 
     // Includes
     #include "mfs_lib.h"
@@ -35,19 +35,25 @@
     #include <gdbm.h>
 #else
     #define GDBM_FILE  void *
+
+    #define GDBM_READER    0
+    #define GDBM_WRITER    1
+    #define GDBM_WRCREAT   2
+    #define GDBM_NEWDB     3
+    #define GDBM_OPENMASK  7
 #endif
 
 
     // API
-    int  mfs_dbm_ndbm_init     ( void ) ;
-    int  mfs_dbm_ndbm_finalize ( void ) ;
+    int  mfs_dbm_gdbm_init     ( void ) ;
+    int  mfs_dbm_gdbm_finalize ( void ) ;
 
-    int  mfs_dbm_ndbm_open   ( GDBM_FILE *fd, const char *path_name, int flags ) ;
-    int  mfs_dbm_ndbm_close  ( GDBM_FILE  fd ) ;
+    int  mfs_dbm_gdbm_open   ( GDBM_FILE *fd, const char *path_name, int flags ) ;
+    int  mfs_dbm_gdbm_close  ( GDBM_FILE  fd ) ;
 
-    int  mfs_dbm_ndbm_store  ( GDBM_FILE  fd, void *buff_key, int count_key, void  *buff_val, int  count_val ) ;
-    int  mfs_dbm_ndbm_fetch  ( GDBM_FILE  fd, void *buff_key, int count_key, void **buff_val, int *count_val ) ;
-    int  mfs_dbm_ndbm_delete ( GDBM_FILE  fd, void *buff_key, int count_key ) ;
+    int  mfs_dbm_gdbm_store  ( GDBM_FILE  fd, void *buff_key, int count_key, void  *buff_val, int  count_val ) ;
+    int  mfs_dbm_gdbm_fetch  ( GDBM_FILE  fd, void *buff_key, int count_key, void **buff_val, int *count_val ) ;
+    int  mfs_dbm_gdbm_delete ( GDBM_FILE  fd, void *buff_key, int count_key ) ;
 
 #endif
 

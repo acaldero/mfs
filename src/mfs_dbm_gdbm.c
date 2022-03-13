@@ -20,27 +20,27 @@
  */
 
 
-#include "mfs_dbm_ndbm.h"
+#include "mfs_dbm_gdbm.h"
 
 
 /*
  *  File System API
  */
 
-int  mfs_dbm_ndbm_init ( void )
+int  mfs_dbm_gdbm_init ( void )
 {
     // Return OK
     return 1 ;
 }
 
-int  mfs_dbm_ndbm_finalize ( void )
+int  mfs_dbm_gdbm_finalize ( void )
 {
     // Return OK
     return 1 ;
 }
 
 
-int  mfs_dbm_ndbm_open  ( GDBM_FILE  *fd, const char *path_name, int flags )
+int  mfs_dbm_gdbm_open  ( GDBM_FILE  *fd, const char *path_name, int flags )
 {
 #ifdef HAVE_GDBM_H
      // Check params...
@@ -54,7 +54,7 @@ int  mfs_dbm_ndbm_open  ( GDBM_FILE  *fd, const char *path_name, int flags )
      return 1 ;
 }
 
-int   mfs_dbm_ndbm_close ( GDBM_FILE  fd )
+int   mfs_dbm_gdbm_close ( GDBM_FILE  fd )
 {
 #ifdef HAVE_GDBM_H
      // Close file
@@ -67,7 +67,7 @@ int   mfs_dbm_ndbm_close ( GDBM_FILE  fd )
      return 1 ;
 }
 
-int   mfs_dbm_ndbm_store   ( GDBM_FILE  fd, void *buff_key, int count_key, void  *buff_val, int  count_val )
+int   mfs_dbm_gdbm_store   ( GDBM_FILE  fd, void *buff_key, int count_key, void  *buff_val, int  count_val )
 {
      int ret = -1 ;
 #ifdef HAVE_GDBM_H
@@ -87,7 +87,7 @@ int   mfs_dbm_ndbm_store   ( GDBM_FILE  fd, void *buff_key, int count_key, void 
      return ret ;
 }
 
-int   mfs_dbm_ndbm_fetch  ( GDBM_FILE  fd, void *buff_key, int count_key, void **buff_val, int *count_val )
+int   mfs_dbm_gdbm_fetch  ( GDBM_FILE  fd, void *buff_key, int count_key, void **buff_val, int *count_val )
 {
 #ifdef HAVE_GDBM_H
      datum key, value ;
@@ -111,7 +111,7 @@ int   mfs_dbm_ndbm_fetch  ( GDBM_FILE  fd, void *buff_key, int count_key, void *
 #endif
 }
 
-int   mfs_dbm_ndbm_delete  ( GDBM_FILE  fd, void *buff_key, int count_key )
+int   mfs_dbm_gdbm_delete  ( GDBM_FILE  fd, void *buff_key, int count_key )
 {
      int ret = -1 ;
 #ifdef HAVE_GDBM_H

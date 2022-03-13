@@ -53,27 +53,27 @@
 
 
     // General API
-    int  serverstub_init         ( comm_t *wb, params_t *params ) ;
-    int  serverstub_finalize     ( comm_t *wb ) ;
-    int  serverstub_accept       ( comm_t *ab, comm_t *wb ) ;
-    int  serverstub_disconnect   ( comm_t *ab, int remote_rank ) ;
+    int serverstub_init       ( comm_t *wb, params_t *params ) ;
+    int serverstub_finalize   ( comm_t *wb, params_t *params ) ;
+    int serverstub_accept     ( comm_t *ab, params_t *params, comm_t *wb ) ;
+    int serverstub_disconnect ( comm_t *ab, params_t *params, int     remote_rank ) ;
 
-    // File System API
-    int  serverstub_open    ( comm_t *ab, int *fd, int file_backend, char *base_dirname, int pathname_length, int flags ) ;
-    int  serverstub_close   ( comm_t *ab, int  fd ) ;
-    int  serverstub_read    ( comm_t *ab, int  fd, int count ) ;
-    int  serverstub_write   ( comm_t *ab, int  fd, int count ) ;
+    //  File API
+    int serverstub_open       ( comm_t *ab, params_t *params, int *fd, int pathname_length, int flags ) ;
+    int serverstub_close      ( comm_t *ab, params_t *params, int  fd ) ;
+    int serverstub_read       ( comm_t *ab, params_t *params, int  fd, int count ) ;
+    int serverstub_write      ( comm_t *ab, params_t *params, int  fd, int count ) ;
 
-    // Directory API
-    int  serverstub_mkdir   ( comm_t *ab, char *base_dirname, int pathname_length, int mode ) ;
-    int  serverstub_rmdir   ( comm_t *ab, char *base_dirname, int pathname_length ) ;
+    //  Directory API
+    int serverstub_mkdir      ( comm_t *ab, params_t *params, int pathname_length, int mode ) ;
+    int serverstub_rmdir      ( comm_t *ab, params_t *params, int pathname_length ) ;
 
-     // DBM File API
-     int serverstub_dbmopen   ( comm_t *ab, int *fd, int dbmfile_backend, char *base_dirname, int pathname_length, int flags ) ;
-     int serverstub_dbmclose  ( comm_t *ab, int  fd ) ;
-     int serverstub_dbmstore  ( comm_t *ab, int  fd, int count ) ;
-     int serverstub_dbmfetch  ( comm_t *ab, int  fd, int count ) ;
-     int serverstub_dbmdelete ( comm_t *ab, int  fd, int count ) ;
+    //  DBM File API
+    int serverstub_dbmopen    ( comm_t *ab, params_t *params, int *fd, int pathname_length, int flags ) ;
+    int serverstub_dbmclose   ( comm_t *ab, params_t *params, int  fd ) ;
+    int serverstub_dbmstore   ( comm_t *ab, params_t *params, int  fd, int count ) ;
+    int serverstub_dbmfetch   ( comm_t *ab, params_t *params, int  fd, int count ) ;
+    int serverstub_dbmdelete  ( comm_t *ab, params_t *params, int  fd, int count ) ;
 
 #endif
 

@@ -76,7 +76,7 @@ int  mfs_dbm_stats_show ( int fd, char *prefix )
     printf("%s: + been_used=1\n",   prefix) ;
     printf("%s: + dbm_fd=%d\n",     prefix, fd) ;
     printf("%s: + protocol=%s\n",   prefix, fh->dbm_backend_name) ;
-    printf("%s:   + ndbm_fd=%d\n",  prefix, fh->ndbm_fd) ;
+    printf("%s:   + gdbm_fd=%d\n",  prefix, fh->gdbm_fd) ;
     printf("%s: + offset=%ld\n",    prefix, fh->offset) ;
     printf("%s: + # read=%ld\n",    prefix, fh->n_read_req) ;
     printf("%s: + # write=%ld\n",   prefix, fh->n_write_req) ;
@@ -101,7 +101,7 @@ int  mfs_dbm_init ( void )
     }
 
     // initialize all protocols
-    ret = mfs_dbm_ndbm_init() ;
+    ret = mfs_dbm_gdbm_init() ;
     if (ret < 0) {
 	return -1 ;
     }
@@ -122,7 +122,7 @@ int  mfs_dbm_finalize ( void )
     int  ret ;
 
     // finalize all protocols
-    ret = mfs_dbm_ndbm_finalize() ;
+    ret = mfs_dbm_gdbm_finalize() ;
     if (ret < 0) {
 	return -1 ;
     }
@@ -165,9 +165,9 @@ int  mfs_dbm_open ( int *fd, int dbm_backend, const char *path_name, int flags )
     fh->dbm_backend = dbm_backend ;
     switch (fh->dbm_backend)
     {
-        case DBM_USE_NDBM:
-             fh->dbm_backend_name = "NDBM" ;
-             ret = (long)mfs_dbm_ndbm_open(&(fh->ndbm_fd), path_name, flags) ;
+        case DBM_USE_GDBM:
+             fh->dbm_backend_name = "GDBM" ;
+             ret = (long)mfs_dbm_gdbm_open(&(fh->gdbm_fd), path_name, flags) ;
              break ;
 
 	/*
@@ -201,8 +201,8 @@ int   mfs_dbm_close ( int fd )
     // Close file
     switch (fh->dbm_backend)
     {
-        case DBM_USE_NDBM:
-             ret = mfs_dbm_ndbm_close(fh->ndbm_fd) ;
+        case DBM_USE_GDBM:
+             ret = mfs_dbm_gdbm_close(fh->gdbm_fd) ;
              break ;
 
 	/*
@@ -236,8 +236,8 @@ int   mfs_dbm_store  ( int  fd, void *buff_key, int count_key, void *buff_val, i
     // Read from file...
     switch (fh->dbm_backend)
     {
-        case DBM_USE_NDBM:
-             ret = mfs_dbm_ndbm_store(fh->ndbm_fd, buff_key, count_key, buff_val, count_val) ;
+        case DBM_USE_GDBM:
+             ret = mfs_dbm_gdbm_store(fh->gdbm_fd, buff_key, count_key, buff_val, count_val) ;
              break ;
 
 	/*
@@ -273,8 +273,8 @@ int   mfs_dbm_fetch  ( int  fd, void *buff_key, int count_key, void **buff_val, 
     // Write into file...
     switch (fh->dbm_backend)
     {
-        case DBM_USE_NDBM:
-             ret = mfs_dbm_ndbm_fetch(fh->ndbm_fd, buff_key, count_key, buff_val, count_val) ;
+        case DBM_USE_GDBM:
+             ret = mfs_dbm_gdbm_fetch(fh->gdbm_fd, buff_key, count_key, buff_val, count_val) ;
              break ;
 
 	/*
@@ -310,8 +310,8 @@ int   mfs_dbm_delete  ( int  fd, void *buff_key, int count_key )
     // Write into file...
     switch (fh->dbm_backend)
     {
-        case DBM_USE_NDBM:
-             ret = mfs_dbm_ndbm_delete(fh->ndbm_fd, buff_key, count_key) ;
+        case DBM_USE_GDBM:
+             ret = mfs_dbm_gdbm_delete(fh->gdbm_fd, buff_key, count_key) ;
              break ;
 
 	/*

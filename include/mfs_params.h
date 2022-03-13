@@ -28,11 +28,16 @@
 
    #include "mfs_lib.h"
    #include "mfs_files.h"
+   #include "mfs_dbm.h"
    #include "mfs_directories.h"
+   #include "mfs_comm_common.h"
 
 
    // Const
+   #define MAX_NAME_LEN   1024
+
    #define DEFAULT_DATA_PREFIX "./data/"
+   #define DEFAULT_STUB_PNAME  "mfs_server_v1"
 
    #define THREAD_USE_ONDEMAND  1
    #define THREAD_USE_POOL      2
@@ -42,17 +47,25 @@
    typedef struct
    {
         // associated client
-        char  data_prefix[1024] ;
+        char            data_prefix[MAX_NAME_LEN] ; // e.g.: "/mnt/mfs_root"
+        char  mfs_server_stub_pname[MAX_NAME_LEN] ; // e.g.: "mfs_server_v1"
         int   num_servers ;
 
+	// backend options
         int   file_backend ;
-        char  file_backend_name[1024] ;
+        char  file_backend_name[MAX_NAME_LEN] ;
+
+        int   dbm_backend ;
+        char  dbm_backend_name[MAX_NAME_LEN] ;
 
         int   directory_backend ;
-        char  directory_backend_name[1024] ;
+        char  directory_backend_name[MAX_NAME_LEN] ;
 
         int   thread_launch ;
-        char  thread_launch_name[1024] ;
+        char  thread_launch_name[MAX_NAME_LEN] ;
+
+        int   comm_backend ;
+        char  comm_backend_name[MAX_NAME_LEN] ;
 
         // server arguments
         int    *argc ;

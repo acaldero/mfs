@@ -25,8 +25,10 @@
  void mfs_params_show ( params_t *params )
  {
  	printf("Current configuration:\n");
-      	printf("\t-p <POSIX | MPI-IO>:\t\t%s\n",       params->file_backend_name) ;
       	printf("\t-d <base directory>:\t\t'%s'\n",     params->data_prefix) ;
+      	printf("\t-f <POSIX | MPI-IO>:\t\t%s\n",       params->file_backend_name) ;
+      	printf("\t-i <POSIX>:\t\t\t%s\n",              params->directory_backend_name) ;
+      	printf("\t-b <GDBM>:\t\t\t%s\n",               params->dbm_backend_name) ;
       	printf("\t-t <ondemand | pool>:\t\t'%s'\n",    params->thread_launch_name) ;
       	printf("\t-n <# process in server>:\t'%d'\n",  params->num_servers) ;
  }
@@ -34,8 +36,10 @@
  void mfs_params_show_usage ( void )
  {
       	printf("Usage:\n");
-      	printf("\t-p <string>:  POSIX | MPI-IO\n") ;
       	printf("\t-d <string>:  name of the base directory\n") ;
+      	printf("\t-f <string>:  POSIX | MPI-IO\n") ;
+      	printf("\t-i <string>:  POSIX\n") ;
+      	printf("\t-b <string>:  GDBM\n") ;
       	printf("\t-t <string>:  ondemand | pool\n") ;
       	printf("\t-n <integer>: number of servers\n") ;
  }
@@ -43,24 +47,15 @@
  struct option long_options[] =
         {
           { "verbose",            no_argument,       NULL, 'v' },
-          { "file_backend",       required_argument, NULL, 'p' },
           { "base_directory",     required_argument, NULL, 'd' },
+          { "file_backend",       required_argument, NULL, 'f' },
+          { "directory_backend",  required_argument, NULL, 'i' },
+          { "dbm_backend",        required_argument, NULL, 'b' },
           { "thread_backend",     required_argument, NULL, 't' },
           { "process_in_server",  required_argument, NULL, 'n' },
           { 0 }
         } ;
 
-/*
-mfs_client_stub.c
-mfs_comm.c
-mfs_comm_mpi.c
-mfs_comm_socket.c
-mfs_directories.c
-mfs_directories_posix.c
-mfs_directories_red.c
-mfs_server.c
-mfs_server_stub.c
- */
 
  int mfs_params_get ( params_t *params, int *argc, char ***argv )
  {
@@ -78,14 +73,22 @@ mfs_server_stub.c
         params->file_backend = FILE_USE_POSIX ;
         strcpy(params->file_backend_name, "POSIX") ;
 
+        params->dbm_backend  = DBM_USE_GDBM ;
+        strcpy(params->dbm_backend_name, "GDBM") ;
+
         params->directory_backend = DIRECTORY_USE_POSIX ;
         strcpy(params->directory_backend_name, "POSIX") ;
 
         params->thread_launch = THREAD_USE_ONDEMAND ;
         strcpy(params->thread_launch_name, "On demand") ;
 
+        params->comm_backend = COMM_USE_MPI ;
+        strcpy(params->comm_backend_name, "MPI") ;
+
+        strcpy(params->mfs_server_stub_pname, DEFAULT_STUB_PNAME) ;
+
 	// getopt_long...
-	short_opt = "vd:n:p:b:t:" ;
+	short_opt = "vd:n:f:i:b:t:" ;
         c = getopt_long(*argc, *argv, short_opt, long_options, &option_index) ;
 	while (c != -1)
 	{
@@ -103,7 +106,7 @@ mfs_server_stub.c
 		  params->num_servers = atoi(optarg) ;
                   break ;
 
-	     case 'p':
+	     case 'f':
 		  if (!strcmp("POSIX",  optarg)) {
 		      params->file_backend = FILE_USE_POSIX ;
 		      strcpy(params->file_backend_name, "POSIX") ;
@@ -115,6 +118,17 @@ mfs_server_stub.c
                   break ;
 
 	     case 'b':
+		  if (!strcmp("GDBM",  optarg)) {
+		      params->dbm_backend = DBM_USE_GDBM ;
+		      strcpy(params->dbm_backend_name, "GDBM") ;
+		  }
+		  if (!strcmp("REDIS", optarg)) {
+		      params->dbm_backend = DBM_USE_REDIS ;
+		      strcpy(params->dbm_backend_name, "REDIS") ;
+		  }
+                  break ;
+
+	     case 'i':
 		  if (!strcmp("POSIX",  optarg)) {
 		      params->directory_backend = DIRECTORY_USE_POSIX ;
 		      strcpy(params->directory_backend_name, "POSIX") ;

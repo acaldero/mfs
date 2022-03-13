@@ -33,7 +33,7 @@ echo "............................."
 echo "../bin/mfs_server &"
 echo "sleep 3"
 echo "............................."
-mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server -p ${F_PROTO} &
+mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server -f ${F_PROTO} &
 sleep 3
 
 #
@@ -45,7 +45,7 @@ do
    echo "./test_simple ...(test $i)"
    echo "sleep 2"
    echo "............................."
-   mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_simple -n $SERVER_NP -p ${F_PROTO}
+   mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_simple -n $SERVER_NP -f ${F_PROTO}
    echo "............................."
    sleep 2
 done

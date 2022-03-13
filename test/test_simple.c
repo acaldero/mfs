@@ -60,20 +60,20 @@ int main_simple2 ( params_t *params, comm_t *wb )
     strcpy(str2, "hello word") ;
 
     printf("Client[%d]: dbmopen(...) + dbmstore(...) + dbmclose(...)\n", wb->rank) ;
-    fd = mfs_api_dbmopen(wb, "test1.txt", O_WRONLY | O_CREAT | O_TRUNC) ;
-    //mfs_api_dbmstore(wb, fd, str1, strlen(str1), str2, strlen(str2)) ;
+    fd = mfs_api_dbmopen(wb, "test1.txt", GDBM_WRITER | GDBM_WRCREAT) ;
+    //mfs_api_dbmstore(wb, fd, str1, strlen(str1), str2, strlen(str2)) ; // TODO
     mfs_api_dbmclose(wb, fd) ;
 
     strcpy(str2, "") ;
 
     printf("Client[%d]: dbmopen(...) + dbmfetch(...) + dbmclose(...)\n", wb->rank) ;
-    fd = mfs_api_dbmopen(wb, "test1.txt", O_RDONLY) ;
-    //mfs_api_dbmfetch(wb, fd, str1, strlen(str1), &str2, &str2_len) ;
+    fd = mfs_api_dbmopen(wb, "test1.txt", GDBM_READER) ;
+    //mfs_api_dbmfetch(wb, fd, str1, strlen(str1), &str2, &str2_len) ; // TODO
     mfs_api_dbmclose(wb, fd) ;
 
     printf("Client[%d]: dbmopen(...) + dbmdelete(...) + dbmclose(...)\n", wb->rank) ;
-    fd = mfs_api_dbmopen(wb, "test1.txt", O_RDONLY) ;
-    //mfs_api_dbmdelete(wb, fd, str1, strlen(str1)) ;
+    fd = mfs_api_dbmopen(wb, "test1.txt", GDBM_WRITER) ;
+    //mfs_api_dbmdelete(wb, fd, str1, strlen(str1)) ; // TODO
     mfs_api_dbmclose(wb, fd) ;
 
     return 0;
