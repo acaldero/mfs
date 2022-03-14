@@ -122,102 +122,6 @@ int mfs_comm_socket_close ( int *sd )
 
 
 //
-// Auxiliar: name service
-//
-
-int mfs_comm_socket_ns_insert ( char *srv_name, char *port_name )
-{
-	// TODO
-
-		// save host name and port...
-		/* OLD:
-		FILE *f;
-		char host[255];
-		f = fopen(file, "a+");
-		if (f != NULL) {
-		    gethostname(host, 255);
-		    fprintf(f, "%s %s %d\r\n", name, host, port);
-		    fclose(f);
-		}
-		*/
-
-        // Return OK
-        return 1 ;
-}
-
-int mfs_comm_socket_ns_lookup ( char *srv_name, char *port_name )
-{
-	// TODO
-
-        // Return OK
-        return 1 ;
-}
-
-int mfs_comm_socket_ns_remove ( char *srv_name )
-{
-	// TODO
-
-        // Return OK
-        return 1 ;
-}
-
-int mfs_comm_socket_ns_get_portname ( char *port_name, int sd )
-{
-	char               my_ip[16] ;
-        unsigned int       my_port ;
-        struct sockaddr_in my_addr ;
-        int                sockfd ;
-        socklen_t          len ;
-
-	// initialize variables
-        len = sizeof(my_addr) ;
-        bzero(&my_addr, len) ;
-	my_port = 0 ;
-
-	// get addr+port
-        getsockname(sd, (struct sockaddr *)&(my_addr), &(len)) ;
-        inet_ntop(AF_INET, &(my_addr.sin_addr), my_ip, sizeof(my_ip)) ;
-        my_port = ntohs(my_addr.sin_port) ;
-
-	// set portname
-	sprintf(port_name, "%16s:%d", my_ip, my_port) ;
-
-        // Return OK
-        return 1 ;
-}
-
-int mfs_comm_socket_ns_split_portname ( char *port_name, struct hostent **host, int *port )
-{
-	char *pch ;
-	char  srv_host[MAXPATHLEN] ;
-	char  srv_port[MAXPATHLEN] ;
-
-	// copy default values...
-	strcpy(srv_host, port_name) ;
-	strcpy(srv_port, "12345") ;
-
-	// if "host:port" -> host\0port
-	pch = strchr(srv_host, ':') ;
-	if (NULL != pch) {
-	    *pch = '\0' ;
-	    pch++ ;
-	    strcpy(srv_port, pch) ;
-	}
-
-	// translate
-	*port = atoi(srv_port) ;
-	*host = gethostbyname(srv_host) ;
-	if (*host == NULL) {
-	    mfs_print(DBG_ERROR, "[COMM]: gethostbyname(%s) fails :-(", srv_host) ;
-	    return -1 ;
-	}
-
-        // Return OK
-        return 1 ;
-}
-
-
-//
 // Init, Finalize
 //
 
@@ -299,14 +203,14 @@ int mfs_comm_socket_register ( comm_t *cb )
 	}
 
 	// get port_name
-	ret = mfs_comm_socket_ns_get_portname(cb->port_name, cb->sd) ;
+	ret = mfs_ns_get_portname(cb->port_name, cb->sd) ;
         if (MPI_SUCCESS != ret) {
-            mfs_print(DBG_ERROR, "[COMM]: mfs_comm_socket_ns_get_portname fails :-(") ;
+            mfs_print(DBG_ERROR, "[COMM]: mfs_ns_get_portname fails :-(") ;
             return -1 ;
         }
 
 	// register service into ns
-	ret = mfs_comm_socket_ns_insert(cb->srv_name, cb->port_name) ;
+	ret = mfs_ns_insert(NS_USE_DBM, cb->srv_name, cb->port_name) ;
 	if (ret < 0) {
 	    mfs_print(DBG_ERROR, "[COMM]: registration fails :-(") ;
 	    return -1 ;
@@ -327,7 +231,7 @@ int mfs_comm_socket_unregister ( comm_t *cb )
 	}
 
 	// unregister service from ns
-	ret = mfs_comm_socket_ns_remove(cb->srv_name) ;
+	ret = mfs_ns_remove(NS_USE_DBM, cb->srv_name) ;
 	if (ret < 0) {
 	    mfs_print(DBG_ERROR, "[COMM]: unregistration fails :-(") ;
 	    return -1 ;
@@ -386,13 +290,13 @@ int mfs_comm_socket_connect ( comm_t *cb, int remote_rank )
 	}
 
 	// translate srv_name -> host + port
-	ret = mfs_comm_socket_ns_lookup(cb->srv_name, cb->port_name) ;
+	ret = mfs_ns_lookup(NS_USE_DBM, cb->srv_name, cb->port_name) ;
         if (MPI_SUCCESS != ret) {
             mfs_print(DBG_ERROR, "[COMM]: mfs_comm_socket_lookup fails :-(") ;
             return -1 ;
         }
 
-	ret = mfs_comm_socket_ns_split_portname(cb->port_name, &hp, &srv_port) ;
+	ret = mfs_ns_split_portname(cb->port_name, &hp, &srv_port) ;
         if (MPI_SUCCESS != ret) {
             mfs_print(DBG_ERROR, "[COMM]: mfs_comm_socket_splithp fails :-(") ;
             return -1 ;

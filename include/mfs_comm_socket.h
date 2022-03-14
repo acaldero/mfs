@@ -35,18 +35,15 @@
 
     #include <sys/socket.h>
     #include <netinet/tcp.h>
-    #include <netinet/in.h>
-    #include <netdb.h>
-    #include <arpa/inet.h>
 
     #include "mfs_lib.h"
     #include "mfs_params.h"
     #include "mfs_comm_common.h"
+    #include "mfs_ns.h"
 
 
     // Consts
     #define ONE_MB     (1024 * 1024)
-    #define MAXPATHLEN (1024)
 
 
     // API
