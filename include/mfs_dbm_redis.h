@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef __MFS_DIRECTORIES_REDIS_H__
-#define __MFS_DIRECTORIES_REDIS_H__
+#ifndef __MFS_DBM_REDIS_H__
+#define __MFS_DBM_REDIS_H__
 
     // Includes
     #include "mfs_lib.h"
@@ -38,13 +38,15 @@
 
 
     // API
-    int   mfs_directory_redis_init     ( void ) ;
-    int   mfs_directory_redis_finalize ( void ) ;
-    int   mfs_directory_redis_opendir  ( redisContext **red_ctxt, char **red_key, const char *path_name ) ;
-    int   mfs_directory_redis_closedir ( redisContext  *red_ctxt, char **red_key ) ;
-    int   mfs_directory_redis_readdir  ( redisContext  *red_ctxt, char  *red_key, void *buffer, int buffer_size ) ;
-    int   mfs_directory_redis_mkdir    ( redisContext  *red_ctxt, char  *red_key, char *path_name, mode_t mode ) ;
-    int   mfs_directory_redis_rmdir    ( redisContext  *red_ctxt, char  *red_key, char *path_name ) ;
+    int  mfs_dbm_redis_init     ( void ) ;
+    int  mfs_dbm_redis_finalize ( void ) ;
+
+    int  mfs_dbm_redis_open   ( redisContext **fd, const char *path_name, int flags ) ;
+    int  mfs_dbm_redis_close  ( redisContext  *fd ) ;
+
+    int  mfs_dbm_redis_store  ( redisContext  *fd, void *buff_key, int count_key, void  *buff_val, int  count_val ) ;
+    int  mfs_dbm_redis_fetch  ( redisContext  *fd, void *buff_key, int count_key, void *buff_val, int *count_val ) ;
+    int  mfs_dbm_redis_delete ( redisContext  *fd, void *buff_key, int count_key ) ;
 
 #endif
 

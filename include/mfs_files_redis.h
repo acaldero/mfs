@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef __MFS_FILES_RED_H__
-#define __MFS_FILES_RED_H__
+#ifndef __MFS_FILES_REDIS_H__
+#define __MFS_FILES_REDIS_H__
 
     // Includes
     #include "mfs_lib.h"

@@ -106,12 +106,10 @@ int  mfs_dbm_init ( void )
 	return -1 ;
     }
 
-    /*
     ret = mfs_dbm_redis_init() ;
     if (ret < 0) {
 	return -1 ;
     }
-    */
 
     // Return OK/KO
     return ret ;
@@ -127,12 +125,10 @@ int  mfs_dbm_finalize ( void )
 	return -1 ;
     }
 
-    /*
     ret = mfs_dbm_redis_finalize() ;
     if (ret < 0) {
 	return -1 ;
     }
-    */
 
     // finalize descriptors
     ret = mfs_descriptor_finalize(&mfs_dbm_des) ;
@@ -170,12 +166,10 @@ int  mfs_dbm_open ( int *fd, int dbm_backend, const char *path_name, int flags )
              ret = (long)mfs_dbm_gdbm_open(&(fh->gdbm_fd), path_name, flags) ;
              break ;
 
-	/*
         case DBM_USE_REDIS:
              fh->dbm_backend_name = "REDIS" ;
-             ret = mfs_dbm_redis_open(&(fh->redis_ctxt), &(fh->redis_key), path_name) ;
+             ret = mfs_dbm_redis_open(&(fh->redis_ctxt), path_name, 6379) ;
              break ;
-	*/
 
         default:
 	     mfs_print(DBG_INFO, "[FILE]: ERROR on dbm_backend(%d).\n", fh->dbm_backend) ;
@@ -205,11 +199,9 @@ int   mfs_dbm_close ( int fd )
              ret = mfs_dbm_gdbm_close(fh->gdbm_fd) ;
              break ;
 
-	/*
         case DBM_USE_REDIS:
-             ret = mfs_dbm_redis_close(fh->redis_ctxt, &(fh->redis_key)) ;
+             ret = mfs_dbm_redis_close(fh->redis_ctxt) ;
              break ;
-	*/
 
         default:
 	     mfs_print(DBG_INFO, "[FILE]: ERROR on dbm_backend(%d).\n", fh->dbm_backend) ;
@@ -240,11 +232,9 @@ int   mfs_dbm_store  ( int  fd, void *buff_key, int count_key, void *buff_val, i
              ret = mfs_dbm_gdbm_store(fh->gdbm_fd, buff_key, count_key, buff_val, count_val) ;
              break ;
 
-	/*
         case DBM_USE_REDIS:
-             ret = mfs_dbm_redis_store(fh->redis_ctxt, fh->redis_key, &(fh->offset), buff_data, count) ;
+             ret = mfs_dbm_redis_store(fh->redis_ctxt, buff_key, count_key, buff_val, count_val) ;
              break ;
-	*/
 
         default:
 	     mfs_print(DBG_INFO, "[FILE]: ERROR on dbm_backend(%d).\n", fh->dbm_backend) ;
@@ -277,11 +267,9 @@ int   mfs_dbm_fetch  ( int  fd, void *buff_key, int count_key, void **buff_val, 
              ret = mfs_dbm_gdbm_fetch(fh->gdbm_fd, buff_key, count_key, buff_val, count_val) ;
              break ;
 
-	/*
         case DBM_USE_REDIS:
-             ret = mfs_dbm_redis_fetch(fh->redis_ctxt, fh->redis_key, &(fh->offset), buff_data, count) ;
+             ret = mfs_dbm_redis_fetch(fh->redis_ctxt, buff_key, count_key, *buff_val, count_val) ;
              break ;
-	*/
 
         default:
 	     mfs_print(DBG_INFO, "[FILE]: ERROR on dbm_backend(%d).\n", fh->dbm_backend) ;
@@ -314,11 +302,9 @@ int   mfs_dbm_delete  ( int  fd, void *buff_key, int count_key )
              ret = mfs_dbm_gdbm_delete(fh->gdbm_fd, buff_key, count_key) ;
              break ;
 
-	/*
         case DBM_USE_REDIS:
-             ret = mfs_dbm_redis_delete(fh->redis_ctxt, fh->redis_key, &(fh->offset), buff_data, count) ;
+             ret = mfs_dbm_redis_delete(fh->redis_ctxt, buff_key, count_key) ;
              break ;
-	*/
 
         default:
 	     mfs_print(DBG_INFO, "[FILE]: ERROR on dbm_backend(%d).\n", fh->dbm_backend) ;
