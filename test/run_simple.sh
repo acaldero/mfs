@@ -45,7 +45,7 @@ do
    echo "./test_simple ...(test $i)"
    echo "sleep 2"
    echo "............................."
-   mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_simple -n $SERVER_NP -f ${F_PROTO}
+   mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_simple -n conf.yaml -f ${F_PROTO}
    echo "............................."
    sleep 2
 done

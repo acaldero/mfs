@@ -22,15 +22,18 @@
 
  #include "mfs_params.h"
 
- void mfs_params_show ( params_t *params )
+ int  mfs_params_show ( params_t *params )
  {
- 	printf("Current configuration:\n");
-      	printf("\t-d <base directory>:\t\t'%s'\n",     params->data_prefix) ;
-      	printf("\t-f <POSIX | MPI-IO>:\t\t%s\n",       params->file_backend_name) ;
-      	printf("\t-i <POSIX>:\t\t\t%s\n",              params->directory_backend_name) ;
-      	printf("\t-b <GDBM>:\t\t\t%s\n",               params->dbm_backend_name) ;
-      	printf("\t-t <ondemand | pool>:\t\t'%s'\n",    params->thread_launch_name) ;
-      	printf("\t-n <# process in server>:\t'%d'\n",  params->num_servers) ;
+ 	printf("Current parameters:\n");
+      	printf("\t-d <base directory>:\t'%s'\n",   params->data_prefix) ;
+      	printf("\t-f (POSIX | MPI-IO):\t%s\n",     params->file_backend_name) ;
+      	printf("\t-i (POSIX):\t\t%s\n",            params->directory_backend_name) ;
+      	printf("\t-b (GDBM):\t\t%s\n",             params->dbm_backend_name) ;
+      	printf("\t-t (ondemand | pool):\t'%s'\n",  params->thread_launch_name) ;
+      	printf("\t-n <partition file>:\t'%s'\n",   params->conf_fname) ;
+
+      	// return OK
+      	return 1;
  }
 
  void mfs_params_show_usage ( void )
@@ -41,7 +44,7 @@
       	printf("\t-i <string>:  POSIX\n") ;
       	printf("\t-b <string>:  GDBM\n") ;
       	printf("\t-t <string>:  ondemand | pool\n") ;
-      	printf("\t-n <integer>: number of servers\n") ;
+      	printf("\t-n <string>:  name of the partition file\n") ;
  }
 
  struct option long_options[] =
@@ -67,8 +70,8 @@
       	params->argc = argc ;
       	params->argv = argv ;
 
-        params->num_servers   = 1 ;
         strcpy(params->data_prefix, DEFAULT_DATA_PREFIX) ;
+        strcpy(params->conf_fname,  DEFAULT_CONF_FILE) ;
 
         params->file_backend = FILE_USE_POSIX ;
         strcpy(params->file_backend_name, "POSIX") ;
@@ -103,7 +106,7 @@
                   break ;
 
 	     case 'n':
-		  params->num_servers = atoi(optarg) ;
+		  strcpy(params->conf_fname,  optarg) ;
                   break ;
 
 	     case 'f':

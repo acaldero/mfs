@@ -30,7 +30,7 @@
     #include <sys/time.h>
     #include <fcntl.h>
     #include <unistd.h>
-    #include <mpi.h>
+
     #include "mfs_lib.h"
     #include "mfs_params.h"
 

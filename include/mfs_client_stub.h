@@ -23,8 +23,8 @@
 #define __MFS_CLIENT_STUB_H__
 
     // Includes
-    #include "mpi.h"
     #include "mfs_lib.h"
+    #include "mfs_conf.h"
     #include "mfs_protocol.h"
 
 

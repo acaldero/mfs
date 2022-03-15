@@ -31,13 +31,15 @@
     #include <fcntl.h>
     #include <unistd.h>
     #include <mpi.h>
+
     #include "mfs_lib.h"
     #include "mfs_params.h"
+    #include "mfs_conf.h"
     #include "mfs_comm_common.h"
 
 
     // API
-    int mfs_comm_mpi_init     ( comm_t *cb, params_t *params ) ;
+    int mfs_comm_mpi_init     ( comm_t *cb, params_t *params, conf_part_t *partition ) ;
     int mfs_comm_mpi_finalize ( comm_t *cb ) ;
 
     int mfs_comm_mpi_register   ( comm_t *cb ) ;

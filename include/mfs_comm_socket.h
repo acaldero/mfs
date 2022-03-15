@@ -38,6 +38,7 @@
 
     #include "mfs_lib.h"
     #include "mfs_params.h"
+    #include "mfs_conf.h"
     #include "mfs_comm_common.h"
     #include "mfs_ns.h"
 
@@ -47,7 +48,7 @@
 
 
     // API
-    int mfs_comm_socket_init     ( comm_t *cb, params_t *params ) ;
+    int mfs_comm_socket_init     ( comm_t *cb, params_t *params, conf_part_t *partition ) ;
     int mfs_comm_socket_finalize ( comm_t *cb ) ;
 
     int mfs_comm_socket_register   ( comm_t *cb ) ;

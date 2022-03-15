@@ -26,15 +26,17 @@
 // Init, Finalize
 //
 
-int mfs_comm_init ( comm_t *cb, int comm_protocol, params_t *params )
+int mfs_comm_init ( comm_t *cb, int comm_protocol, params_t *params, conf_part_t *partition )
 {
     int ret ;
 
     // cb->... (stats)
     cb->is_connected = 0 ;
     ret = mfs_comm_stats_reset(cb) ;
-    ret = mfs_comm_stats_set_nservers(cb, params) ;
-    if (ret < 0) {
+
+    // number of servers
+    cb->n_servers = partition->n_nodes ;
+    if (cb->n_servers < 0) {
         mfs_print(DBG_ERROR, "[COMM]: set n_servers fails :-(") ;
         return -1 ;
     }
@@ -45,12 +47,12 @@ int mfs_comm_init ( comm_t *cb, int comm_protocol, params_t *params )
     {
         case COMM_USE_SOCKET:
              cb->comm_protocol_name = "SOCKET" ;
-	     ret = mfs_comm_socket_init(cb, params) ;
+	     ret = mfs_comm_socket_init(cb, params, partition) ;
              break ;
 
         case COMM_USE_MPI:
              cb->comm_protocol_name = "MPI" ;
-	     ret = mfs_comm_mpi_init(cb, params) ;
+	     ret = mfs_comm_mpi_init(cb, params, partition) ;
              break ;
 
         default:
@@ -236,21 +238,6 @@ int mfs_comm_disconnect ( comm_t *cb, int remote_rank )
 //
 // Stats
 //
-
-int mfs_comm_stats_set_nservers ( comm_t *cb, params_t *params )
-{
-    // cb->number_of_process_in_server
-    cb->n_servers = params->num_servers ;
-
-    // check negative value...
-    if (cb->n_servers < 0) {
-        cb->n_servers = 1 ;
-	return -1 ;
-    }
-
-    // Return OK
-    return 0 ;
-}
 
 int mfs_comm_stats_reset ( comm_t *cb )
 {

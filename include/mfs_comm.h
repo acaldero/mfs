@@ -38,7 +38,7 @@
 
 
     // Communications
-    int mfs_comm_init       ( comm_t *cb, int comm_protocol, params_t *params ) ;
+    int mfs_comm_init       ( comm_t *cb, int comm_protocol, params_t *params, conf_part_t *partition ) ;
     int mfs_comm_finalize   ( comm_t *cb ) ;
 
     int mfs_comm_register   ( comm_t *cb ) ;

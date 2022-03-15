@@ -125,7 +125,7 @@ int mfs_comm_socket_close ( int *sd )
 // Init, Finalize
 //
 
-int mfs_comm_socket_init ( comm_t *cb, params_t *params )
+int mfs_comm_socket_init ( comm_t *cb, params_t *params, conf_part_t *partition )
 {
 	int ret;
 
@@ -145,7 +145,7 @@ int mfs_comm_socket_init ( comm_t *cb, params_t *params )
 
 	// initialize fields
 	cb->rank = 0 ;
-	cb->size = cb->n_servers ;
+	cb->size = partition->n_nodes ;
 
 	cb->dd = (int *)malloc((cb->size)*sizeof(int)) ;
 	if (NULL == cb->dd) {

@@ -36,8 +36,9 @@
    // Const
    #define MAX_NAME_LEN   1024
 
-   #define DEFAULT_DATA_PREFIX "./data/"
-   #define DEFAULT_STUB_PNAME  "mfs_server_v1"
+   #define DEFAULT_DATA_PREFIX  "./data/"
+   #define DEFAULT_CONF_FILE    "conf.yaml"
+   #define DEFAULT_STUB_PNAME   "mfs"
 
    #define THREAD_USE_ONDEMAND  1
    #define THREAD_USE_POOL      2
@@ -48,8 +49,8 @@
    {
         // associated client
         char            data_prefix[MAX_NAME_LEN] ; // e.g.: "/mnt/mfs_root"
-        char  mfs_server_stub_pname[MAX_NAME_LEN] ; // e.g.: "mfs_server_v1"
-        int   num_servers ;
+        char  mfs_server_stub_pname[MAX_NAME_LEN] ; // e.g.: "mfs"
+        char             conf_fname[MAX_NAME_LEN] ; // e.g.: "/mnt/mfs_root"
 
 	// backend options
         int   file_backend ;
@@ -80,7 +81,7 @@
 
    void mfs_params_show_usage ( void ) ;
    int  mfs_params_get        ( params_t *params, int *argc, char ***argv ) ;
-   void mfs_params_show       ( params_t *params ) ;
+   int  mfs_params_show       ( params_t *params ) ;
 
 #endif
 

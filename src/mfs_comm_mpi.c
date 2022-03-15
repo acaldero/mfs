@@ -26,7 +26,7 @@
 // Init, Finalize
 //
 
-int mfs_comm_mpi_init ( comm_t *cb, params_t *params )
+int mfs_comm_mpi_init ( comm_t *cb, params_t *params, conf_part_t *partition )
 {
     int ret, claimed, provided ;
 

@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef _MFS_YAML_H_
-#define _MFS_YAML_H_
+#ifndef _MFS_CONF_H_
+#define _MFS_CONF_H_
 
    #include <stdlib.h>
    #include <stdio.h>
@@ -49,8 +49,9 @@
     * API
     */
 
-   int  mfs_yaml_get  ( conf_t *conf, char *yaml_file_name ) ;
-   void mfs_yaml_show ( conf_t *conf ) ;
+   int  mfs_conf_get  ( conf_t *conf, char *conf_file_name ) ;
+   int  mfs_conf_show ( conf_t *conf ) ;
+   int  mfs_conf_free ( conf_t *conf ) ;
 
 #endif
 

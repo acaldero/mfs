@@ -20,9 +20,9 @@
  *
  */
 
- #include "mfs_yaml.h"
+ #include "mfs_conf.h"
 
- void mfs_yaml_show ( conf_t *conf )
+ int mfs_conf_show ( conf_t *conf )
  {
  	printf("Current configuration:\n");
 	for (int i=0; i<conf->n_partitions; i++)
@@ -34,9 +34,12 @@
 	     for (int j=0; j<conf->partitions[i].n_nodes; j++)
                   printf("\t\t\t- uri: '%s'\n", conf->partitions[i].nodes[j]) ;
 	}
+
+      	// return OK
+      	return 1 ;
  }
 
- int mfs_yaml_get ( conf_t *conf, char *yaml_file_name )
+ int mfs_conf_get ( conf_t *conf, char *yaml_file_name )
  {
         FILE *fh ;
 	int  in_loop, kv_type, k_type ;
@@ -44,6 +47,10 @@
 	yaml_token_t  token ;
 	char *token_val ;
 	int   id_last_part ;
+
+        /* Initialize conf */
+	conf->n_partitions = 0 ;
+	conf->partitions   = NULL ;
 
         /* Initialize parser */
         if (!yaml_parser_initialize(&parser)) {
@@ -74,7 +81,6 @@
 		    /* Stream start/end */
 		    case YAML_STREAM_START_TOKEN:
 			 //printf("STREAM START") ;
-	                 conf->n_partitions = 0 ;
 			 break ;
 		    case YAML_STREAM_END_TOKEN:
 			 //printf("STREAM END") ;
@@ -142,7 +148,7 @@
 
 		    /* Others */
 		    default:
-			 printf("Got token of type %d\n", token.type) ;
+			 //printf("Got token of type %d\n", token.type) ;
 			 break ;
 	    }
 	    if (YAML_STREAM_END_TOKEN == token.type) {
@@ -154,6 +160,29 @@
         /* Cleanup */
         yaml_parser_delete(&parser) ;
         fclose(fh) ;
+
+      	// return OK
+      	return 1 ;
+ }
+
+ int mfs_conf_free ( conf_t *conf )
+ {
+	// free each partition...
+	for (int i=0; i<conf->n_partitions; i++)
+	{
+	     // free name and type
+             free(conf->partitions[i].name) ;
+             free(conf->partitions[i].type) ;
+
+	     // free each node... 
+	     for (int j=0; j<conf->partitions[i].n_nodes; j++) {
+                  free(conf->partitions[i].nodes[j]) ;
+	     }
+	     // ...and node table
+             free(conf->partitions[i].nodes) ;
+	}
+	// ...and partition table
+        free(conf->partitions) ;
 
       	// return OK
       	return 1 ;

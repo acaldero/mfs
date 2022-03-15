@@ -95,7 +95,8 @@ int stub_read_name ( comm_t *ab, char **buff_data_sys, char *base_dirname, int p
 
 int serverstub_init ( comm_t *wb, params_t *params )
 {
-    int ret ;
+    int    ret ;
+    conf_t conf ;
 
     // Initialize files
     ret = mfs_file_init() ;
@@ -111,8 +112,15 @@ int serverstub_init ( comm_t *wb, params_t *params )
         return -1 ;
     }
 
+    // Get configuration..
+    ret = mfs_conf_get(&conf, params->conf_fname) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: mfs_conf_get('%s') fails :-(", -1, params->conf_fname) ;
+        return -1 ;
+    }
+
     // Initialize
-    ret = mfs_comm_init(wb, COMM_USE_MPI, params) ;
+    ret = mfs_comm_init(wb, COMM_USE_MPI, params, &(conf.partitions[0])) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: initialization fails for comm :-(", -1) ;
         return -1 ;
@@ -126,6 +134,9 @@ int serverstub_init ( comm_t *wb, params_t *params )
         mfs_print(DBG_ERROR, "Server[%d]: port registration fails :-(", mfs_comm_get_rank(wb)) ;
         return -1 ;
     }
+
+    // Free configuration
+    mfs_conf_free(&conf) ; 
 
     // Return OK
     return 0 ;
