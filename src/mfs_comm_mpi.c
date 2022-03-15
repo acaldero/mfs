@@ -143,11 +143,11 @@ int mfs_comm_mpi_accept ( comm_t *ab )
     return 1 ;
 }
 
-int mfs_comm_mpi_connect ( comm_t *cb, int remote_rank )
+int mfs_comm_mpi_connect ( comm_t *cb, char *srv_uri, int remote_rank )
 {
     int ret ;
 
-    ret = MPI_Lookup_name(cb->srv_name, MPI_INFO_NULL, cb->port_name) ;
+    ret = MPI_Lookup_name(srv_uri, MPI_INFO_NULL, cb->port_name) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "[COMM]: MPI_Lookup_name fails :-(") ;
         return -1 ;

@@ -276,7 +276,7 @@ int mfs_comm_socket_accept ( comm_t *ab )
         return 1 ;
 }
 
-int mfs_comm_socket_connect ( comm_t *cb, int remote_rank )
+int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri, int remote_rank )
 {
 	int    ret, sd ;
 	struct hostent *hp ;
@@ -289,8 +289,8 @@ int mfs_comm_socket_connect ( comm_t *cb, int remote_rank )
 	    return -1 ;
 	}
 
-	// translate srv_name -> host + port
-	ret = mfs_ns_lookup(NS_USE_DBM, cb->srv_name, cb->port_name) ;
+	// translate srv_uri -> host + port
+	ret = mfs_ns_lookup(NS_USE_DBM, srv_uri, cb->port_name) ;
         if (MPI_SUCCESS != ret) {
             mfs_print(DBG_ERROR, "[COMM]: mfs_comm_socket_lookup fails :-(") ;
             return -1 ;

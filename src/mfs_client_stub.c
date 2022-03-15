@@ -91,10 +91,10 @@ int clientstub_action_over_fd_resource ( comm_t *wb, long fd, int opt, int actio
 
 int clientstub_init ( comm_t *wb, params_t *params )
 {
-    int          ret = 0 ;
-    int          remote_rank = 0 ;
-    conf_t       conf ;
-    conf_part_t *partition ;
+    int     ret = 0 ;
+    conf_t  conf ;
+    int     remote_rank ;
+    char   *remote_node ;
 
     // Get valid configuration..
     ret = mfs_conf_get(&conf, params->conf_fname) ;
@@ -104,7 +104,7 @@ int clientstub_init ( comm_t *wb, params_t *params )
 
     if (ret >= 0)
     {
-     // mfs_conf_show(&conf) ; 
+        mfs_conf_show(&conf) ; 
         if (conf.n_partitions < 1) {
             mfs_print(DBG_ERROR, "Client[%d]: mfs_conf_get fails to read at least one partition in file '%s' :-(", -1, params->conf_fname) ;
 	    ret = -1 ;
@@ -114,9 +114,7 @@ int clientstub_init ( comm_t *wb, params_t *params )
     // Initialize
     if (ret >= 0)
     {
-        partition = &(conf.partitions[0]) ;
-
-        ret = mfs_comm_init(wb, params->comm_backend, params, partition) ;
+        ret = mfs_comm_init(wb, params->comm_backend, params, conf.active) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: initialization fails :-(", -1) ;
         }
@@ -125,10 +123,11 @@ int clientstub_init ( comm_t *wb, params_t *params )
     // Connect to service
     if (ret >= 0)
     {
-        remote_rank = (mfs_comm_get_rank(wb) % partition->n_nodes) ;
-        strcpy(wb->srv_name, partition->nodes[remote_rank]) ;
+        remote_rank = mfs_comm_get_rank(wb) % conf.active->n_nodes ;
+        remote_node = mfs_conf_get_active_node(&conf, remote_rank) ;
+        strcpy(wb->srv_name, remote_node) ;
 
-        ret = mfs_comm_connect(wb, remote_rank) ;
+        ret = mfs_comm_connect(wb, remote_node, remote_rank) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: connection fails :-(", remote_rank) ;
         }

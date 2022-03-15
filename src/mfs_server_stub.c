@@ -95,8 +95,10 @@ int stub_read_name ( comm_t *ab, char **buff_data_sys, char *base_dirname, int p
 
 int serverstub_init ( comm_t *wb, params_t *params )
 {
-    int    ret ;
-    conf_t conf ;
+    int     ret ;
+    conf_t  conf ;
+    int     local_rank ;
+    char   *local_node ;
 
     // Initialize files
     ret = mfs_file_init() ;
@@ -112,22 +114,32 @@ int serverstub_init ( comm_t *wb, params_t *params )
         return -1 ;
     }
 
-    // Get configuration..
+    // Get valid configuration..
     ret = mfs_conf_get(&conf, params->conf_fname) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: mfs_conf_get('%s') fails :-(", -1, params->conf_fname) ;
         return -1 ;
     }
+    if (conf.n_partitions < 1) {
+        mfs_print(DBG_ERROR, "Server[%d]: mfs_conf_get fails to read at least one partition in file '%s' :-(", -1, params->conf_fname) ;
+        return -1 ;
+    }
 
     // Initialize
-    ret = mfs_comm_init(wb, COMM_USE_MPI, params, &(conf.partitions[0])) ;
+    ret = mfs_comm_init(wb, params->comm_backend, params, conf.active) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: initialization fails for comm :-(", -1) ;
         return -1 ;
     }
+    if (conf.active->n_nodes != mfs_comm_get_size(wb)) {
+        mfs_print(DBG_ERROR, "Server[%d]: partition in '%s' with less nodes than process :-(", -1, params->conf_fname) ;
+        return -1 ;
+    }
 
     // Register service
-    sprintf(wb->srv_name, "%s.%d", params->mfs_server_stub_pname, mfs_comm_get_rank(wb)) ;
+    local_rank = mfs_comm_get_rank(wb) ;
+    local_node = mfs_conf_get_active_node(&conf, local_rank) ;
+    strcpy(wb->srv_name, local_node) ;
 
     ret = mfs_comm_register(wb) ;
     if (ret < 0) {

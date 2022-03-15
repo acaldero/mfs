@@ -42,6 +42,7 @@
    {
         int           n_partitions ;
         conf_part_t  *partitions ;
+        conf_part_t  *active ;
    } conf_t ;
 
 
@@ -49,9 +50,11 @@
     * API
     */
 
-   int  mfs_conf_get  ( conf_t *conf, char *conf_file_name ) ;
-   int  mfs_conf_show ( conf_t *conf ) ;
-   int  mfs_conf_free ( conf_t *conf ) ;
+   int   mfs_conf_get  ( conf_t *conf, char *conf_file_name ) ;
+   int   mfs_conf_free ( conf_t *conf ) ;
+
+   int   mfs_conf_show ( conf_t *conf ) ;
+   char *mfs_conf_get_active_node ( conf_t *conf, int rank ) ;
 
 #endif
 

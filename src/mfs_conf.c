@@ -22,17 +22,55 @@
 
  #include "mfs_conf.h"
 
+ int mfs_conf_add_partition ( conf_t *conf )
+ {
+	int ret, part_in_bytes ;
+
+	(conf->n_partitions)++ ;
+
+	part_in_bytes = (conf->n_partitions) * sizeof(conf_part_t) ;
+	ret = mfs_realloc((char **)&(conf->partitions), part_in_bytes) ;
+	if (ret < 0) {
+	    return -1 ;
+	}
+
+      	// return OK
+      	return 1 ;
+ }
+
+ int mfs_conf_add_node ( conf_t *conf, int id_part )
+ {
+	int ret, nodes_in_bytes ;
+
+        (conf->partitions[id_part].n_nodes)++ ;
+
+	nodes_in_bytes = (conf->partitions[id_part].n_nodes) * sizeof(char *) ;
+	ret = mfs_realloc((char **)&(conf->partitions[id_part].nodes), nodes_in_bytes) ;
+	if (ret < 0) {
+	    return -1 ;
+	}
+
+      	// return OK
+      	return 1 ;
+ }
+
+
+ //
+ // API
+ //
+
  int mfs_conf_show ( conf_t *conf )
  {
- 	printf("Current configuration:\n");
+ 	printf(" Current configuration:\n");
 	for (int i=0; i<conf->n_partitions; i++)
 	{
- 	     printf("\tpartition:\n");
-             printf("\t\tname: '%s'\n", conf->partitions[i].name) ;
-             printf("\t\ttype: '%s'\n", conf->partitions[i].type) ;
-             printf("\t\tnodes:\n") ;
-	     for (int j=0; j<conf->partitions[i].n_nodes; j++)
-                  printf("\t\t\t- uri: '%s'\n", conf->partitions[i].nodes[j]) ;
+ 	     printf(" | - partition:\n");
+             printf(" |   | - name: '%s'\n", conf->partitions[i].name) ;
+             printf(" |   | - type: '%s'\n", conf->partitions[i].type) ;
+             printf(" |   | - nodes:\n") ;
+	     for (int j=0; j<conf->partitions[i].n_nodes; j++) {
+                  printf(" |   |   | - uri: '%s'\n", conf->partitions[i].nodes[j]) ;
+	     }
 	}
 
       	// return OK
@@ -41,6 +79,7 @@
 
  int mfs_conf_get ( conf_t *conf, char *yaml_file_name )
  {
+	int ret ;
         FILE *fh ;
 	int  in_loop, kv_type, k_type ;
         yaml_parser_t parser ;
@@ -51,6 +90,7 @@
         /* Initialize conf */
 	conf->n_partitions = 0 ;
 	conf->partitions   = NULL ;
+	conf->active       = NULL ;
 
         /* Initialize parser */
         if (!yaml_parser_initialize(&parser)) {
@@ -80,53 +120,43 @@
 	    {
 		    /* Stream start/end */
 		    case YAML_STREAM_START_TOKEN:
-			 //printf("STREAM START") ;
 			 break ;
 		    case YAML_STREAM_END_TOKEN:
-			 //printf("STREAM END") ;
 			 break ;
 
 		    /* Token types (read before actual token) */
 		    case YAML_KEY_TOKEN:
-			 //printf("(Key token)   ") ;
 	                 kv_type = 1 ;
 			 break ;
 		    case YAML_VALUE_TOKEN:
-			 //printf("(Value token) ") ;
 	                 kv_type = 2 ;
 			 break ;
 
 		    /* Block delimeters */
 		    case YAML_BLOCK_SEQUENCE_START_TOKEN:
-			 //printf("<b>Start Block (Sequence)</b>") ;
 			 break ;
 		    case YAML_BLOCK_ENTRY_TOKEN:
-			 //printf("<b>Start Block (Entry)</b>") ;
 			 break ;
 		    case YAML_BLOCK_END_TOKEN:
-			 //printf("<b>End block</b>") ;
 			 break ;
 
 		    /* Data */
 		    case YAML_BLOCK_MAPPING_START_TOKEN:
-			 //printf("[Block mapping]") ;
 			 break ;
 		    case YAML_SCALAR_TOKEN:
-			 //printf("scalar %s \n", token.data.scalar.value) ;
 	                 token_val    = (char *)token.data.scalar.value ;
 			 id_last_part = conf->n_partitions - 1 ;
 
 	                 if (1 == kv_type)
 			 {
-			     if (!strcmp("partition",  token_val)) {
-				                     (conf->n_partitions)++ ;
-				 int part_in_bytes = (conf->n_partitions) * sizeof(conf_part_t) ;
-				 conf->partitions  = (conf_part_t *)realloc(conf->partitions, part_in_bytes) ;
+			     if (!strcmp("partition", token_val)) {
+                                 ret = mfs_conf_add_partition(conf) ;
+				 if (ret < 0) return -1 ;
 			     }
-			     if (!strcmp("name",       token_val))  k_type = 1 ;
-			     if (!strcmp("type",       token_val))  k_type = 2 ;
-			     if (!strcmp("nodes",      token_val))  k_type = 3 ;
-			     if (!strcmp("uri",        token_val))  k_type = 4 ;
+			     if (!strcmp("name",   token_val))  k_type = 1 ;
+			     if (!strcmp("type",   token_val))  k_type = 2 ;
+			     if (!strcmp("nodes",  token_val))  k_type = 3 ;
+			     if (!strcmp("uri",    token_val))  k_type = 4 ;
 			 }
 	                 if (2 == kv_type)
 			 {
@@ -137,11 +167,10 @@
                                  conf->partitions[id_last_part].type = strdup(token_val) ;
 			     }
 			     if (4 == k_type) {
-	                         int id_last_node   =  conf->partitions[id_last_part].n_nodes ;
-	                                              (conf->partitions[id_last_part].n_nodes)++ ;
-				 int nodes_in_bytes = (conf->partitions[id_last_part].n_nodes) * sizeof(char *) ;
-				  conf->partitions[id_last_part].nodes               = (char **)realloc(conf->partitions[id_last_part].nodes, nodes_in_bytes) ;
-                                  conf->partitions[id_last_part].nodes[id_last_node] = strdup(token_val) ;
+				 ret = mfs_conf_add_node(conf, id_last_part) ;
+				 if (ret < 0) return -1 ;
+				 int id_last_node = conf->partitions[id_last_part].n_nodes - 1 ;
+				 conf->partitions[id_last_part].nodes[id_last_node] = strdup(token_val) ;
 			     }
 			 }
 			 break ;
@@ -161,13 +190,18 @@
         yaml_parser_delete(&parser) ;
         fclose(fh) ;
 
+	// active
+	if (conf->n_partitions > 0) {
+	    conf->active = &(conf->partitions[0]) ;
+	}
+
       	// return OK
       	return 1 ;
  }
 
  int mfs_conf_free ( conf_t *conf )
  {
-	// free each partition...
+	// Free each partition...
 	for (int i=0; i<conf->n_partitions; i++)
 	{
 	     // free name and type
@@ -184,7 +218,26 @@
 	// ...and partition table
         free(conf->partitions) ;
 
+        /* Initialize conf */
+	conf->n_partitions = 0 ;
+	conf->partitions   = NULL ;
+	conf->active       = NULL ;
+
       	// return OK
       	return 1 ;
+ }
+
+ char *mfs_conf_get_active_node ( conf_t *conf, int rank )
+ {
+	if (NULL == conf) {
+	    return NULL ;
+	}
+
+        if (rank >= conf->active->n_nodes) {
+	    return NULL ;
+	}
+
+      	// return node (char *)
+        return conf->active->nodes[rank]  ;
  }
 

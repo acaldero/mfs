@@ -24,13 +24,13 @@
 
  int  mfs_params_show ( params_t *params )
  {
- 	printf("Current parameters:\n");
-      	printf("\t-d <base directory>:\t'%s'\n",   params->data_prefix) ;
-      	printf("\t-f (POSIX | MPI-IO):\t%s\n",     params->file_backend_name) ;
-      	printf("\t-i (POSIX):\t\t%s\n",            params->directory_backend_name) ;
-      	printf("\t-b (GDBM):\t\t%s\n",             params->dbm_backend_name) ;
-      	printf("\t-t (ondemand | pool):\t'%s'\n",  params->thread_launch_name) ;
-      	printf("\t-n <partition file>:\t'%s'\n",   params->conf_fname) ;
+ 	printf(" Current parameters:\n");
+      	printf(" | -d <base directory>:  \t'%s'\n",   params->data_prefix) ;
+      	printf(" | -f (POSIX | MPI-IO):  \t%s\n",     params->file_backend_name) ;
+      	printf(" | -i (POSIX):  \t\t%s\n",            params->directory_backend_name) ;
+      	printf(" | -b (GDBM):  \t\t\t%s\n",           params->dbm_backend_name) ;
+      	printf(" | -t (ondemand | pool):  \t'%s'\n",  params->thread_launch_name) ;
+      	printf(" | -n <partition file>:  \t'%s'\n",   params->conf_fname) ;
 
       	// return OK
       	return 1;

@@ -178,7 +178,7 @@ int mfs_comm_accept ( comm_t *ab, comm_t *wb )
     return ret ;
 }
 
-int mfs_comm_connect ( comm_t *cb, int remote_rank )
+int mfs_comm_connect ( comm_t *cb, char *srv_uri, int remote_rank )
 {
     int ret ;
 
@@ -186,11 +186,11 @@ int mfs_comm_connect ( comm_t *cb, int remote_rank )
     switch (cb->comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = mfs_comm_socket_connect(cb, remote_rank) ;
+	     ret = mfs_comm_socket_connect(cb, srv_uri, remote_rank) ;
              break ;
 
         case COMM_USE_MPI:
-	     ret = mfs_comm_mpi_connect(cb, remote_rank) ;
+	     ret = mfs_comm_mpi_connect(cb, srv_uri, remote_rank) ;
              break ;
 
         default:
