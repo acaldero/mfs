@@ -6,7 +6,7 @@
 CC=mpic++
 AR=ar
 CFLAGS=-w -g -O2 -Wall -I/usr/local/include/ -I./ -I../include # -DDEBUG
-LDFLAGS=-lpthread
+LDFLAGS=-lpthread  -lhiredis  -lgdbm  -lyaml
 
 LIB_DIR=../lib
 BIN_FILES=test_simple test_benchmark
@@ -30,10 +30,10 @@ end:
 	@echo " Done"
 
 test_simple:    test_simple.o
-	$(CC) $^  $(LDFLAGS) $(LIB_FILES) -o $@
+	$(CC) $^  -o $@  $(LIB_FILES) $(LDFLAGS)
 
 test_benchmark: test_benchmark.o
-	$(CC) $^  $(LDFLAGS) $(LIB_FILES) -o $@
+	$(CC) $^  -o $@  $(LIB_FILES) $(LDFLAGS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@

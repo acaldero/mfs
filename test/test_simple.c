@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 #include "mfs_client_api.h"
+#include "mfs_yaml.h"
 
 #define STR_SIZE 1024
 
@@ -90,6 +91,11 @@ int main ( int argc, char **argv )
  	   " mfs_client\n"
 	   " ----------\n"
 	   "\n") ;
+
+    /// Get configuration..
+    ///conf_t conf ;
+    ///ret = mfs_yaml_get(&conf, "conf.yaml") ;
+    ///mfs_yaml_show(&conf) ; 
 
     // Get parameters..
     ret = mfs_params_get(&params, &argc, &argv) ;

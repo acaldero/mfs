@@ -1,0 +1,12 @@
+---
+ partition:
+         name: "PNFS1"
+         type: "NORMAL"
+         nodes:
+                 - uri: "file:////tmp/1/"
+ partition:
+         name: "PNFS2"
+         type: "NORMAL"
+         nodes:
+                 - uri: "file:////mnt/scratch/1/"
+                 - uri: "file:////mnt/scratch/2/"
