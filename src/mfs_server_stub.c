@@ -107,7 +107,14 @@ int serverstub_init ( comm_t *wb, params_t *params )
         return -1 ;
     }
 
-    // Initialize files
+    // Initialize dbm
+    ret = mfs_dbm_init() ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: initialization fails for dbm :-(", -1) ;
+        return -1 ;
+    }
+
+    // Initialize directories
     ret = mfs_directory_init() ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: initialization fails for directories :-(", -1) ;

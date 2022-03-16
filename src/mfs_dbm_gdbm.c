@@ -44,8 +44,9 @@ int  mfs_dbm_gdbm_open  ( GDBM_FILE  *fd, const char *path_name, int flags )
 {
 #ifdef HAVE_GDBM_H
      // Check params...
-     (*fd) = gdbm_open((char *)path_name, 8*1024, flags, 0755, NULL) ;
+     (*fd) = gdbm_open((char *)path_name, 0, flags, 0755, NULL) ;
      if (NULL == (*fd)) {
+	 perror("gdbm_open: ") ;
          return -1 ;
      }
 #endif
