@@ -84,6 +84,33 @@ int clientstub_action_over_fd_resource ( comm_t *wb, long fd, int opt, int actio
     return ret ;
 }
 
+int clientstub_action_send_buffer ( comm_t *wb, void *buff_char, int count, int buffer_size )
+{
+    int  ret ;
+    long remaining_size, current_size ;
+
+    ret            =  1 ;
+    current_size   =  0 ;
+    remaining_size = count ;
+    while ( (ret > 0) && (remaining_size > 0) )
+    {
+        // Send data
+        if (ret >= 0)
+        {
+            ret = mfs_comm_send_data_to(wb, 0, buff_char + current_size, buffer_size, MPI_CHAR) ;
+            if (ret < 0) {
+                mfs_print(DBG_ERROR, "Client[%d]: data cannot be sent :-(", mfs_comm_get_rank(wb)) ;
+            }
+        }
+
+        current_size   = current_size   + buffer_size ;
+        remaining_size = remaining_size - buffer_size ;
+    }
+
+    // Return bytes written
+    return current_size ;
+}
+
 
 /*
  *  File System API
@@ -104,7 +131,7 @@ int clientstub_init ( comm_t *wb, params_t *params )
 
     if (ret >= 0)
     {
-        mfs_conf_show(&conf) ; 
+        mfs_conf_show(&conf) ;
         if (conf.n_partitions < 1) {
             mfs_print(DBG_ERROR, "Client[%d]: mfs_conf_get fails to read at least one partition in file '%s' :-(", -1, params->conf_fname) ;
 	    ret = -1 ;
@@ -136,7 +163,7 @@ int clientstub_init ( comm_t *wb, params_t *params )
     // Free configuration
     if (ret >= 0)
     {
-        mfs_conf_free(&conf) ; 
+        mfs_conf_free(&conf) ;
     }
 
     // Return OK/KO
@@ -146,6 +173,7 @@ int clientstub_init ( comm_t *wb, params_t *params )
 int clientstub_finalize ( comm_t *wb )
 {
     int ret = 0 ;
+    int remote_rank ;
 
     // Remote disconnect...
     if (ret >= 0)
@@ -156,7 +184,7 @@ int clientstub_finalize ( comm_t *wb )
     // Disconnect...
     if (ret >= 0)
     {
-        int remote_rank = (mfs_comm_get_rank(wb) % wb->n_servers) ;
+        remote_rank = (mfs_comm_get_rank(wb) % wb->n_servers) ;
 
         ret = mfs_comm_disconnect(wb, remote_rank) ;
         if (ret < 0) {
@@ -241,9 +269,12 @@ int clientstub_read ( comm_t *wb, long fd, void *buff_char, int count )
 
 int clientstub_write ( comm_t *wb, long fd, void *buff_char, int count )
 {
-    int  ret = 0 ;
-    int  status, buffer_size ;
+    int  ret, status ;
+    int  buffer_size ;
     long remaining_size, current_size ;
+
+    ret = 0 ;
+    status = -1 ;
 
     // Send write msg
     if (ret >= 0)
@@ -265,25 +296,14 @@ int clientstub_write ( comm_t *wb, long fd, void *buff_char, int count )
 	}
     }
 
-    current_size   = 0 ;
-    remaining_size = count ;
-    while ( (ret > 0) && (remaining_size > 0) )
+    // Send buffer and receive status
+    if (ret >= 0)
     {
-        // Send data
-        if (ret >= 0)
-        {
-            ret = mfs_comm_send_data_to(wb, 0, buff_char + current_size, buffer_size, MPI_CHAR) ;
-            if (ret < 0) {
-                mfs_print(DBG_ERROR, "Client[%d]: data cannot be sent :-(", mfs_comm_get_rank(wb)) ;
-            }
-        }
-
-        current_size   = current_size   + buffer_size ;
-        remaining_size = remaining_size - buffer_size ;
+        ret = clientstub_action_send_buffer(wb, buff_char, count, buffer_size) ;
     }
 
     // Receive status
-    if (ret >= 0)
+    //if (ret >= 0)
     {
         ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
         if (ret < 0) {
@@ -327,9 +347,11 @@ int  clientstub_dbmclose ( comm_t *wb, long fd )
 
 int  clientstub_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int count_val )
 {
-    int  ret = 0 ;
-    int  status, buffer_size ;
+    int  ret, status  ;
     long remaining_size, current_size ;
+
+    ret = 0 ;
+    status = -1 ;
 
     // Send write msg
     if (ret >= 0)
@@ -337,62 +359,38 @@ int  clientstub_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_key, v
         ret = mfs_comm_request_send(wb, 0, REQ_ACTION_DBMSTORE, fd, count_key) ;
     }
 
-    // Receive buffer_size
+    // Send value size (in bytes)
     if (ret >= 0)
     {
-        ret = mfs_comm_recv_data_from(wb, 0, &buffer_size, 1, MPI_INT) ;
+        ret = mfs_comm_send_data_to(wb, 0, &count_val, 1, MPI_INT) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: buffer_size not received :-(", mfs_comm_get_rank(wb)) ;
+    	    mfs_print(DBG_ERROR, "Client[%d]: value size cannot be sent :-(", mfs_comm_get_rank(wb)) ;
         }
-
-        // if remote error then return
-	if (buffer_size < 0) {
-	    return -1 ;
-	}
-    }
-
-    // Send key
-    current_size   = 0 ;
-    remaining_size = count_key ;
-    while ( (ret > 0) && (remaining_size > 0) )
-    {
-        if (ret >= 0)
-        {
-            ret = mfs_comm_send_data_to(wb, 0, buff_key + current_size, buffer_size, MPI_CHAR) ;
-            if (ret < 0) {
-                mfs_print(DBG_ERROR, "Client[%d]: key cannot be sent :-(", mfs_comm_get_rank(wb)) ;
-            }
-        }
-
-        current_size   = current_size   + buffer_size ;
-        remaining_size = remaining_size - buffer_size ;
-    }
-
-    // Send value size (in bytes)
-    ret = mfs_comm_send_data_to(wb, 0, &count_val, 1, MPI_INT) ;
-    if (ret < 0) {
-	mfs_print(DBG_ERROR, "Client[%d]: value size cannot be sent :-(", mfs_comm_get_rank(wb)) ;
-    }
-
-    // Send value
-    current_size   = 0 ;
-    remaining_size = count_val ;
-    while ( (ret > 0) && (remaining_size > 0) )
-    {
-        if (ret >= 0)
-        {
-            ret = mfs_comm_send_data_to(wb, 0, buff_val + current_size, buffer_size, MPI_CHAR) ;
-            if (ret < 0) {
-                mfs_print(DBG_ERROR, "Client[%d]: value cannot be sent :-(", mfs_comm_get_rank(wb)) ;
-            }
-        }
-
-        current_size   = current_size   + buffer_size ;
-        remaining_size = remaining_size - buffer_size ;
     }
 
     // Receive status
     if (ret >= 0)
+    {
+        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: status not received :-(", mfs_comm_get_rank(wb)) ;
+        }
+
+        // if remote error then return
+	if (status < 0) {
+	    return -1 ;
+	}
+    }
+
+    // Send key + value
+    if (ret >= 0)
+    {
+        clientstub_action_send_buffer(wb, buff_key, count_key, count_key) ;
+        clientstub_action_send_buffer(wb, buff_val, count_val, count_val) ;
+    }
+
+    // Receive status
+    //if (ret >= 0)
     {
         ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
         if (ret < 0) {

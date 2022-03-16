@@ -61,7 +61,7 @@ int main_simple2 ( params_t *params, comm_t *wb )
 
     printf("Client[%d]: dbmopen(...) + dbmstore(...) + dbmclose(...)\n", wb->rank) ;
     fd = mfs_api_dbmopen(wb, "test1.txt", GDBM_WRITER | GDBM_WRCREAT) ;
-    //mfs_api_dbmstore(wb, fd, str1, strlen(str1), str2, strlen(str2)) ; // TODO
+    mfs_api_dbmstore(wb, fd, str1, strlen(str1), str2, strlen(str2)) ;
     mfs_api_dbmclose(wb, fd) ;
 
     strcpy(str2, "") ;

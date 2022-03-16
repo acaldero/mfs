@@ -472,7 +472,7 @@ int serverstub_write ( comm_t *ab, params_t *params, int fd, int count )
     }
 
     // send back status
-    if (ret >= 0)
+    //if (ret >= 0)
     {
         ret = mfs_comm_send_data_to(ab, 0, &current_size, 1, MPI_INT) ;
         if (ret < 0) {
@@ -700,13 +700,96 @@ int serverstub_dbmclose ( comm_t *ab, params_t *params, int fd )
 
 int serverstub_dbmstore ( comm_t *ab, params_t *params, int fd, int count )
 {
-    int  ret ;
+    int    ret ;
+    char  *buff_key, *buff_val ;
+    int    key_size,  val_size ;
+    long   remaining_size, current_size ;
 
-    ret = 0 ;
+    ret      = 0 ;
+    key_size = count ;
 
-    // TODO !
-    // int  clientstub_dbmstore  ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int  count_val ) ;
-    
+    // (1) receive val_size
+    if (ret >= 0)
+    {
+        ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, &val_size, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: data not received :-(", mfs_comm_get_rank(ab)) ;
+        }
+    }
+
+    // (2) prepare key buffer
+    if (ret >= 0)
+    {
+        ret = mfs_malloc(&buff_key, key_size) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), key_size) ;
+        }
+    }
+
+    // prepare val buffer
+    if (ret >= 0)
+    {
+        ret = mfs_malloc(&buff_val, val_size) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), val_size) ;
+        }
+    }
+
+    // (3) if error then send back error and return
+    if (ret < 0) {
+        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+	return -1 ;
+    }
+
+    // send back status for malloc...
+    ret = mfs_comm_send_data_to(ab, 0, &buff_val, 1, MPI_INT) ;
+    if (ret < 0) {
+        mfs_print(DBG_WARNING, "Server[%d]: buff_val cannot be sent :-(", mfs_comm_get_rank(ab)) ;
+    }
+
+    // (4) receive key
+    mfs_print(DBG_INFO, "Server[%d]: File[%ld]: dbmstore(bytes=%d) << client\n", mfs_comm_get_rank(ab), fd, key_size) ;
+    ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_key, key_size, MPI_CHAR) ;
+    if (ret < 0) {
+        mfs_print(DBG_WARNING, "Server[%d]: data not received :-(", mfs_comm_get_rank(ab)) ;
+    }
+
+    // (5) receive val
+    mfs_print(DBG_INFO, "Server[%d]: File[%ld]: dbmstore(bytes=%d) << client\n", mfs_comm_get_rank(ab), fd, val_size) ;
+    ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_val, val_size, MPI_CHAR) ;
+    if (ret < 0) {
+        mfs_print(DBG_WARNING, "Server[%d]: data not received :-(", mfs_comm_get_rank(ab)) ;
+    }
+
+    // (6) do dbm_store...
+    if (ret >= 0)
+    {
+        ret = mfs_dbm_store(fd, buff_key, key_size, buff_val, val_size) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: problem on mfs_dbm_store :-(", mfs_comm_get_rank(ab)) ;
+        }
+    }
+
+    // (7) send back status for val
+    //if (ret >= 0)
+    {
+        ret = mfs_comm_send_data_to(ab, 0, &current_size, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(", mfs_comm_get_rank(ab)) ;
+        }
+    }
+
+    // (8) free data buffer
+    ret = mfs_free(&buff_key) ;
+    if (ret < 0) {
+        mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", mfs_comm_get_rank(ab)) ;
+    }
+
+    ret = mfs_free(&buff_val) ;
+    if (ret < 0) {
+        mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(", mfs_comm_get_rank(ab)) ;
+    }
+
     // Return OK/KO
     return ret ;
 }
