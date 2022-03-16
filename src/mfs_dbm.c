@@ -264,7 +264,7 @@ int   mfs_dbm_fetch  ( int  fd, void *buff_key, int count_key, void **buff_val, 
     switch (fh->dbm_backend)
     {
         case DBM_USE_GDBM:
-             ret = mfs_dbm_gdbm_fetch(fh->gdbm_fd, buff_key, count_key, buff_val, count_val) ;
+             ret = mfs_dbm_gdbm_fetch(fh->gdbm_fd, buff_key, count_key, *buff_val, count_val) ;
              break ;
 
         case DBM_USE_REDIS:

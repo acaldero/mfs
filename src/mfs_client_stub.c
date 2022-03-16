@@ -404,25 +404,99 @@ int  clientstub_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_key, v
 
 int  clientstub_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int *count_val )
 {
-    int  ret ;
+    int  ret, status  ;
+    long remaining_size, current_size ;
 
     ret = 0 ;
+    status = -1 ;
 
-    // TODO !
+    // Send write msg
+    if (ret >= 0)
+    {
+        ret = mfs_comm_request_send(wb, 0, REQ_ACTION_DBMFETCH, fd, count_key) ;
+    }
 
-    // Return OK/KO
-    return ret ;
+    // Send value size (in bytes)
+    if (ret >= 0)
+    {
+        ret = mfs_comm_send_data_to(wb, 0, count_val, 1, MPI_INT) ;
+        if (ret < 0) {
+    	    mfs_print(DBG_ERROR, "Client[%d]: value size cannot be sent :-(", mfs_comm_get_rank(wb)) ;
+        }
+    }
+
+    // Receive status
+    if (ret >= 0)
+    {
+        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: status not received :-(", mfs_comm_get_rank(wb)) ;
+        }
+
+        // if remote error then return
+	if (status < 0) {
+	    return -1 ;
+	}
+    }
+
+    // Send key
+    if (ret >= 0)
+    {
+        clientstub_action_send_buffer(wb, buff_key, count_key, count_key) ;
+    }
+
+    // Receive status
+    //if (ret >= 0)
+    {
+        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
+        }
+    }
+
+    // Receive val
+    if (status > 0)
+    {
+        ret = mfs_comm_recv_data_from(wb, 0, buff_val, *count_val, MPI_CHAR) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
+        }
+    }
+
+    // Return bytes written
+    return status ;
 }
 
 int  clientstub_dbmdelete ( comm_t *wb, long fd, void *buff_key, int count_key )
 {
-    int  ret ;
+    int  ret, status  ;
+    long remaining_size, current_size ;
 
     ret = 0 ;
+    status = -1 ;
 
-    // TODO !
+    // Send write msg
+    if (ret >= 0)
+    {
+        ret = mfs_comm_request_send(wb, 0, REQ_ACTION_DBMDELETE, fd, count_key) ;
+    }
 
-    // Return OK/KO
-    return ret ;
+    // Send key
+    if (ret >= 0)
+    {
+        clientstub_action_send_buffer(wb, buff_key, count_key, count_key) ;
+    }
+
+    // Receive status
+    //if (ret >= 0)
+    {
+        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
+        }
+    }
+
+    // Return bytes written
+    return status ;
 }
 

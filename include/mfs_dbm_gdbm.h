@@ -51,8 +51,8 @@
     int  mfs_dbm_gdbm_open   ( GDBM_FILE *fd, const char *path_name, int flags ) ;
     int  mfs_dbm_gdbm_close  ( GDBM_FILE  fd ) ;
 
-    int  mfs_dbm_gdbm_store  ( GDBM_FILE  fd, void *buff_key, int count_key, void  *buff_val, int  count_val ) ;
-    int  mfs_dbm_gdbm_fetch  ( GDBM_FILE  fd, void *buff_key, int count_key, void **buff_val, int *count_val ) ;
+    int  mfs_dbm_gdbm_store  ( GDBM_FILE  fd, void *buff_key, int count_key, void *buff_val, int  count_val ) ;
+    int  mfs_dbm_gdbm_fetch  ( GDBM_FILE  fd, void *buff_key, int count_key, void *buff_val, int *count_val ) ;
     int  mfs_dbm_gdbm_delete ( GDBM_FILE  fd, void *buff_key, int count_key ) ;
 
 #endif

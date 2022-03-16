@@ -87,10 +87,11 @@ int   mfs_dbm_gdbm_store   ( GDBM_FILE  fd, void *buff_key, int count_key, void 
      return ret ;
 }
 
-int   mfs_dbm_gdbm_fetch  ( GDBM_FILE  fd, void *buff_key, int count_key, void **buff_val, int *count_val )
+int   mfs_dbm_gdbm_fetch  ( GDBM_FILE  fd, void *buff_key, int count_key, void *buff_val, int *count_val )
 {
 #ifdef HAVE_GDBM_H
      datum key, value ;
+     int cpy_size ;
 
      // Build key
      key.dptr    = (char *)buff_key ;
@@ -100,8 +101,9 @@ int   mfs_dbm_gdbm_fetch  ( GDBM_FILE  fd, void *buff_key, int count_key, void *
      value = gdbm_fetch(fd, key) ;
 
      // Get val
-     *buff_val  = (void *)value.dptr ;
-     *count_val = value.dsize ;
+     cpy_size = (*count_val < value.dsize) ? *count_val : value.dsize ;
+     memcpy(buff_val, (void *)value.dptr, cpy_size) ;
+     *count_val = cpy_size ;
 
      // Return OK/KO
      return (value.dptr != NULL) ;
