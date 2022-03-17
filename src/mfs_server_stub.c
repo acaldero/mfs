@@ -193,6 +193,13 @@ int serverstub_finalize ( comm_t *wb, params_t *params )
         return -1 ;
     }
 
+    // Finalize dbm
+    ret = mfs_dbm_finalize() ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: finalization fails for dbm :-(", -1) ;
+        return -1 ;
+    }
+
     // Return OK
     return 0 ;
 }
@@ -653,7 +660,7 @@ int serverstub_dbmopen ( comm_t *ab, params_t *params, int *fd, int pathname_len
     // send back file descriptor
     //if (ret >= 0)
     {
-	long fref = mfs_file_fd2long(*fd) ;
+	long fref = mfs_dbm_fd2long(*fd) ;
         mfs_print(DBG_INFO, "Server[%d]: File[%ld]: open(flags=%d) >> client\n", mfs_comm_get_rank(ab), fref, flags) ;
 
         ret = mfs_comm_send_data_to(ab, 0, &(fref), 1, MPI_LONG) ;

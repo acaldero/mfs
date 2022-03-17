@@ -71,7 +71,7 @@ int main_simple2 ( params_t *params, comm_t *wb )
     printf("Client[%d]: dbmopen(...) + dbmfetch(...) + dbmclose(...)\n", wb->rank) ;
     fd = mfs_api_dbmopen(wb, "test2.txt", GDBM_READER) ;
     if (fd < 0) return -1 ;
-    mfs_api_dbmfetch(wb, fd, str1, strlen(str1), &str2, &str2_len) ;
+    // mfs_api_dbmfetch(wb, fd, str1, strlen(str1), &str2, &str2_len) ; // TODO
     mfs_api_dbmclose(wb, fd) ;
 
     printf("Client[%d]: dbmopen(...) + dbmdelete(...) + dbmclose(...)\n", wb->rank) ;
