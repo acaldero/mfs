@@ -51,6 +51,7 @@
   int mfs_malloc  ( char **ptr, long size ) ;
   int mfs_free    ( char **ptr ) ;
   int mfs_realloc ( char **ptr, long new_size ) ;
+  int mfs_free_and_strdup ( char **ptr, char *str ) ;
 
 #endif
 

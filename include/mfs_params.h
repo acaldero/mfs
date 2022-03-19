@@ -48,25 +48,25 @@
    typedef struct
    {
         // associated client
-        char            data_prefix[MAX_NAME_LEN] ; // e.g.: "/mnt/mfs_root"
-        char  mfs_server_stub_pname[MAX_NAME_LEN] ; // e.g.: "mfs"
-        char             conf_fname[MAX_NAME_LEN] ; // e.g.: "/mnt/mfs_root"
+        char            *data_prefix ; // e.g.: "/mnt/mfs_root"
+        char  *mfs_server_stub_pname ; // e.g.: "mfs"
+        char             *conf_fname ; // e.g.: "/mnt/mfs_root"
 
 	// backend options
-        int   file_backend ;
-        char  file_backend_name[MAX_NAME_LEN] ;
+        int    file_backend ;
+        char  *file_backend_name ;
 
-        int   dbm_backend ;
-        char  dbm_backend_name[MAX_NAME_LEN] ;
+        int    dbm_backend ;
+        char  *dbm_backend_name ;
 
-        int   directory_backend ;
-        char  directory_backend_name[MAX_NAME_LEN] ;
+        int    directory_backend ;
+        char  *directory_backend_name ;
 
-        int   thread_launch ;
-        char  thread_launch_name[MAX_NAME_LEN] ;
+        int    thread_launch ;
+        char  *thread_launch_name ;
 
-        int   comm_backend ;
-        char  comm_backend_name[MAX_NAME_LEN] ;
+        int    comm_backend ;
+        char  *comm_backend_name ;
 
         // server arguments
         int    *argc ;
@@ -82,6 +82,7 @@
    void mfs_params_show_usage ( void ) ;
    int  mfs_params_get        ( params_t *params, int *argc, char ***argv ) ;
    int  mfs_params_show       ( params_t *params ) ;
+   int  mfs_params_free       ( params_t *params ) ;
 
 #endif
 

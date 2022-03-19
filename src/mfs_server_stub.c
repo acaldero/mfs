@@ -200,6 +200,12 @@ int serverstub_finalize ( comm_t *wb, params_t *params )
         return -1 ;
     }
 
+    // Finalize params
+    //if (ret >= 0)
+    {
+         mfs_params_free(&params) ;
+    }
+
     // Return OK
     return 0 ;
 }

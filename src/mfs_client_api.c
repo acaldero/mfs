@@ -32,9 +32,9 @@ int mfs_api_init ( comm_t *wb, params_t *params )
     return clientstub_init(wb, params) ;
 }
 
-int mfs_api_finalize ( comm_t *wb )
+int mfs_api_finalize ( comm_t *wb, params_t *params )
 {
-    return clientstub_finalize(wb) ;
+    return clientstub_finalize(wb, params) ;
 }
 
 

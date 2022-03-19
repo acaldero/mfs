@@ -30,7 +30,7 @@
 
     // File System API
     int clientstub_init     ( comm_t *wb, params_t *params ) ;
-    int clientstub_finalize ( comm_t *wb ) ;
+    int clientstub_finalize ( comm_t *wb, params_t *params ) ;
 
     // File API
     long clientstub_open    ( comm_t *wb, const char *pathname, int flags ) ;

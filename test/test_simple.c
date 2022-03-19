@@ -136,7 +136,7 @@ int main ( int argc, char **argv )
 
     // Finalize...
     printf("Client[%d]: finalize...\n", wb.rank) ;
-    mfs_api_finalize(&wb) ;
+    mfs_api_finalize(&wb, params) ;
 
     // Return OK/KO
     return ret ;

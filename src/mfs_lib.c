@@ -144,6 +144,20 @@ int mfs_realloc ( char **ptr, long new_size )
     return 1 ;
 }
 
+int mfs_free_and_strdup ( char **ptr, char *str )
+{
+    // check arguments
+    if (NULL == ptr) {
+	return -1 ;
+    }
+
+    free(*ptr) ;
+    *ptr = strdup(str) ;
+
+    // Return OK
+    return 1 ;
+}
+
 
 //
 // Thread

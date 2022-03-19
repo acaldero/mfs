@@ -31,7 +31,7 @@
 
     // File System API
     int mfs_api_init     ( comm_t *wb, params_t *params ) ;
-    int mfs_api_finalize ( comm_t *wb ) ;
+    int mfs_api_finalize ( comm_t *wb, params_t *params ) ;
 
     // File API
     long mfs_api_open    ( comm_t *wb, const char *pathname, int flags ) ;

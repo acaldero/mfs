@@ -54,7 +54,7 @@ int main_simple2 ( params_t *params )
          {
               fd = mfs_api_open(&wb, "test1.txt", O_RDWR | O_CREAT) ;
 	      if (fd < 0) {
-                  mfs_api_finalize(&wb) ;
+                  mfs_api_finalize(&wb, params) ;
 		  exit(-1) ;
 	      }
 
@@ -79,7 +79,7 @@ int main_simple2 ( params_t *params )
          {
               fd = mfs_api_open(&wb, "test1.txt", O_RDONLY) ;
 	      if (fd < 0) {
-                  mfs_api_finalize(&wb) ;
+                  mfs_api_finalize(&wb, params) ;
 		  exit(-1) ;
 	      }
 
@@ -97,7 +97,7 @@ int main_simple2 ( params_t *params )
 
     // Finalize...
     mfs_print(DBG_INFO, "Client[%d]: finalize...\n", wb.rank) ;
-    mfs_api_finalize(&wb) ;
+    mfs_api_finalize(&wb, params) ;
 
     return 0;
 }

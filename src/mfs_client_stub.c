@@ -170,7 +170,7 @@ int clientstub_init ( comm_t *wb, params_t *params )
     return ret ;
 }
 
-int clientstub_finalize ( comm_t *wb )
+int clientstub_finalize ( comm_t *wb, params_t *params )
 {
     int ret = 0 ;
     int remote_rank ;
@@ -192,13 +192,19 @@ int clientstub_finalize ( comm_t *wb )
         }
     }
 
-    // Finalize
+    // Finalize comms...
     if (ret >= 0)
     {
         ret = mfs_comm_finalize(wb) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: finalization fails :-(", mfs_comm_get_rank(wb)) ;
         }
+    }
+
+    // Finalize params
+    //if (ret >= 0)
+    {
+         mfs_params_free(&params) ;
     }
 
     // Return OK/KO

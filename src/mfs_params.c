@@ -1,5 +1,4 @@
 
-
 /*
  *  Copyright 2020-2022 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
  *
@@ -70,25 +69,25 @@
       	params->argc = argc ;
       	params->argv = argv ;
 
-        strcpy(params->data_prefix, DEFAULT_DATA_PREFIX) ;
-        strcpy(params->conf_fname,  DEFAULT_CONF_FILE) ;
+        params->data_prefix = strdup(DEFAULT_DATA_PREFIX) ;
+        params->conf_fname  = strdup(DEFAULT_CONF_FILE) ;
 
         params->file_backend = FILE_USE_POSIX ;
-        strcpy(params->file_backend_name, "POSIX") ;
+        params->file_backend_name = strdup("POSIX") ;
 
         params->dbm_backend  = DBM_USE_GDBM ;
-        strcpy(params->dbm_backend_name, "GDBM") ;
+        params->dbm_backend_name = strdup("GDBM") ;
 
         params->directory_backend = DIRECTORY_USE_POSIX ;
-        strcpy(params->directory_backend_name, "POSIX") ;
+        params->directory_backend_name = strdup("POSIX") ;
 
         params->thread_launch = THREAD_USE_ONDEMAND ;
-        strcpy(params->thread_launch_name, "On demand") ;
+        params->thread_launch_name = strdup("On demand") ;
 
         params->comm_backend = COMM_USE_MPI ;
-        strcpy(params->comm_backend_name, "MPI") ;
+        params->comm_backend_name = strdup("MPI") ;
 
-        strcpy(params->mfs_server_stub_pname, DEFAULT_STUB_PNAME) ;
+        params->mfs_server_stub_pname = strdup(DEFAULT_STUB_PNAME) ;
 
 	// getopt_long...
 	short_opt = "vd:n:f:i:b:t:" ;
@@ -102,54 +101,54 @@
                   break ;
 
 	     case 'd':
-		  strcpy(params->data_prefix, optarg) ;
+		  mfs_free_and_strdup(&(params->data_prefix), optarg) ;
                   break ;
 
 	     case 'n':
-		  strcpy(params->conf_fname,  optarg) ;
+		  mfs_free_and_strdup(&(params->conf_fname), optarg) ;
                   break ;
 
 	     case 'f':
 		  if (!strcmp("POSIX",  optarg)) {
 		      params->file_backend = FILE_USE_POSIX ;
-		      strcpy(params->file_backend_name, "POSIX") ;
+		      mfs_free_and_strdup(&(params->file_backend_name), "POSIX") ;
 		  }
 		  if (!strcmp("MPI-IO", optarg)) {
 		      params->file_backend = FILE_USE_MPI_IO ;
-		      strcpy(params->file_backend_name, "MPI-IO") ;
+		      mfs_free_and_strdup(&(params->file_backend_name), "MPI-IO") ;
 		  }
                   break ;
 
 	     case 'b':
 		  if (!strcmp("GDBM",  optarg)) {
 		      params->dbm_backend = DBM_USE_GDBM ;
-		      strcpy(params->dbm_backend_name, "GDBM") ;
+		      mfs_free_and_strdup(&(params->dbm_backend_name), "GDBM") ;
 		  }
 		  if (!strcmp("REDIS", optarg)) {
 		      params->dbm_backend = DBM_USE_REDIS ;
-		      strcpy(params->dbm_backend_name, "REDIS") ;
+		      mfs_free_and_strdup(&(params->dbm_backend_name), "REDIS") ;
 		  }
                   break ;
 
 	     case 'i':
 		  if (!strcmp("POSIX",  optarg)) {
 		      params->directory_backend = DIRECTORY_USE_POSIX ;
-		      strcpy(params->directory_backend_name, "POSIX") ;
+		      mfs_free_and_strdup(&(params->directory_backend_name), "POSIX") ;
 		  }
 		  if (!strcmp("REDIS", optarg)) {
 		      params->directory_backend = DIRECTORY_USE_REDIS ;
-		      strcpy(params->directory_backend_name, "REDIS") ;
+		      mfs_free_and_strdup(&(params->directory_backend_name), "REDIS") ;
 		  }
                   break ;
 
 	     case 't':
 		  if (!strcmp("ondemand", optarg) ) {
 		      params->thread_launch = THREAD_USE_ONDEMAND ;
-		      strcpy(params->thread_launch_name, "On Demand") ;
+		      mfs_free_and_strdup(&(params->thread_launch_name), "On Demand") ;
 		  }
 		  if (!strcmp("pool",     optarg) ) {
 		      params->thread_launch = THREAD_USE_POOL ;
-		      strcpy(params->thread_launch_name, "Pool") ;
+		      mfs_free_and_strdup(&(params->thread_launch_name), "Pool") ;
 		  }
                   break ;
 
@@ -167,5 +166,21 @@
 
       	// return OK
       	return 1;
- }
+}
+
+int  mfs_params_free       ( params_t *params )
+{
+        // Free dynamic memory
+        free(params->data_prefix) ;
+        free(params->conf_fname) ;
+        free(params->file_backend_name) ;
+        free(params->dbm_backend_name) ;
+        free(params->directory_backend_name) ;
+        free(params->thread_launch_name) ;
+        free(params->comm_backend_name) ;
+        free(params->mfs_server_stub_pname) ;
+
+      	// return OK
+      	return 1;
+}
 
