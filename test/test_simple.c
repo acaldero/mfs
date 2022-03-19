@@ -53,31 +53,41 @@ int main_simple2 ( params_t *params, comm_t *wb )
     long   fd ;
     char   str1[STR_SIZE] ;
     char   str2[STR_SIZE] ;
+    int    str1_len ;
     int    str2_len ;
 
-    // Example
+    // dbmstore("m1", "hello world")
     strcpy(str1, "m1") ;
-    strcpy(str2, "hello word") ;
+    strcpy(str2, "hello world") ;
+    str1_len = strlen(str1) + 1 ;
+    str2_len = strlen(str2) + 1 ;
 
     printf("Client[%d]: dbmopen(...) + dbmstore(...) + dbmclose(...)\n", wb->rank) ;
     fd = mfs_api_dbmopen(wb, "test2.txt", GDBM_WRITER | GDBM_WRCREAT) ;
     if (fd < 0) return -1 ;
-    //mfs_api_dbmstore(wb, fd, str1, strlen(str1), str2, strlen(str2)) ; // TODO
+    mfs_api_dbmstore(wb, fd, str1, str1_len, str2, str2_len) ;
     mfs_api_dbmclose(wb, fd) ;
 
+    // dbmfetch("m1")
+    strcpy(str1, "m1") ;
     strcpy(str2, "") ;
+    str1_len = strlen(str1) + 1 ;
     str2_len = STR_SIZE ;
 
     printf("Client[%d]: dbmopen(...) + dbmfetch(...) + dbmclose(...)\n", wb->rank) ;
     fd = mfs_api_dbmopen(wb, "test2.txt", GDBM_READER) ;
     if (fd < 0) return -1 ;
-    // mfs_api_dbmfetch(wb, fd, str1, strlen(str1), &str2, &str2_len) ; // TODO
+    mfs_api_dbmfetch(wb, fd, str1, str1_len, &str2, &str2_len) ;
     mfs_api_dbmclose(wb, fd) ;
+
+    // dbmdelete("m1")
+    strcpy(str1, "m1") ;
+    str1_len = strlen(str1) + 1 ;
 
     printf("Client[%d]: dbmopen(...) + dbmdelete(...) + dbmclose(...)\n", wb->rank) ;
     fd = mfs_api_dbmopen(wb, "test2.txt", GDBM_WRITER) ;
     if (fd < 0) return -1 ;
-    mfs_api_dbmdelete(wb, fd, str1, strlen(str1)) ;
+    mfs_api_dbmdelete(wb, fd, str1, str1_len) ;
     mfs_api_dbmclose(wb, fd) ;
 
     return 0;

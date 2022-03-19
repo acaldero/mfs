@@ -356,12 +356,14 @@ int  clientstub_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_key, v
     // Send write msg
     if (ret >= 0)
     {
+    	mfs_print(DBG_INFO, "Client[%d]: dbmstore fd:%d key_size:%d >> server", mfs_comm_get_rank(wb), fd, count_key) ;
         ret = mfs_comm_request_send(wb, 0, REQ_ACTION_DBMSTORE, fd, count_key) ;
     }
 
     // Send value size (in bytes)
     if (ret >= 0)
     {
+    	mfs_print(DBG_INFO, "Client[%d]: dbmstore val_size:%d >> server", mfs_comm_get_rank(wb), count_val) ;
         ret = mfs_comm_send_data_to(wb, 0, &count_val, 1, MPI_INT) ;
         if (ret < 0) {
     	    mfs_print(DBG_ERROR, "Client[%d]: value size cannot be sent :-(", mfs_comm_get_rank(wb)) ;
@@ -385,7 +387,10 @@ int  clientstub_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_key, v
     // Send key + value
     if (ret >= 0)
     {
+    	mfs_print(DBG_INFO, "Client[%d]: dbmstore buff_key:%d >> server", mfs_comm_get_rank(wb), count_key) ;
         clientstub_action_send_buffer(wb, buff_key, count_key, count_key) ;
+
+    	mfs_print(DBG_INFO, "Client[%d]: dbmstore buff_val:%d >> server", mfs_comm_get_rank(wb), count_val) ;
         clientstub_action_send_buffer(wb, buff_val, count_val, count_val) ;
     }
 
@@ -396,6 +401,8 @@ int  clientstub_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_key, v
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(", mfs_comm_get_rank(wb)) ;
         }
+
+    	mfs_print(DBG_INFO, "Client[%d]: dbmstore status:%d << server", mfs_comm_get_rank(wb), status) ;
     }
 
     // Return bytes written
@@ -405,7 +412,6 @@ int  clientstub_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_key, v
 int  clientstub_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int *count_val )
 {
     int  ret, status  ;
-    long remaining_size, current_size ;
 
     ret = 0 ;
     status = -1 ;
@@ -470,7 +476,6 @@ int  clientstub_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_key, v
 int  clientstub_dbmdelete ( comm_t *wb, long fd, void *buff_key, int count_key )
 {
     int  ret, status  ;
-    long remaining_size, current_size ;
 
     ret = 0 ;
     status = -1 ;

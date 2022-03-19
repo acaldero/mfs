@@ -139,7 +139,7 @@ int serverstub_init ( comm_t *wb, params_t *params )
         return -1 ;
     }
     if (conf.active->n_nodes != mfs_comm_get_size(wb)) {
-        mfs_print(DBG_ERROR, "Server[%d]: partition in '%s' with less nodes than process :-(", -1, params->conf_fname) ;
+        mfs_print(DBG_ERROR, "Server[%d]: partition in '%s' with different nodes than processes :-(", -1, params->conf_fname) ;
         return -1 ;
     }
 
@@ -751,11 +751,12 @@ int serverstub_dbmstore ( comm_t *ab, params_t *params, int fd, int count )
     // (3) if error then send back error and return
     if (ret < 0) {
         ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        mfs_print(DBG_WARNING, "Server[%d]: dbmstore(status:%d) >> client", mfs_comm_get_rank(ab), ret) ;
 	return -1 ;
     }
 
     // send back status for malloc...
-    ret = mfs_comm_send_data_to(ab, 0, &buff_val, 1, MPI_INT) ;
+    ret = mfs_comm_send_data_to(ab, 0, &val_size, 1, MPI_INT) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: buff_val cannot be sent :-(", mfs_comm_get_rank(ab)) ;
     }
@@ -777,6 +778,8 @@ int serverstub_dbmstore ( comm_t *ab, params_t *params, int fd, int count )
     // (6) do dbm_store...
     if (ret >= 0)
     {
+        mfs_print(DBG_INFO, "Server[%d]: File[%ld]: dbmstore(key=%.*s, val=%.*s) >> client\n", mfs_comm_get_rank(ab), fd, key_size, buff_key, val_size, buff_val) ;
+
         ret = mfs_dbm_store(fd, buff_key, key_size, buff_val, val_size) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: problem on mfs_dbm_store :-(", mfs_comm_get_rank(ab)) ;
@@ -847,17 +850,17 @@ int serverstub_dbmfetch ( comm_t *ab, params_t *params, int fd, int count )
     // (3) if error then send back error and return
     if (ret < 0) {
         ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        mfs_print(DBG_WARNING, "Server[%d]: dbmfetch(status:%d) >> client", mfs_comm_get_rank(ab), ret) ;
 	return -1 ;
     }
 
     // send back status for malloc...
-    ret = mfs_comm_send_data_to(ab, 0, &buff_val, 1, MPI_INT) ;
+    ret = mfs_comm_send_data_to(ab, 0, &val_size, 1, MPI_INT) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: buff_val cannot be sent :-(", mfs_comm_get_rank(ab)) ;
     }
 
     // (4) receive key
-    mfs_print(DBG_INFO, "Server[%d]: File[%ld]: dbmfetch(bytes=%d) << client\n", mfs_comm_get_rank(ab), fd, key_size) ;
     ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_key, key_size, MPI_CHAR) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: data not received :-(", mfs_comm_get_rank(ab)) ;
@@ -877,11 +880,13 @@ int serverstub_dbmfetch ( comm_t *ab, params_t *params, int fd, int count )
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: buff_val cannot be sent :-(", mfs_comm_get_rank(ab)) ;
     }
+    mfs_print(DBG_INFO, "Server[%d]: dbmfetch(status:%d) >> client", mfs_comm_get_rank(ab), status) ;
 
     // (7) send val
     if (status >= 0)
     {
-        mfs_print(DBG_INFO, "Server[%d]: File[%ld]: dbmfetch(bytes=%d) >> client\n", mfs_comm_get_rank(ab), fd, val_size) ;
+        mfs_print(DBG_INFO, "Server[%d]: File[%ld]: dbmfetch(buff_val=%.*s of %d bytes) >> client\n", mfs_comm_get_rank(ab), fd, val_size, buff_val, val_size) ;
+
         ret = mfs_comm_send_data_to(ab, 0, buff_val, val_size, MPI_CHAR) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: data not received :-(", mfs_comm_get_rank(ab)) ;
@@ -923,7 +928,7 @@ int serverstub_dbmdelete ( comm_t *ab, params_t *params, int fd, int count )
     }
 
     // (2) receive key
-    mfs_print(DBG_INFO, "Server[%d]: File[%ld]: dbmfetch(bytes=%d) << client\n", mfs_comm_get_rank(ab), fd, key_size) ;
+    mfs_print(DBG_INFO, "Server[%d]: File[%ld]: dbmdelete(bytes=%d) << client\n", mfs_comm_get_rank(ab), fd, key_size) ;
     ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_key, key_size, MPI_CHAR) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: data not received :-(", mfs_comm_get_rank(ab)) ;
@@ -934,7 +939,7 @@ int serverstub_dbmdelete ( comm_t *ab, params_t *params, int fd, int count )
     {
         ret = status = mfs_dbm_delete(fd, buff_key, key_size) ;
         if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: problem on mfs_dbm_fetch :-(", mfs_comm_get_rank(ab)) ;
+            mfs_print(DBG_WARNING, "Server[%d]: problem on mfs_dbm_delete with given key :-(", mfs_comm_get_rank(ab)) ;
         }
     }
 
