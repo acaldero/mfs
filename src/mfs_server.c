@@ -28,7 +28,7 @@
 
 
    // stats
-   char    *ver     = "0.92" ;
+   char    *ver     = "0.95" ;
    int      the_end = 0 ;
    long     t1      = 0L ;
    params_t params ;
