@@ -188,6 +188,20 @@ int mfs_comm_mpi_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MP
 {
     int ret ;
     MPI_Status status;
+    int msg_size ;
+
+    // Check if there is a CMD message
+    ret = MPI_Probe(rank, 0, cb->endpoint, &status) ;
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_WARNING, "[COMM]: MPI_Probe fails :-(") ;
+        return -1 ;
+    }
+
+    MPI_Get_count(&status, datatype, &msg_size) ;
+    if (msg_size != size) {
+        mfs_print(DBG_WARNING, "[COMM]: MPI_Probe detects an unexpected message of %d (but not %d):-(", msg_size, size) ;
+        return -1 ;
+    }
 
     // Get CMD message
     ret = MPI_Recv(buff, size, datatype, rank, 0, cb->endpoint, &status) ;
