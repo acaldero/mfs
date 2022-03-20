@@ -371,17 +371,37 @@ int mfs_comm_socket_disconnect ( comm_t *cb, int remote_rank )
 
 int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype )
 {
-    // TODO
+    int ret ;
+    int buff_size ;
 
-    // Return OK
-    return 1 ;
+    // Check arguments
+    if (NULL == cb)         { return -1; }
+    if (NULL == cb->dd)     { return -1; }
+    if (-1 == cb->dd[rank]) { return -1; }
+
+    // Send data to...
+    MPI_Type_size(datatype, &buff_size) ;
+    ret = mfs_file_read(cb->dd[rank], buff, buff_size) ;
+
+    // Return OK/KO
+    return ret ;
 }
 
 int mfs_comm_socket_send_data_to  ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype )
 {
-    // TODO
+    int ret ;
+    int buff_size ;
 
-    // Return OK
-    return 1 ;
+    // Check arguments
+    if (NULL == cb)         { return -1; }
+    if (NULL == cb->dd)     { return -1; }
+    if (-1 == cb->dd[rank]) { return -1; }
+
+    // Send data to...
+    MPI_Type_size(datatype, &buff_size) ;
+    ret = mfs_file_write(cb->dd[rank], buff, buff_size) ;
+
+    // Return OK/KO
+    return ret ;
 }
 

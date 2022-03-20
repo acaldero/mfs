@@ -82,14 +82,16 @@ int mfs_ns_insert ( comm_t *wb, int ns_backend, char *srv_name, char *port_name 
              break ;
 
         case NS_USE_FILE:
-	     FILE *f;
-	     char host[255];
+	     FILE *f ;
+	     char host[255] ;
+	     int  port ;
 
-	     f = fopen(NS_FILE_NAME, "a+");
+	     port = 0 ;
+	     f = fopen(NS_FILE_NAME, "a+") ;
 	     if (f != NULL) {
-	         gethostname(host, 255);
-	         // fprintf(f, "%s %s %d\r\n", name, host, port); // TODO
-	         fclose(f);
+	         gethostname(host, 255) ;
+	         fprintf(f, "%s;%s;%s:%d\n", srv_name, port_name, host, port) ; // port <- TODO
+	         fclose(f) ;
 	     }
 	     ret = (f != NULL) ? 1 : -1 ;
              break ;
@@ -110,9 +112,9 @@ int mfs_ns_lookup ( comm_t *wb, int ns_backend, char *srv_name, char *port_name,
     int fd ;
 
     // Check params...
-    if (NULL == srv_name) {
-	return -1 ;
-    }
+    if (NULL == wb)        { return -1; }
+    if (NULL == srv_name)  { return -1; }
+    if (NULL == port_name) { return -1; }
 
     switch (ns_backend)
     {
@@ -148,17 +150,26 @@ int mfs_ns_lookup ( comm_t *wb, int ns_backend, char *srv_name, char *port_name,
              break ;
 
         case NS_USE_FILE:
-	     FILE *f;
-	     char host[255];
+	     FILE *f ;
+	     char srv[255] ;
+	     char host[255] ;
+	     int  port, is_found ;
 
-	     f = fopen(NS_FILE_NAME, "a+");
-	     if (f != NULL) {
-	         gethostname(host, 255);
-	         /// TODO: search ...
-		 //fscanf(f, "%s %s %d\r\n", name, host, port);
-	         fclose(f);
+	     is_found = 0 ;
+	     f = fopen(NS_FILE_NAME, "r") ;
+	     if (f != NULL)
+	     {
+		 while (!feof(f))
+		 {
+	            fscanf(f, "%s;%s;%s:%d\n", srv, port_name, host, &port) ;
+		    if (!strcmp(srv_name, srv)) {
+		        is_found = 1 ;
+			break ;
+		    }
+                 }
+	         fclose(f) ;
 	     }
-	     ret = (f != NULL) ? 1 : -1 ;
+	     ret = (is_found != 0) ? 1 : -1 ;
              break ;
 
         default:

@@ -1,5 +1,5 @@
-# MPI_PFS (v0.95)
-Prototype of MPI_PFS
+# MFS (v0.95)
+Prototype of MFS
 
 ## Getting started
 
@@ -14,21 +14,21 @@ sudo apt-get install -y libgdbm-compat-dev libgdbm-dev
 sudo apt-get install -y libyaml-dev libyaml-doc
 ```
 
-### Get MPI_PFS source code
+### Get MFS source code
 
 ```
-git clone https://github.com/acaldero/mpi_pfs.git
-cd mpi_pfs
+git clone https://github.com/acaldero/mfs.git
+cd mfs
 ```
 
-### Compile MPI_PFS
+### Compile MFS
 
 ```
 make         -f Makefile_make
 make -C test -f Makefile_make
 ```
 
-## Executing MPI_PFS
+## Executing MFS
 
 ### Example of work session
 
