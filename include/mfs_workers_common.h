@@ -32,7 +32,7 @@
     * Constants
     */
 
-   #define MAX_THREADS 1024 
+   #define MAX_THREADS 1024
    #define STACK_SIZE (256*1024)
 
 

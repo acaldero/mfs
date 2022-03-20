@@ -208,7 +208,7 @@
              free(conf->partitions[i].name) ;
              free(conf->partitions[i].type) ;
 
-	     // free each node... 
+	     // free each node...
 	     for (int j=0; j<conf->partitions[i].n_nodes; j++) {
                   free(conf->partitions[i].nodes[j]) ;
 	     }

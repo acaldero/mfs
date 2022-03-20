@@ -36,7 +36,7 @@
    // Const
    #define MAX_NAME_LEN   1024
 
-   #define DEFAULT_DATA_PREFIX  "./data/"
+   #define DEFAULT_DATA_PREFIX  "./data"
    #define DEFAULT_CONF_FILE    "conf.yaml"
    #define DEFAULT_STUB_PNAME   "mfs"
 

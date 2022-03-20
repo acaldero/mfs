@@ -150,7 +150,7 @@ int  mfs_dbm_open ( int *fd, int dbm_backend, const char *path_name, int flags )
 	return -1 ;
     }
 
-    // Initialize fd
+    // Get fd
     (*fd) = ret = mfs_descriptor_find_free(&mfs_dbm_des, sizeof(dbm_t)) ;
     if (ret < 0) {
 	return -1 ;
@@ -175,6 +175,12 @@ int  mfs_dbm_open ( int *fd, int dbm_backend, const char *path_name, int flags )
 	     mfs_print(DBG_INFO, "[FILE]: ERROR on dbm_backend(%d).\n", fh->dbm_backend) ;
 	     return -1 ;
              break ;
+    }
+
+    // Get back descriptor
+    if (ret < 0) {
+        mfs_descriptor_set_free(&mfs_dbm_des, *fd) ;
+        *fd = -1 ;
     }
 
     // Return OK
@@ -209,8 +215,10 @@ int   mfs_dbm_close ( int fd )
              break ;
     }
 
-    // Return OK
+    // Get back descriptor
     mfs_descriptor_set_free(&mfs_dbm_des, fd) ;
+
+    // Return OK
     return ret ;
 }
 

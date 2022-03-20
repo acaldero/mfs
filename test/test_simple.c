@@ -116,22 +116,30 @@ int main ( int argc, char **argv )
     mfs_params_show(&params) ;
 
     // Initialize...
-    ret = mfs_api_init(&wb, &params) ;
-    if (ret < 0) {
-        mfs_print(DBG_ERROR, "Client[%d]: mfs_api_init fails :-(", -1) ;
-        return -1 ;
+    if (ret >= 0)
+    {
+        ret = mfs_api_init(&wb, &params) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: mfs_api_init fails :-(", -1) ;
+        }
     }
 
     // simple main 1...
-    ret = main_test_file(&params, &wb) ;
-    if (ret < 0) {
-	return -1 ;
+    if (ret >= 0)
+    {
+        ret = main_test_file(&params, &wb) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: main_test_file fails :-(", -1) ;
+        }
     }
 
     // simple main 2...
-    ret = main_test_dbm(&params, &wb) ;
-    if (ret < 0) {
-	return -1 ;
+    if (ret >= 0)
+    {
+        ret = main_test_dbm(&params, &wb) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: main_test_dbm fails :-(", -1) ;
+        }
     }
 
     // Finalize...

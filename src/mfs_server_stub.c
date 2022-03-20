@@ -27,7 +27,32 @@
  *  Auxiliar (internal) functions
  */
 
-int stub_read_name ( comm_t *ab, char **buff_data_sys, char *base_dirname, int pathname_length )
+int stub_prepare_pathname ( comm_t *ab, char **buff_data_sys, char *base_dirname, int local_rank, int pathname_length )
+{
+    int ret, buff_data_len ;
+
+    // Check arguments...
+    if (NULL == ab)            { return -1 ; }
+    if (NULL == buff_data_sys) { return -1 ; }
+
+    // Malloc for pathname...
+    buff_data_len = strlen(base_dirname) + 20 + pathname_length ;  // base_dirname_value + '.' + local_rank + '/' + pathname
+
+    (*buff_data_sys) = NULL ;
+    ret = mfs_malloc(buff_data_sys, buff_data_len) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), buff_data_len) ;
+	return -1 ;
+    }
+
+    // Print pathname...
+    sprintf((*buff_data_sys), "%s/%d/", base_dirname, local_rank) ;
+
+    // Return OK
+    return 1 ;
+}
+
+int stub_read_name ( comm_t *ab, char **buff_data_sys, int pathname_length )
 {
     int ret ;
     char *buff_data_user ;
@@ -38,11 +63,10 @@ int stub_read_name ( comm_t *ab, char **buff_data_sys, char *base_dirname, int p
 
     // Initialize...
     ret = 0 ;
-    (*buff_data_sys) = NULL ;
-      buff_data_user = NULL ;
+    buff_data_user = NULL ;
 
     // prepare name buffer
-    //if (ret >= 0)
+    if (ret >= 0)
     {
         ret = mfs_malloc(&buff_data_user, pathname_length) ;
         if (ret < 0) {
@@ -64,15 +88,7 @@ int stub_read_name ( comm_t *ab, char **buff_data_sys, char *base_dirname, int p
     // from user dirname to internal dirname
     if (ret >= 0)
     {
-        int buff_data_len = strlen(base_dirname) + pathname_length + 16 ;  // base_dirname_value + '/' + pathname + '.<rank>'
-
-	ret = mfs_malloc(buff_data_sys, buff_data_len) ;
-	if (ret < 0) {
-            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), buff_data_len) ;
-        }
-	else {
-	    sprintf((*buff_data_sys), "%s/%s", base_dirname, buff_data_user) ;
-	}
+	strcat((*buff_data_sys), buff_data_user) ;
     }
 
     // free name buffer
@@ -155,7 +171,7 @@ int serverstub_init ( comm_t *wb, params_t *params )
     }
 
     // Free configuration
-    mfs_conf_free(&conf) ; 
+    mfs_conf_free(&conf) ;
 
     // Return OK
     return 0 ;
@@ -201,9 +217,10 @@ int serverstub_finalize ( comm_t *wb, params_t *params )
     }
 
     // Finalize params
-    //if (ret >= 0)
-    {
-         mfs_params_free(params) ;
+    ret = mfs_params_free(params) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: finalization fails for params_free :-(", -1) ;
+        return -1 ;
     }
 
     // Return OK
@@ -259,11 +276,16 @@ int serverstub_open ( comm_t *ab, params_t *params, int *fd, int pathname_length
     buff_data_sys  = NULL ;
 
     // read filename
-    //if (ret >= 0)
+    if (ret >= 0)
     {
-        ret = stub_read_name(ab, &buff_data_sys, params->data_prefix, pathname_length) ;
+        ret = stub_prepare_pathname(ab, &buff_data_sys, params->data_prefix, ab->local_rank, pathname_length) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), pathname_length) ;
+            mfs_print(DBG_ERROR, "Server[%d]: stub_prepare_pathname(%d) fails :-(", mfs_comm_get_rank(ab), pathname_length) ;
+        }
+
+        ret = stub_read_name(ab, &buff_data_sys, pathname_length) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Server[%d]: stub_read_name(%d) fails :-(", mfs_comm_get_rank(ab), pathname_length) ;
         }
     }
 
@@ -328,7 +350,7 @@ int serverstub_close ( comm_t *ab, params_t *params, int fd )
             mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(", mfs_comm_get_rank(ab)) ;
         }
     }
-    
+
     // Return OK/KO
     return ret ;
 }
@@ -433,7 +455,7 @@ int serverstub_write ( comm_t *ab, params_t *params, int fd, int count )
 
     ret       = 0 ;
     buff_data = NULL ;
-    if (count > MAX_BUFF_SIZE) 
+    if (count > MAX_BUFF_SIZE)
          buffer_size = MAX_BUFF_SIZE ;
     else buffer_size = count ;
 
@@ -529,9 +551,14 @@ int serverstub_mkdir ( comm_t *ab, params_t *params, int pathname_length, int mo
     buff_data_sys = NULL ;
 
     // read dirname
-    //if (ret >= 0)
+    if (ret >= 0)
     {
-        ret = stub_read_name(ab, &buff_data_sys, params->data_prefix, pathname_length) ;
+        ret = stub_prepare_pathname(ab, &buff_data_sys, params->data_prefix, ab->local_rank, pathname_length) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Server[%d]: stub_prepare_pathname(%d) fails :-(", mfs_comm_get_rank(ab), pathname_length) ;
+        }
+
+        ret = stub_read_name(ab, &buff_data_sys, pathname_length) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Server[%d]: read_name of %d chars fails :-(", mfs_comm_get_rank(ab), pathname_length) ;
         }
@@ -586,7 +613,12 @@ int serverstub_rmdir ( comm_t *ab, params_t *params, int pathname_length )
     // read dirname
     //if (ret >= 0)
     {
-        ret = stub_read_name(ab, &buff_data_sys, params->data_prefix, pathname_length) ;
+        ret = stub_prepare_pathname(ab, &buff_data_sys, params->data_prefix, ab->local_rank, pathname_length) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Server[%d]: stub_prepare_pathname(%d) fails :-(", mfs_comm_get_rank(ab), pathname_length) ;
+        }
+
+        ret = stub_read_name(ab, &buff_data_sys, pathname_length) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Server[%d]: read_name of %d chars fails :-(", mfs_comm_get_rank(ab), pathname_length) ;
         }
@@ -644,11 +676,16 @@ int serverstub_dbmopen ( comm_t *ab, params_t *params, int *fd, int pathname_len
     buff_data_sys  = NULL ;
 
     // read filename
-    //if (ret >= 0)
+    if (ret >= 0)
     {
-        ret = stub_read_name(ab, &buff_data_sys, params->data_prefix, pathname_length) ;
+        ret = stub_prepare_pathname(ab, &buff_data_sys, params->data_prefix, ab->local_rank, pathname_length) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(", mfs_comm_get_rank(ab), pathname_length) ;
+            mfs_print(DBG_ERROR, "Server[%d]: stub_prepare_pathname(%d) fails :-(", mfs_comm_get_rank(ab), pathname_length) ;
+        }
+
+        ret = stub_read_name(ab, &buff_data_sys, pathname_length) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Server[%d]: stub_read_name(%d) fails :-(", mfs_comm_get_rank(ab), pathname_length) ;
         }
     }
 
@@ -706,14 +743,11 @@ int serverstub_dbmclose ( comm_t *ab, params_t *params, int fd )
     }
 
     // send back status
-    //if (ret >= 0)
-    {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
-        if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(", mfs_comm_get_rank(ab)) ;
-        }
+    ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+    if (ret < 0) {
+        mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(", mfs_comm_get_rank(ab)) ;
     }
-    
+
     // Return OK/KO
     return ret ;
 }

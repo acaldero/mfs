@@ -47,5 +47,7 @@ clean: begin
 	rm -f  *.o
 	rm -f  test_simple
 	rm -f  test_benchmark
+	@echo " Remove data files..."
+	rm -fr nofile `find ./data -name "test*.txt"`
 	@echo " Done"
 

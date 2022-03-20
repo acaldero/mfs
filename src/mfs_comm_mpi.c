@@ -58,7 +58,7 @@ int mfs_comm_mpi_init ( comm_t *cb, params_t *params, conf_part_t *partition )
         return -1 ;
     }
 
-    // cb->status_... 
+    // cb->status_...
     cb->status_rank  = -1 ;
     cb->status_tag   = -1 ;
     cb->status_count = -1 ;

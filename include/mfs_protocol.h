@@ -27,8 +27,8 @@
     #include "mfs_comm.h"
 
 
-    /* 
-     * Messages 
+    /*
+     * Messages
      */
 
     // Connection
@@ -42,7 +42,7 @@
     #define REQ_ACTION_READ        12
     #define REQ_ACTION_WRITE       13
 
-    // Directories 
+    // Directories
     #define REQ_ACTION_MKDIR       20
     #define REQ_ACTION_RMDIR       21
 

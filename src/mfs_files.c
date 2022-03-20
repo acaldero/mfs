@@ -151,7 +151,7 @@ int  mfs_file_open ( int *fd, int file_backend, const char *path_name, int flags
 	return -1 ;
     }
 
-    // Initialize fd
+    // Get fd
     (*fd) = ret = mfs_descriptor_find_free(&mfs_files_des, sizeof(file_t)) ;
     if (ret < 0) {
 	return -1 ;
@@ -176,6 +176,12 @@ int  mfs_file_open ( int *fd, int file_backend, const char *path_name, int flags
 	     mfs_print(DBG_INFO, "[FILE]: ERROR on file_backend(%d).\n", fh->file_backend) ;
 	     return -1 ;
              break ;
+    }
+
+    // Get back descriptor
+    if (ret < 0) {
+        mfs_descriptor_set_free(&mfs_files_des, *fd) ;
+        *fd = -1 ;
     }
 
     // Return OK
@@ -210,8 +216,10 @@ int   mfs_file_close ( int fd )
              break ;
     }
 
-    // Return OK
+    // Get back descriptor
     mfs_descriptor_set_free(&mfs_files_des, fd) ;
+
+    // Return OK
     return ret ;
 }
 
