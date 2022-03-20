@@ -27,12 +27,10 @@
     #include "mfs_lib.h"
     #include "mfs_descriptors.h"
     #include "mfs_directories_posix.h"
-    #include "mfs_directories_redis.h"
 
 
     // Directory protocol
     #define DIRECTORY_USE_POSIX  1
-    #define DIRECTORY_USE_REDIS  2
 
 
     // Datatypes
@@ -47,9 +45,6 @@
 
         // descriptors
         DIR  *posix_fd ;
-
-	redisContext *redis_ctxt ;
-	char         *redis_key ;
 
     } dir_t ;
 

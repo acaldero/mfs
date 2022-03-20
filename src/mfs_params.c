@@ -135,10 +135,6 @@
 		      params->directory_backend = DIRECTORY_USE_POSIX ;
 		      mfs_free_and_strdup(&(params->directory_backend_name), "POSIX") ;
 		  }
-		  if (!strcmp("REDIS", optarg)) {
-		      params->directory_backend = DIRECTORY_USE_REDIS ;
-		      mfs_free_and_strdup(&(params->directory_backend_name), "REDIS") ;
-		  }
                   break ;
 
 	     case 't':

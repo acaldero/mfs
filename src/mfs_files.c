@@ -112,11 +112,6 @@ int  mfs_file_init ( void )
 	return -1 ;
     }
 
-    ret = mfs_file_redis_init() ;
-    if (ret < 0) {
-	return -1 ;
-    }
-
     // Return OK/KO
     return ret ;
 }
@@ -132,11 +127,6 @@ int  mfs_file_finalize ( void )
     }
 
     ret = mfs_file_mpi_finalize() ;
-    if (ret < 0) {
-	return -1 ;
-    }
-
-    ret = mfs_file_redis_finalize() ;
     if (ret < 0) {
 	return -1 ;
     }
@@ -182,11 +172,6 @@ int  mfs_file_open ( int *fd, int file_backend, const char *path_name, int flags
              ret = mfs_file_mpi_open(&(fh->mpiio_fd), path_name) ;
              break ;
 
-        case FILE_USE_REDIS:
-             fh->file_backend_name = "REDIS" ;
-             ret = mfs_file_redis_open(&(fh->redis_ctxt), &(fh->redis_key), path_name) ;
-             break ;
-
         default:
 	     mfs_print(DBG_INFO, "[FILE]: ERROR on file_backend(%d).\n", fh->file_backend) ;
 	     return -1 ;
@@ -217,10 +202,6 @@ int   mfs_file_close ( int fd )
 
         case FILE_USE_MPI_IO:
              ret = mfs_file_mpi_close(&(fh->mpiio_fd)) ;
-             break ;
-
-        case FILE_USE_REDIS:
-             ret = mfs_file_redis_close(fh->redis_ctxt, &(fh->redis_key)) ;
              break ;
 
         default:
@@ -256,10 +237,6 @@ int   mfs_file_read  ( int  fd, void *buff_data, int count )
              ret = mfs_file_mpi_read(fh->mpiio_fd, buff_data, count) ;
              break ;
 
-        case FILE_USE_REDIS:
-             ret = mfs_file_redis_read(fh->redis_ctxt, fh->redis_key, &(fh->offset), buff_data, count) ;
-             break ;
-
         default:
 	     mfs_print(DBG_INFO, "[FILE]: ERROR on file_backend(%d).\n", fh->file_backend) ;
 	     return -1 ;
@@ -293,10 +270,6 @@ int   mfs_file_write  ( int  fd, void *buff_data, int count )
 
         case FILE_USE_MPI_IO:
              ret = mfs_file_mpi_write(fh->mpiio_fd, buff_data, count) ;
-             break ;
-
-        case FILE_USE_REDIS:
-             ret = mfs_file_redis_write(fh->redis_ctxt, fh->redis_key, &(fh->offset), buff_data, count) ;
              break ;
 
         default:

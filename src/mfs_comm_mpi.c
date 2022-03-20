@@ -28,7 +28,9 @@
 
 int mfs_comm_mpi_init ( comm_t *cb, params_t *params, conf_part_t *partition )
 {
-    int ret, claimed, provided ;
+    int ret ;
+    int claimed, provided ;
+    MPI_Comm local_comm ;
 
     // MPI_Init
     ret = MPI_Init_thread(params->argc, params->argv, MPI_THREAD_MULTIPLE, &provided) ;
@@ -60,6 +62,10 @@ int mfs_comm_mpi_init ( comm_t *cb, params_t *params, conf_part_t *partition )
     cb->status_rank  = -1 ;
     cb->status_tag   = -1 ;
     cb->status_count = -1 ;
+
+    // id within local node...
+    MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &local_comm) ;
+    MPI_Comm_rank(local_comm, &(cb->local_rank)) ;
 
     // Return OK
     return 1 ;

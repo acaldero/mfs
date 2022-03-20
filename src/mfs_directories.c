@@ -103,11 +103,6 @@ int  mfs_directory_init ( void )
 	return -1 ;
     }
 
-    ret = mfs_directory_redis_init() ;
-    if (ret < 0) {
-	return -1 ;
-    }
-
     // Return OK/KO
     return ret ;
 }
@@ -118,11 +113,6 @@ int  mfs_directory_finalize ( void )
 
     // finalize all protocols
     ret = mfs_directory_posix_finalize() ;
-    if (ret < 0) {
-	return -1 ;
-    }
-
-    ret = mfs_directory_redis_finalize() ;
     if (ret < 0) {
 	return -1 ;
     }
@@ -163,11 +153,6 @@ int  mfs_directory_opendir ( int *fd, int directory_backend, const char *path_na
              ret = (long)mfs_directory_posix_opendir(&(dh->posix_fd), path_name) ;
              break ;
 
-        case DIRECTORY_USE_REDIS:
-             dh->directory_backend_name = "REDIS" ;
-             ret = mfs_directory_redis_opendir(&(dh->redis_ctxt), &(dh->redis_key), path_name) ;
-             break ;
-
         default:
 	     mfs_print(DBG_INFO, "[FILE]: ERROR on directory_backend(%d).\n", dh->directory_backend) ;
 	     return -1 ;
@@ -194,10 +179,6 @@ int   mfs_directory_closedir ( int  fd )
     {
         case DIRECTORY_USE_POSIX:
              ret = mfs_directory_posix_closedir(dh->posix_fd) ;
-             break ;
-
-        case DIRECTORY_USE_REDIS:
-             ret = mfs_directory_redis_closedir((dh->redis_ctxt), &(dh->redis_key)) ;
              break ;
 
         default:
@@ -232,10 +213,6 @@ int   mfs_directory_readdir  ( int fd, struct dirent *dent )
 	     }
              break ;
 
-        case DIRECTORY_USE_REDIS:
-             ret = mfs_directory_redis_readdir(dh->redis_ctxt, dh->redis_key, dent, sizeof(struct dirent)) ;
-             break ;
-
         default:
 	     mfs_print(DBG_INFO, "[FILE]: ERROR on directory_backend(%d).\n", dh->directory_backend) ;
 	     return -1 ;
@@ -257,11 +234,6 @@ int   mfs_directory_mkdir  ( int directory_backend, char *path_name, mode_t mode
              ret = mfs_directory_posix_mkdir(path_name, mode) ;
              break ;
 
-        case DIRECTORY_USE_REDIS:
-	     // TODO:
-             // ret = mfs_directory_redis_mkdir(fh->redis_ctxt, fh->redis_key, path_name, strlen(path_name)+1) ;
-             break ;
-
         default:
 	     mfs_print(DBG_INFO, "[FILE]: ERROR on directory_backend(%d).\n", directory_backend) ;
 	     return -1 ;
@@ -281,11 +253,6 @@ int   mfs_directory_rmdir  ( int directory_backend, char *path_name )
     {
         case DIRECTORY_USE_POSIX:
              ret = mfs_directory_posix_rmdir(path_name) ;
-             break ;
-
-        case DIRECTORY_USE_REDIS:
-	     // TODO:
-             // ret = mfs_directory_redis_rmdir(fh->redis_ctxt, fh->redis_key, path_name, strlen(path_name)+1) ;
              break ;
 
         default:

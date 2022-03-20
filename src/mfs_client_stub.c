@@ -204,7 +204,7 @@ int clientstub_finalize ( comm_t *wb, params_t *params )
     // Finalize params
     //if (ret >= 0)
     {
-         mfs_params_free(&params) ;
+         mfs_params_free(params) ;
     }
 
     // Return OK/KO

@@ -59,6 +59,7 @@
         // local identification
         int   size ;
         int   rank ;
+        int   local_rank ;
 
         // remote identification
         int   status_rank ;

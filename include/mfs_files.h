@@ -27,7 +27,6 @@
     #include "mfs_descriptors.h"
     #include "mfs_files_posix.h"
     #include "mfs_files_mpi.h"
-    #include "mfs_files_redis.h"
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -36,7 +35,6 @@
     // File protocol
     #define FILE_USE_POSIX  1
     #define FILE_USE_MPI_IO 2
-    #define FILE_USE_REDIS  3
 
 
     // Datatypes
@@ -49,9 +47,6 @@
         // descriptors
         long          posix_fd ;
 	MPI_File      mpiio_fd ;
-
-	redisContext *redis_ctxt ;
-	char         *redis_key ;
 
         // some stats
         long  offset ;

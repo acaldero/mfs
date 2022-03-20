@@ -25,7 +25,7 @@
 
 #define STR_SIZE 1024
 
-int main_simple1 ( params_t *params, comm_t *wb )
+int main_test_file ( params_t *params, comm_t *wb )
 {
     int    ret ;
     long   fd ;
@@ -47,7 +47,7 @@ int main_simple1 ( params_t *params, comm_t *wb )
     return 0;
 }
 
-int main_simple2 ( params_t *params, comm_t *wb )
+int main_test_dbm ( params_t *params, comm_t *wb )
 {
     int    ret ;
     long   fd ;
@@ -123,20 +123,20 @@ int main ( int argc, char **argv )
     }
 
     // simple main 1...
-    ret = main_simple1(&params, &wb) ;
+    ret = main_test_file(&params, &wb) ;
     if (ret < 0) {
 	return -1 ;
     }
 
     // simple main 2...
-    ret = main_simple2(&params, &wb) ;
+    ret = main_test_dbm(&params, &wb) ;
     if (ret < 0) {
 	return -1 ;
     }
 
     // Finalize...
     printf("Client[%d]: finalize...\n", wb.rank) ;
-    mfs_api_finalize(&wb, params) ;
+    mfs_api_finalize(&wb, &params) ;
 
     // Return OK/KO
     return ret ;

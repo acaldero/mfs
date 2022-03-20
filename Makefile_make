@@ -18,9 +18,9 @@ OBJ_FILES=src/mfs_client_api.o   src/mfs_client_stub.o       src/mfs_server_stub
 	  src/mfs_protocol.o \
 	  src/mfs_workers.o      src/mfs_workers_pool.o      src/mfs_workers_onrequest.o \
 	  src/mfs_comm.o         src/mfs_comm_mpi.o          src/mfs_comm_socket.o \
-	  src/mfs_files.o        src/mfs_files_posix.o       src/mfs_files_mpi.o    src/mfs_files_redis.o \
-	  src/mfs_directories.o  src/mfs_directories_posix.o                        src/mfs_directories_redis.o \
-          src/mfs_dbm.o          src/mfs_dbm_gdbm.o          src/mfs_dbm_redis.o \
+	  src/mfs_files.o        src/mfs_files_posix.o       src/mfs_files_mpi.o   \
+	  src/mfs_directories.o  src/mfs_directories_posix.o                       \
+          src/mfs_dbm.o          src/mfs_dbm_gdbm.o          src/mfs_dbm_redis.o   \
 	  src/mfs_ns.o \
 	  src/mfs_params.o       src/mfs_conf.o              src/mfs_descriptors.o  src/mfs_lib.o
 
