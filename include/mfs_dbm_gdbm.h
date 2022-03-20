@@ -29,6 +29,7 @@
     #include <stdlib.h>
     #include <unistd.h>
     #include <fcntl.h>
+    #include <sys/file.h>
 
 #ifdef HAVE_GDBM_H
     #define _XOPEN_SOURCE_EXTENDED 1

@@ -29,33 +29,20 @@
 
 int  mfs_ns_init ( void )
 {
-    int  ret ;
-
-    //
-    // TODO
-    //
-    ret = -1 ;
-
     // Return OK/KO
-    return ret ;
+    return 1 ;
 }
 
 int  mfs_ns_finalize ( void )
 {
-    int  ret ;
-
-    //
-    // TODO
-    //
-    ret = -1 ;
-
     // Return OK/KO
-    return ret ;
+    return 1 ;
 }
 
-int mfs_ns_insert ( int ns_backend, char *srv_name, char *port_name )
+int mfs_ns_insert ( comm_t *wb, int ns_backend, char *srv_name, char *port_name )
 {
-    int    ret ;
+    int ret ;
+    int fd ;
 
     // Check params...
     if (NULL == srv_name) {
@@ -65,9 +52,11 @@ int mfs_ns_insert ( int ns_backend, char *srv_name, char *port_name )
     switch (ns_backend)
     {
         case NS_USE_MFS:
-	     // TODO:
-             ret = -1 ;
-	     // TODO:
+	     fd = mfs_api_dbmopen(wb, NS_FILE_NAME, GDBM_WRITER | GDBM_WRCREAT) ;
+	     if (fd >= 0) {
+	         ret = mfs_api_dbmstore(wb, fd, srv_name, strlen(srv_name)+1, port_name, strlen(port_name)+1) ;
+	         mfs_api_dbmclose(wb, fd) ;
+	     }
              break ;
 
         case NS_USE_DBM:
@@ -76,7 +65,7 @@ int mfs_ns_insert ( int ns_backend, char *srv_name, char *port_name )
              datum key, value ;
 
 	     ret = -1 ;
-	     fd  = gdbm_open("ns.gdbm", 0, GDBM_WRITER | GDBM_WRCREAT, 0700, NULL) ;
+	     fd  = gdbm_open(NS_FILE_NAME, 0, GDBM_WRITER | GDBM_WRCREAT, 0700, NULL) ;
 	     if (NULL != fd)
 	     {
 	         // Build key+val
@@ -96,10 +85,10 @@ int mfs_ns_insert ( int ns_backend, char *srv_name, char *port_name )
 	     FILE *f;
 	     char host[255];
 
-	     f = fopen("ns.txt", "a+");
+	     f = fopen(NS_FILE_NAME, "a+");
 	     if (f != NULL) {
 	         gethostname(host, 255);
-	         // fprintf(f, "%s %s %d\r\n", name, host, port);
+	         // fprintf(f, "%s %s %d\r\n", name, host, port); // TODO
 	         fclose(f);
 	     }
 	     ret = (f != NULL) ? 1 : -1 ;
@@ -115,9 +104,10 @@ int mfs_ns_insert ( int ns_backend, char *srv_name, char *port_name )
     return ret ;
 }
 
-int mfs_ns_lookup ( int ns_backend, char *srv_name, char *port_name )
+int mfs_ns_lookup ( comm_t *wb, int ns_backend, char *srv_name, char *port_name, int *port_name_size )
 {
-    int    ret ;
+    int ret ;
+    int fd ;
 
     // Check params...
     if (NULL == srv_name) {
@@ -127,9 +117,12 @@ int mfs_ns_lookup ( int ns_backend, char *srv_name, char *port_name )
     switch (ns_backend)
     {
         case NS_USE_MFS:
-	     // TODO:
-             ret = -1 ;
-	     // TODO:
+	     fd = mfs_api_dbmopen(wb, NS_FILE_NAME, GDBM_READER) ;
+	     if (fd >= 0)
+	     {
+	         ret = mfs_api_dbmfetch(wb, fd, srv_name, strlen(srv_name)+1, &port_name, port_name_size) ;
+	         mfs_api_dbmclose(wb, fd) ;
+	     }
              break ;
 
         case NS_USE_DBM:
@@ -138,14 +131,16 @@ int mfs_ns_lookup ( int ns_backend, char *srv_name, char *port_name )
              datum key, value ;
 
 	     ret = -1 ;
-	     fd  = gdbm_open("ns.gdbm", 0, GDBM_READER, 0700, NULL) ;
+	     fd  = gdbm_open(NS_FILE_NAME, 0, GDBM_READER, 0700, NULL) ;
 	     if (NULL != fd)
 	     {
 	         key.dptr  = (char *)srv_name ;
 	         key.dsize = strlen(srv_name) + 1;
 
                  value = gdbm_fetch(fd, key) ;
-	         strcpy(port_name, value.dptr) ;
+
+		 *port_name_size = (value.dsize < *port_name_size) ? value.dsize : *port_name_size ;
+	         strncpy(port_name, value.dptr, *port_name_size) ;
 
 		 gdbm_close(fd) ;
 	     }
@@ -156,7 +151,7 @@ int mfs_ns_lookup ( int ns_backend, char *srv_name, char *port_name )
 	     FILE *f;
 	     char host[255];
 
-	     f = fopen("ns.txt", "a+");
+	     f = fopen(NS_FILE_NAME, "a+");
 	     if (f != NULL) {
 	         gethostname(host, 255);
 	         /// TODO: search ...
@@ -176,9 +171,10 @@ int mfs_ns_lookup ( int ns_backend, char *srv_name, char *port_name )
     return ret ;
 }
 
-int mfs_ns_remove ( int ns_backend, char *srv_name )
+int mfs_ns_remove ( comm_t *wb, int ns_backend, char *srv_name )
 {
-    int    ret ;
+    int ret ;
+    int fd ;
 
     // Check params...
     if (NULL == srv_name) {
@@ -188,9 +184,12 @@ int mfs_ns_remove ( int ns_backend, char *srv_name )
     switch (ns_backend)
     {
         case NS_USE_MFS:
-	     // TODO:
-             ret = -1 ;
-	     // TODO:
+	     fd = mfs_api_dbmopen(wb, NS_FILE_NAME, GDBM_WRITER) ;
+	     if (fd >= 0)
+	     {
+	         ret = mfs_api_dbmdelete(wb, fd, srv_name, strlen(srv_name)+1) ;
+	         mfs_api_dbmclose(wb, fd) ;
+	     }
              break ;
 
         case NS_USE_DBM:
@@ -199,7 +198,7 @@ int mfs_ns_remove ( int ns_backend, char *srv_name )
              datum key ;
 
 	     ret = -1 ;
-	     fd  = gdbm_open("ns.gdbm", 0, GDBM_WRITER, 0700, NULL) ;
+	     fd  = gdbm_open(NS_FILE_NAME, 0, GDBM_WRITER, 0700, NULL) ;
 	     if (NULL != fd)
 	     {
 	         key.dptr  = (char *)srv_name ;
@@ -215,7 +214,7 @@ int mfs_ns_remove ( int ns_backend, char *srv_name )
 	     FILE *f;
 	     char host[255];
 
-	     f = fopen("ns.txt", "a+");
+	     f = fopen(NS_FILE_NAME, "a+");
 	     if (f != NULL) {
 	         gethostname(host, 255);
 	         /// TODO: search ...

@@ -210,7 +210,7 @@ int mfs_comm_socket_register ( comm_t *cb )
         }
 
 	// register service into ns
-	ret = mfs_ns_insert(NS_USE_DBM, cb->srv_name, cb->port_name) ;
+	ret = mfs_ns_insert(cb, NS_USE_DBM, cb->srv_name, cb->port_name) ;
 	if (ret < 0) {
 	    mfs_print(DBG_ERROR, "[COMM]: registration fails :-(") ;
 	    return -1 ;
@@ -231,7 +231,7 @@ int mfs_comm_socket_unregister ( comm_t *cb )
 	}
 
 	// unregister service from ns
-	ret = mfs_ns_remove(NS_USE_DBM, cb->srv_name) ;
+	ret = mfs_ns_remove(cb, NS_USE_DBM, cb->srv_name) ;
 	if (ret < 0) {
 	    mfs_print(DBG_ERROR, "[COMM]: unregistration fails :-(") ;
 	    return -1 ;
@@ -280,7 +280,7 @@ int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri, int remote_rank )
 {
 	int    ret, sd ;
 	struct hostent *hp ;
-	int    srv_port ;
+	int    srv_port, port_name_size ;
 	struct sockaddr_in server_addr ;
 
         // Check params...
@@ -290,7 +290,8 @@ int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri, int remote_rank )
 	}
 
 	// translate srv_uri -> host + port
-	ret = mfs_ns_lookup(NS_USE_DBM, srv_uri, cb->port_name) ;
+	port_name_size = MPI_MAX_PORT_NAME ;
+	ret = mfs_ns_lookup(cb, NS_USE_DBM, srv_uri, cb->port_name, &port_name_size) ;
         if (MPI_SUCCESS != ret) {
             mfs_print(DBG_ERROR, "[COMM]: mfs_comm_socket_lookup fails :-(") ;
             return -1 ;
