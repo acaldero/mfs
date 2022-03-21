@@ -35,9 +35,10 @@
     // Datatypes
     typedef struct
     {
-	// underlying protocol
+	// underlying backend
         int   comm_protocol ;
         char *comm_protocol_name ;
+        int   ns_backend ;
 
         // server port and name
         char port_name[MPI_MAX_PORT_NAME] ;

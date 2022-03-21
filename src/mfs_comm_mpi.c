@@ -26,13 +26,13 @@
 // Init, Finalize
 //
 
-int mfs_comm_mpi_init ( comm_t *cb, params_t *params, conf_part_t *partition )
+int mfs_comm_mpi_init ( comm_t *cb, conf_part_t *partition, int *main_argc, char ***main_argv )
 {
     int ret ;
     int claimed, provided ;
 
     // MPI_Init
-    ret = MPI_Init_thread(params->argc, params->argv, MPI_THREAD_MULTIPLE, &provided) ;
+    ret = MPI_Init_thread(main_argc, main_argv, MPI_THREAD_MULTIPLE, &provided) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "[COMM]: MPI_Init fails :-(") ;
         return -1 ;

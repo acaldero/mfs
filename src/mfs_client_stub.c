@@ -141,7 +141,7 @@ int clientstub_init ( comm_t *wb, params_t *params )
     // Initialize
     if (ret >= 0)
     {
-        ret = mfs_comm_init(wb, params->comm_backend, params, conf.active) ;
+        ret = mfs_comm_init(wb, conf.active, params) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: initialization fails :-(", -1) ;
         }
@@ -154,7 +154,7 @@ int clientstub_init ( comm_t *wb, params_t *params )
         remote_node = mfs_conf_get_active_node(&conf, remote_rank) ;
         strcpy(wb->srv_name, remote_node) ;
 
-        ret = mfs_comm_connect(wb, params, remote_node, remote_rank) ;
+        ret = mfs_comm_connect(wb, remote_node, remote_rank) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: connection fails :-(", remote_rank) ;
         }
@@ -186,7 +186,7 @@ int clientstub_finalize ( comm_t *wb, params_t *params )
     {
         remote_rank = (mfs_comm_get_rank(wb) % wb->n_servers) ;
 
-        ret = mfs_comm_disconnect(wb, params, remote_rank) ;
+        ret = mfs_comm_disconnect(wb, remote_rank) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: disconnect fails :-(", mfs_comm_get_rank(wb)) ;
         }
@@ -195,7 +195,7 @@ int clientstub_finalize ( comm_t *wb, params_t *params )
     // Finalize comms...
     if (ret >= 0)
     {
-        ret = mfs_comm_finalize(wb, params) ;
+        ret = mfs_comm_finalize(wb) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: finalization fails :-(", mfs_comm_get_rank(wb)) ;
         }

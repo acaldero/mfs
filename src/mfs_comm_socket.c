@@ -125,7 +125,7 @@ int mfs_comm_socket_close ( int *sd )
 // Init, Finalize
 //
 
-int mfs_comm_socket_init ( comm_t *cb, params_t *params, conf_part_t *partition )
+int mfs_comm_socket_init ( comm_t *cb, conf_part_t *partition, int server_port, int ns_backend )
 {
 	int ret;
 
@@ -135,18 +135,23 @@ int mfs_comm_socket_init ( comm_t *cb, params_t *params, conf_part_t *partition 
 	    return -1 ;
 	}
 
-	// new socket
-        ret = mfs_comm_socket_serversocket(&(cb->sd), 12345) ; // TODO: params->port ?
-	if (ret < 0) {
-	    mfs_print(DBG_ERROR, "[COMM]: socket fails :-(") ;
-	    perror("socket: ") ;
-	    return -1 ;
+	// initialize fields
+	cb->rank       = 0 ;
+	cb->size       = partition->n_nodes ;
+	cb->ns_backend = ns_backend ;
+
+	// new server socket
+        if (server_port != -1)
+	{
+            ret = mfs_comm_socket_serversocket(&(cb->sd), server_port) ;
+	    if (ret < 0) {
+	        mfs_print(DBG_ERROR, "[COMM]: socket fails :-(") ;
+	        perror("socket: ") ;
+	        return -1 ;
+	    }
 	}
 
-	// initialize fields
-	cb->rank = 0 ;
-	cb->size = partition->n_nodes ;
-
+	// initialize descriptors for connections
 	cb->dd = (int *)malloc((cb->size)*sizeof(int)) ;
 	if (NULL == cb->dd) {
 	    mfs_print(DBG_ERROR, "[COMM]: malloc fails :-(") ;
@@ -162,7 +167,7 @@ int mfs_comm_socket_init ( comm_t *cb, params_t *params, conf_part_t *partition 
         return 1 ;
 }
 
-int mfs_comm_socket_finalize ( comm_t *cb, params_t *params )
+int mfs_comm_socket_finalize ( comm_t *cb )
 {
 	int ret ;
 
@@ -192,7 +197,7 @@ int mfs_comm_socket_finalize ( comm_t *cb, params_t *params )
 // Register, unregister, connect, disconnect
 //
 
-int mfs_comm_socket_register ( comm_t *cb, params_t *params )
+int mfs_comm_socket_register ( comm_t *cb )
 {
 	int ret ;
 
@@ -210,7 +215,7 @@ int mfs_comm_socket_register ( comm_t *cb, params_t *params )
         }
 
 	// register service into ns
-	ret = mfs_ns_insert(cb, params->ns_backend, cb->srv_name, cb->port_name) ;
+	ret = mfs_ns_insert(cb, cb->ns_backend, cb->srv_name, cb->port_name) ;
 	if (ret < 0) {
 	    mfs_print(DBG_ERROR, "[COMM]: registration fails :-(") ;
 	    return -1 ;
@@ -220,7 +225,7 @@ int mfs_comm_socket_register ( comm_t *cb, params_t *params )
         return 1 ;
 }
 
-int mfs_comm_socket_unregister ( comm_t *cb, params_t *params )
+int mfs_comm_socket_unregister ( comm_t *cb )
 {
 	int ret ;
 
@@ -231,7 +236,7 @@ int mfs_comm_socket_unregister ( comm_t *cb, params_t *params )
 	}
 
 	// unregister service from ns
-	ret = mfs_ns_remove(cb, params->ns_backend, cb->srv_name) ;
+	ret = mfs_ns_remove(cb, cb->ns_backend, cb->srv_name) ;
 	if (ret < 0) {
 	    mfs_print(DBG_ERROR, "[COMM]: unregistration fails :-(") ;
 	    return -1 ;
@@ -241,7 +246,7 @@ int mfs_comm_socket_unregister ( comm_t *cb, params_t *params )
         return 1 ;
 }
 
-int mfs_comm_socket_accept ( comm_t *ab, params_t *params )
+int mfs_comm_socket_accept ( comm_t *ab )
 {
 	int    ret ;
 	int    sd, size, val ;
@@ -276,7 +281,7 @@ int mfs_comm_socket_accept ( comm_t *ab, params_t *params )
         return 1 ;
 }
 
-int mfs_comm_socket_connect ( comm_t *cb, params_t *params, char *srv_uri, int remote_rank )
+int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri, int remote_rank )
 {
 	int    ret, sd ;
 	struct hostent *hp ;
@@ -291,7 +296,7 @@ int mfs_comm_socket_connect ( comm_t *cb, params_t *params, char *srv_uri, int r
 
 	// translate srv_uri -> host + port
 	port_name_size = MPI_MAX_PORT_NAME ;
-	ret = mfs_ns_lookup(cb, params->ns_backend, srv_uri, cb->port_name, &port_name_size) ;
+	ret = mfs_ns_lookup(cb, cb->ns_backend, srv_uri, cb->port_name, &port_name_size) ;
         if (MPI_SUCCESS != ret) {
             mfs_print(DBG_ERROR, "[COMM]: mfs_comm_socket_lookup fails :-(") ;
             return -1 ;
@@ -336,7 +341,7 @@ int mfs_comm_socket_connect ( comm_t *cb, params_t *params, char *srv_uri, int r
         return 1 ;
 }
 
-int mfs_comm_socket_disconnect ( comm_t *cb, params_t *params, int remote_rank )
+int mfs_comm_socket_disconnect ( comm_t *cb, int remote_rank )
 {
 	int ret ;
 

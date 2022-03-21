@@ -69,28 +69,23 @@
       	params->argc = argc ;
       	params->argv = argv ;
 
+        params->mfs_server_stub_pname = strdup(DEFAULT_STUB_PNAME) ;
         params->data_prefix = strdup(DEFAULT_DATA_PREFIX) ;
         params->conf_fname  = strdup(DEFAULT_CONF_FILE) ;
+	params->server_port = 12345 ; // TODO: get from command-line ??
 
-        params->file_backend = FILE_USE_POSIX ;
-        params->file_backend_name = strdup("POSIX") ;
-
-        params->dbm_backend  = DBM_USE_GDBM ;
-        params->dbm_backend_name = strdup("GDBM") ;
-
-        params->directory_backend = DIRECTORY_USE_POSIX ;
+        params->file_backend           = FILE_USE_POSIX ;
+        params->file_backend_name      = strdup("POSIX") ;
+        params->dbm_backend            = DBM_USE_GDBM ;
+        params->dbm_backend_name       = strdup("GDBM") ;
+        params->directory_backend      = DIRECTORY_USE_POSIX ;
         params->directory_backend_name = strdup("POSIX") ;
-
-        params->thread_launch = THREAD_USE_ONDEMAND ;
-        params->thread_launch_name = strdup("On demand") ;
-
-        params->comm_backend = COMM_USE_MPI ;
-        params->comm_backend_name = strdup("MPI") ;
-
-        params->ns_backend = NS_USE_DBM ;
-        params->ns_backend_name = strdup("DBM") ;
-
-        params->mfs_server_stub_pname = strdup(DEFAULT_STUB_PNAME) ;
+        params->thread_launch          = THREAD_USE_ONDEMAND ;
+        params->thread_launch_name     = strdup("On demand") ;
+        params->comm_backend           = COMM_USE_MPI ;
+        params->comm_backend_name      = strdup("MPI") ;
+        params->ns_backend             = NS_USE_DBM ;
+        params->ns_backend_name        = strdup("DBM") ;
 
 	// getopt_long...
 	short_opt = "vd:n:f:i:b:t:" ;
