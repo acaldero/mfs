@@ -23,22 +23,14 @@
 #define __MFS_COMM_SOCKET_H__
 
     // Includes
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <string.h>
-    #include <stdarg.h>
-
     #include <sys/time.h>
     #include <fcntl.h>
     #include <unistd.h>
     #include <sys/types.h>
-
     #include <sys/socket.h>
     #include <netinet/tcp.h>
 
     #include "mfs_lib.h"
-    #include "mfs_params.h"
-    #include "mfs_conf.h"
     #include "mfs_comm_common.h"
     #include "mfs_ns.h"
 
@@ -49,14 +41,14 @@
 
     // API
     int mfs_comm_socket_init     ( comm_t *cb, params_t *params, conf_part_t *partition ) ;
-    int mfs_comm_socket_finalize ( comm_t *cb ) ;
+    int mfs_comm_socket_finalize ( comm_t *cb, params_t *params ) ;
 
-    int mfs_comm_socket_register   ( comm_t *cb ) ;
-    int mfs_comm_socket_unregister ( comm_t *cb ) ;
+    int mfs_comm_socket_register   ( comm_t *cb, params_t *params ) ;
+    int mfs_comm_socket_unregister ( comm_t *cb, params_t *params ) ;
 
-    int mfs_comm_socket_accept     ( comm_t *ab ) ;
-    int mfs_comm_socket_connect    ( comm_t *cb, char *srv_uri, int remote_rank ) ;
-    int mfs_comm_socket_disconnect ( comm_t *cb,                int remote_rank ) ;
+    int mfs_comm_socket_accept     ( comm_t *ab, params_t *params ) ;
+    int mfs_comm_socket_connect    ( comm_t *cb, params_t *params, char *srv_uri, int remote_rank ) ;
+    int mfs_comm_socket_disconnect ( comm_t *cb, params_t *params,                int remote_rank ) ;
 
     int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
     int mfs_comm_socket_send_data_to   ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;

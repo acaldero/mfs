@@ -50,13 +50,9 @@ int  mfs_dbm_gdbm_open  ( GDBM_FILE  *fd, const char *path_name, int flags )
      // Open file
      (*fd) = gdbm_open((char *)path_name, 0, flags, 0755, NULL) ;
      if (NULL == (*fd)) {
-	 perror("gdbm_open: ") ;
+	 fprintf(stderr, "gdbm_open: %s\n", gdbm_strerror(gdbm_errno)) ;
          return -1 ;
      }
-
-     // Lock...
-     int pfd = gdbm_fdesc((*fd)) ;
-     flock(pfd, LOCK_EX) ;
 #endif
 
      // Return OK
@@ -66,10 +62,6 @@ int  mfs_dbm_gdbm_open  ( GDBM_FILE  *fd, const char *path_name, int flags )
 int   mfs_dbm_gdbm_close ( GDBM_FILE  fd )
 {
 #ifdef HAVE_GDBM_H
-     // Unlock...
-     int pfd = gdbm_fdesc(fd) ;
-     flock(pfd, LOCK_EX) ;
-
      // Close file
      if (NULL != fd) {
          gdbm_close(fd) ;
@@ -94,6 +86,9 @@ int   mfs_dbm_gdbm_store   ( GDBM_FILE  fd, void *buff_key, int count_key, void 
 
      // Store key+val
      ret = gdbm_store(fd, key, value, GDBM_REPLACE) ;
+     if (ret < 0) {
+	 fprintf(stderr, "gdbm_store: %s\n", gdbm_strerror(gdbm_errno)) ;
+     }
 #endif
 
      // Return OK/KO
@@ -107,19 +102,35 @@ int   mfs_dbm_gdbm_fetch  ( GDBM_FILE  fd, void *buff_key, int count_key, void *
      int cpy_size ;
 
      // Build key
-     key.dptr    = (char *)buff_key ;
-     key.dsize   = count_key ;
+     key.dptr  = (char *)buff_key ;
+     key.dsize = count_key ;
 
      // Fetch key+val
      value = gdbm_fetch(fd, key) ;
 
-     // Get val
+     // Check returned value
+     if (value.dptr == NULL)
+     {
+         if (gdbm_errno == GDBM_ITEM_NOT_FOUND)
+	 {
+             fprintf(stderr, "gdbm_fetch: key not found\n") ;
+             return -2 ;
+         }
+         else
+	 {
+	     fprintf(stderr, "gdbm_fetch: %s\n", gdbm_db_strerror(fd)) ;
+             return -1 ;
+         }
+     }
+
+     // Copy value to buffer_val and free memory
      cpy_size = (*count_val < value.dsize) ? *count_val : value.dsize ;
      memcpy(buff_val, (void *)value.dptr, cpy_size) ;
      *count_val = cpy_size ;
+     free(value.dptr) ;
 
-     // Return OK/KO
-     return (value.dptr != NULL) ;
+     // Return OK
+     return 1 ;
 #else
      // Return KO
      return -1 ;
@@ -138,6 +149,9 @@ int   mfs_dbm_gdbm_delete  ( GDBM_FILE  fd, void *buff_key, int count_key )
 
      // Fetch key+val
      ret = gdbm_delete(fd, key) ;
+     if (ret < 0) {
+	 fprintf(stderr, "gdbm_delete: %s\n", gdbm_strerror(gdbm_errno)) ;
+     }
 #endif
 
      // Return OK/KO

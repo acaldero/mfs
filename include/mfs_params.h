@@ -31,6 +31,7 @@
    #include "mfs_dbm.h"
    #include "mfs_directories.h"
    #include "mfs_comm_common.h"
+   #include "mfs_ns_common.h"
 
 
    // Const
@@ -67,6 +68,9 @@
 
         int    comm_backend ;
         char  *comm_backend_name ;
+
+        int    ns_backend ;
+        char  *ns_backend_name ;
 
         // server arguments
         int    *argc ;

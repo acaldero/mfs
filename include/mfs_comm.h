@@ -23,30 +23,23 @@
 #define __MFS_COMM_H__
 
     // Includes
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <string.h>
-    #include <stdarg.h>
-    #include <sys/time.h>
-    #include <fcntl.h>
-    #include <unistd.h>
-    #include <mpi.h>
     #include "mfs_lib.h"
     #include "mfs_params.h"
     #include "mfs_comm_mpi.h"
     #include "mfs_comm_socket.h"
+    #include "mfs_params.h"
 
 
     // Communications
     int mfs_comm_init       ( comm_t *cb, int comm_protocol, params_t *params, conf_part_t *partition ) ;
-    int mfs_comm_finalize   ( comm_t *cb ) ;
+    int mfs_comm_finalize   ( comm_t *cb, params_t *params ) ;
 
-    int mfs_comm_register   ( comm_t *cb ) ;
-    int mfs_comm_unregister ( comm_t *cb ) ;
+    int mfs_comm_register   ( comm_t *cb, params_t *params ) ;
+    int mfs_comm_unregister ( comm_t *cb, params_t *params ) ;
 
-    int mfs_comm_accept     ( comm_t *ab, comm_t *wb ) ;
-    int mfs_comm_connect    ( comm_t *cb, char *srv_uri, int remote_rank ) ;
-    int mfs_comm_disconnect ( comm_t *cb,                int remote_rank ) ;
+    int mfs_comm_accept     ( comm_t *ab, params_t *params, comm_t *wb ) ;
+    int mfs_comm_connect    ( comm_t *cb, params_t *params, char *srv_uri, int remote_rank ) ;
+    int mfs_comm_disconnect ( comm_t *cb, params_t *params,                int remote_rank ) ;
 
     int mfs_comm_request_send       ( comm_t *cb, int rank, long  req_action, long  req_arg1, long  req_arg2 ) ;
     int mfs_comm_request_receive    ( comm_t *cb,           long *req_action, long *req_arg1, long *req_arg2 ) ;

@@ -40,14 +40,14 @@
 
     // API
     int mfs_comm_mpi_init     ( comm_t *cb, params_t *params, conf_part_t *partition ) ;
-    int mfs_comm_mpi_finalize ( comm_t *cb ) ;
+    int mfs_comm_mpi_finalize ( comm_t *cb, params_t *params ) ;
 
-    int mfs_comm_mpi_register   ( comm_t *cb ) ;
-    int mfs_comm_mpi_unregister ( comm_t *cb ) ;
+    int mfs_comm_mpi_register   ( comm_t *cb, params_t *params ) ;
+    int mfs_comm_mpi_unregister ( comm_t *cb, params_t *params ) ;
 
-    int mfs_comm_mpi_accept     ( comm_t *ab ) ;
-    int mfs_comm_mpi_connect    ( comm_t *cb, char *srv_uri, int remote_rank ) ;
-    int mfs_comm_mpi_disconnect ( comm_t *cb,                int remote_rank ) ;
+    int mfs_comm_mpi_accept     ( comm_t *ab, params_t *params ) ;
+    int mfs_comm_mpi_connect    ( comm_t *cb, params_t *params, char *srv_uri, int remote_rank ) ;
+    int mfs_comm_mpi_disconnect ( comm_t *cb, params_t *params,                int remote_rank ) ;
 
     int mfs_comm_mpi_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
     int mfs_comm_mpi_send_data_to   ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;

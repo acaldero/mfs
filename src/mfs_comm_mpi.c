@@ -30,7 +30,6 @@ int mfs_comm_mpi_init ( comm_t *cb, params_t *params, conf_part_t *partition )
 {
     int ret ;
     int claimed, provided ;
-    MPI_Comm local_comm ;
 
     // MPI_Init
     ret = MPI_Init_thread(params->argc, params->argv, MPI_THREAD_MULTIPLE, &provided) ;
@@ -64,14 +63,14 @@ int mfs_comm_mpi_init ( comm_t *cb, params_t *params, conf_part_t *partition )
     cb->status_count = -1 ;
 
     // id within local node...
-    MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &local_comm) ;
-    MPI_Comm_rank(local_comm, &(cb->local_rank)) ;
+    MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &(cb->local_comm)) ;
+    MPI_Comm_rank(cb->local_comm, &(cb->local_rank)) ;
 
     // Return OK
     return 1 ;
 }
 
-int mfs_comm_mpi_finalize ( comm_t *cb )
+int mfs_comm_mpi_finalize ( comm_t *cb, params_t *params )
 {
     int ret ;
 
@@ -91,7 +90,7 @@ int mfs_comm_mpi_finalize ( comm_t *cb )
 // Register, unregister, connect, disconnect
 //
 
-int mfs_comm_mpi_register ( comm_t *cb )
+int mfs_comm_mpi_register ( comm_t *cb, params_t *params )
 {
     int ret ;
 
@@ -116,7 +115,7 @@ int mfs_comm_mpi_register ( comm_t *cb )
     return 1 ;
 }
 
-int mfs_comm_mpi_unregister ( comm_t *cb )
+int mfs_comm_mpi_unregister ( comm_t *cb, params_t *params )
 {
     int ret ;
 
@@ -134,7 +133,7 @@ int mfs_comm_mpi_unregister ( comm_t *cb )
     return 1 ;
 }
 
-int mfs_comm_mpi_accept ( comm_t *ab )
+int mfs_comm_mpi_accept ( comm_t *ab, params_t *params )
 {
     int ret ;
 
@@ -149,7 +148,7 @@ int mfs_comm_mpi_accept ( comm_t *ab )
     return 1 ;
 }
 
-int mfs_comm_mpi_connect ( comm_t *cb, char *srv_uri, int remote_rank )
+int mfs_comm_mpi_connect ( comm_t *cb, params_t *params, char *srv_uri, int remote_rank )
 {
     int ret ;
 
@@ -170,7 +169,7 @@ int mfs_comm_mpi_connect ( comm_t *cb, char *srv_uri, int remote_rank )
     return 1 ;
 }
 
-int mfs_comm_mpi_disconnect ( comm_t *cb, int remote_rank )
+int mfs_comm_mpi_disconnect ( comm_t *cb, params_t *params, int remote_rank )
 {
     int ret ;
 

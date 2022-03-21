@@ -56,10 +56,13 @@
         int    sd ;
         int   *dd ;
 
-        // local identification
+        // MPI identification
         int   size ;
         int   rank ;
-        int   local_rank ;
+
+        // MPI identification in node
+        MPI_Comm local_comm ;
+        int      local_rank ;
 
         // remote identification
         int   status_rank ;

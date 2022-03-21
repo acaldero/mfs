@@ -87,6 +87,9 @@
         params->comm_backend = COMM_USE_MPI ;
         params->comm_backend_name = strdup("MPI") ;
 
+        params->ns_backend = NS_USE_DBM ;
+        params->ns_backend_name = strdup("DBM") ;
+
         params->mfs_server_stub_pname = strdup(DEFAULT_STUB_PNAME) ;
 
 	// getopt_long...
@@ -175,6 +178,7 @@ int  mfs_params_free       ( params_t *params )
         free(params->thread_launch_name) ;
         free(params->comm_backend_name) ;
         free(params->mfs_server_stub_pname) ;
+        free(params->ns_backend_name) ;
 
       	// return OK
       	return 1;

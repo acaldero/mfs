@@ -65,7 +65,7 @@ int mfs_comm_init ( comm_t *cb, int comm_protocol, params_t *params, conf_part_t
     return ret ;
 }
 
-int mfs_comm_finalize ( comm_t *cb )
+int mfs_comm_finalize ( comm_t *cb, params_t *params )
 {
     int ret ;
 
@@ -73,11 +73,11 @@ int mfs_comm_finalize ( comm_t *cb )
     switch (cb->comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = mfs_comm_socket_finalize(cb) ;
+	     ret = mfs_comm_socket_finalize(cb, params) ;
              break ;
 
         case COMM_USE_MPI:
-	     ret = mfs_comm_mpi_finalize(cb) ;
+	     ret = mfs_comm_mpi_finalize(cb, params) ;
              break ;
 
         default:
@@ -98,7 +98,7 @@ int mfs_comm_finalize ( comm_t *cb )
 // Register, unregister, connect, disconnect
 //
 
-int mfs_comm_register ( comm_t *cb )
+int mfs_comm_register ( comm_t *cb, params_t *params )
 {
     int ret ;
 
@@ -106,11 +106,11 @@ int mfs_comm_register ( comm_t *cb )
     switch (cb->comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = mfs_comm_socket_register(cb) ;
+	     ret = mfs_comm_socket_register(cb, params) ;
              break ;
 
         case COMM_USE_MPI:
-	     ret = mfs_comm_mpi_register(cb) ;
+	     ret = mfs_comm_mpi_register(cb, params) ;
              break ;
 
         default:
@@ -122,7 +122,7 @@ int mfs_comm_register ( comm_t *cb )
     return ret ;
 }
 
-int mfs_comm_unregister ( comm_t *cb )
+int mfs_comm_unregister ( comm_t *cb, params_t *params )
 {
     int ret ;
 
@@ -130,11 +130,11 @@ int mfs_comm_unregister ( comm_t *cb )
     switch (cb->comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = mfs_comm_socket_unregister(cb) ;
+	     ret = mfs_comm_socket_unregister(cb, params) ;
              break ;
 
         case COMM_USE_MPI:
-	     ret = mfs_comm_mpi_unregister(cb) ;
+	     ret = mfs_comm_mpi_unregister(cb, params) ;
              break ;
 
         default:
@@ -147,7 +147,7 @@ int mfs_comm_unregister ( comm_t *cb )
     return ret ;
 }
 
-int mfs_comm_accept ( comm_t *ab, comm_t *wb )
+int mfs_comm_accept ( comm_t *ab, params_t *params, comm_t *wb )
 {
     int ret ;
 
@@ -158,11 +158,11 @@ int mfs_comm_accept ( comm_t *ab, comm_t *wb )
     switch (ab->comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = mfs_comm_socket_accept(ab) ;
+	     ret = mfs_comm_socket_accept(ab, params) ;
              break ;
 
         case COMM_USE_MPI:
-	     ret = mfs_comm_mpi_accept(ab) ;
+	     ret = mfs_comm_mpi_accept(ab, params) ;
              break ;
 
         default:
@@ -178,7 +178,7 @@ int mfs_comm_accept ( comm_t *ab, comm_t *wb )
     return ret ;
 }
 
-int mfs_comm_connect ( comm_t *cb, char *srv_uri, int remote_rank )
+int mfs_comm_connect ( comm_t *cb, params_t *params, char *srv_uri, int remote_rank )
 {
     int ret ;
 
@@ -186,11 +186,11 @@ int mfs_comm_connect ( comm_t *cb, char *srv_uri, int remote_rank )
     switch (cb->comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = mfs_comm_socket_connect(cb, srv_uri, remote_rank) ;
+	     ret = mfs_comm_socket_connect(cb, params, srv_uri, remote_rank) ;
              break ;
 
         case COMM_USE_MPI:
-	     ret = mfs_comm_mpi_connect(cb, srv_uri, remote_rank) ;
+	     ret = mfs_comm_mpi_connect(cb, params, srv_uri, remote_rank) ;
              break ;
 
         default:
@@ -206,7 +206,7 @@ int mfs_comm_connect ( comm_t *cb, char *srv_uri, int remote_rank )
     return ret ;
 }
 
-int mfs_comm_disconnect ( comm_t *cb, int remote_rank )
+int mfs_comm_disconnect ( comm_t *cb, params_t *params, int remote_rank )
 {
     int ret ;
 
@@ -214,11 +214,11 @@ int mfs_comm_disconnect ( comm_t *cb, int remote_rank )
     switch (cb->comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = mfs_comm_socket_disconnect(cb, remote_rank) ;
+	     ret = mfs_comm_socket_disconnect(cb, params, remote_rank) ;
              break ;
 
         case COMM_USE_MPI:
-	     ret = mfs_comm_mpi_disconnect(cb, remote_rank) ;
+	     ret = mfs_comm_mpi_disconnect(cb, params, remote_rank) ;
              break ;
 
         default:

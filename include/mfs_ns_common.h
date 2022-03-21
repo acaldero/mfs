@@ -19,25 +19,26 @@
  *
  */
 
-#ifndef __MFS_NS_H__
-#define __MFS_NS_H__
+#ifndef __MFS_NS_COMMON_H__
+#define __MFS_NS_COMMON_H__
 
     // Includes
-    #include "mfs_ns_common.h"
-    #include "mfs_dbm_gdbm.h"
-    #include "mfs_client_api.h"
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <netinet/in.h>
+    #include <netdb.h>
+    #include <arpa/inet.h>
 
 
-    // API
-    int  mfs_ns_init           ( void ) ;
-    int  mfs_ns_finalize       ( void ) ;
+    // File protocol
+    #define NS_USE_MFS   1
+    #define NS_USE_DBM   2
+    #define NS_USE_FILE  3
 
-    int  mfs_ns_insert         ( comm_t *wb,  int   ns_backend, char *srv_name, char *port_name ) ;
-    int  mfs_ns_lookup         ( comm_t *wb,  int   ns_backend, char *srv_name, char *port_name, int *port_name_size ) ;
-    int  mfs_ns_remove         ( comm_t *wb,  int   ns_backend, char *srv_name ) ;
+    // Consts
+    #define MAXPATHLEN    (1024)
+    #define NS_FILE_NAME  "ns.data"
 
-    int  mfs_ns_get_portname   ( char *port_name,  int sd ) ;
-    int  mfs_ns_split_portname ( char *port_name,  struct hostent **host, int *port ) ;
 
 #endif
 

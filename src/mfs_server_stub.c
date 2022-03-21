@@ -164,7 +164,7 @@ int serverstub_init ( comm_t *wb, params_t *params )
     local_node = mfs_conf_get_active_node(&conf, local_rank) ;
     strcpy(wb->srv_name, local_node) ;
 
-    ret = mfs_comm_register(wb) ;
+    ret = mfs_comm_register(wb, params) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: port registration fails :-(", mfs_comm_get_rank(wb)) ;
         return -1 ;
@@ -182,14 +182,14 @@ int serverstub_finalize ( comm_t *wb, params_t *params )
     int ret ;
 
     // UnRegister
-    ret = mfs_comm_unregister(wb) ;
+    ret = mfs_comm_unregister(wb, params) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: port unregistration fails :-(", mfs_comm_get_rank(wb)) ;
         return -1 ;
     }
 
     // Finalize
-    ret = mfs_comm_finalize(wb) ;
+    ret = mfs_comm_finalize(wb, params) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: finalization fails :-(", mfs_comm_get_rank(wb)) ;
         return -1 ;
@@ -232,7 +232,7 @@ int serverstub_accept ( comm_t *ab, params_t *params, comm_t *wb )
     int ret ;
 
     // Accept connections...
-    ret = mfs_comm_accept(ab, wb) ;
+    ret = mfs_comm_accept(ab, params, wb) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: accept connections fails :-(", mfs_comm_get_rank(ab)) ;
         return -1 ;
@@ -247,7 +247,7 @@ int serverstub_disconnect ( comm_t *ab, params_t *params, int remote_rank )
     int ret ;
 
     // Disconnect
-    ret = mfs_comm_disconnect(ab, remote_rank) ;
+    ret = mfs_comm_disconnect(ab, params, remote_rank) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: disconnect fails :-(", mfs_comm_get_rank(ab)) ;
         return -1 ;

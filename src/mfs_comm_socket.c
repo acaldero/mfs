@@ -162,7 +162,7 @@ int mfs_comm_socket_init ( comm_t *cb, params_t *params, conf_part_t *partition 
         return 1 ;
 }
 
-int mfs_comm_socket_finalize ( comm_t *cb )
+int mfs_comm_socket_finalize ( comm_t *cb, params_t *params )
 {
 	int ret ;
 
@@ -192,7 +192,7 @@ int mfs_comm_socket_finalize ( comm_t *cb )
 // Register, unregister, connect, disconnect
 //
 
-int mfs_comm_socket_register ( comm_t *cb )
+int mfs_comm_socket_register ( comm_t *cb, params_t *params )
 {
 	int ret ;
 
@@ -210,7 +210,7 @@ int mfs_comm_socket_register ( comm_t *cb )
         }
 
 	// register service into ns
-	ret = mfs_ns_insert(cb, NS_USE_DBM, cb->srv_name, cb->port_name) ;
+	ret = mfs_ns_insert(cb, params->ns_backend, cb->srv_name, cb->port_name) ;
 	if (ret < 0) {
 	    mfs_print(DBG_ERROR, "[COMM]: registration fails :-(") ;
 	    return -1 ;
@@ -220,7 +220,7 @@ int mfs_comm_socket_register ( comm_t *cb )
         return 1 ;
 }
 
-int mfs_comm_socket_unregister ( comm_t *cb )
+int mfs_comm_socket_unregister ( comm_t *cb, params_t *params )
 {
 	int ret ;
 
@@ -231,7 +231,7 @@ int mfs_comm_socket_unregister ( comm_t *cb )
 	}
 
 	// unregister service from ns
-	ret = mfs_ns_remove(cb, NS_USE_DBM, cb->srv_name) ;
+	ret = mfs_ns_remove(cb, params->ns_backend, cb->srv_name) ;
 	if (ret < 0) {
 	    mfs_print(DBG_ERROR, "[COMM]: unregistration fails :-(") ;
 	    return -1 ;
@@ -241,7 +241,7 @@ int mfs_comm_socket_unregister ( comm_t *cb )
         return 1 ;
 }
 
-int mfs_comm_socket_accept ( comm_t *ab )
+int mfs_comm_socket_accept ( comm_t *ab, params_t *params )
 {
 	int    ret ;
 	int    sd, size, val ;
@@ -276,7 +276,7 @@ int mfs_comm_socket_accept ( comm_t *ab )
         return 1 ;
 }
 
-int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri, int remote_rank )
+int mfs_comm_socket_connect ( comm_t *cb, params_t *params, char *srv_uri, int remote_rank )
 {
 	int    ret, sd ;
 	struct hostent *hp ;
@@ -291,7 +291,7 @@ int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri, int remote_rank )
 
 	// translate srv_uri -> host + port
 	port_name_size = MPI_MAX_PORT_NAME ;
-	ret = mfs_ns_lookup(cb, NS_USE_DBM, srv_uri, cb->port_name, &port_name_size) ;
+	ret = mfs_ns_lookup(cb, params->ns_backend, srv_uri, cb->port_name, &port_name_size) ;
         if (MPI_SUCCESS != ret) {
             mfs_print(DBG_ERROR, "[COMM]: mfs_comm_socket_lookup fails :-(") ;
             return -1 ;
@@ -336,7 +336,7 @@ int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri, int remote_rank )
         return 1 ;
 }
 
-int mfs_comm_socket_disconnect ( comm_t *cb, int remote_rank )
+int mfs_comm_socket_disconnect ( comm_t *cb, params_t *params, int remote_rank )
 {
 	int ret ;
 
@@ -371,17 +371,37 @@ int mfs_comm_socket_disconnect ( comm_t *cb, int remote_rank )
 
 int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype )
 {
-    // TODO
+    int ret ;
+    int buff_size ;
 
-    // Return OK
-    return 1 ;
+    // Check arguments
+    if (NULL == cb)         { return -1; }
+    if (NULL == cb->dd)     { return -1; }
+    if (-1 == cb->dd[rank]) { return -1; }
+
+    // Send data to...
+    MPI_Type_size(datatype, &buff_size) ;
+    ret = mfs_file_read(cb->dd[rank], buff, buff_size) ;
+
+    // Return OK/KO
+    return ret ;
 }
 
 int mfs_comm_socket_send_data_to  ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype )
 {
-    // TODO
+    int ret ;
+    int buff_size ;
 
-    // Return OK
-    return 1 ;
+    // Check arguments
+    if (NULL == cb)         { return -1; }
+    if (NULL == cb->dd)     { return -1; }
+    if (-1 == cb->dd[rank]) { return -1; }
+
+    // Send data to...
+    MPI_Type_size(datatype, &buff_size) ;
+    ret = mfs_file_write(cb->dd[rank], buff, buff_size) ;
+
+    // Return OK/KO
+    return ret ;
 }
 
