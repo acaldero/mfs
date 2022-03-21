@@ -118,10 +118,8 @@ int clientstub_action_send_buffer ( comm_t *wb, void *buff_char, int count, int 
 
 int clientstub_init ( comm_t *wb, params_t *params )
 {
-    int     ret = 0 ;
-    conf_t  conf ;
-    int     remote_rank ;
-    char   *remote_node ;
+    int    ret = 0 ;
+    conf_t conf ;
 
     // Get valid configuration..
     ret = mfs_conf_get(&conf, params->conf_fname) ;
@@ -150,13 +148,9 @@ int clientstub_init ( comm_t *wb, params_t *params )
     // Connect to service
     if (ret >= 0)
     {
-        remote_rank = mfs_comm_get_rank(wb) % conf.active->n_nodes ;
-        remote_node = mfs_conf_get_active_node(&conf, remote_rank) ;
-        strcpy(wb->srv_name, remote_node) ;
-
-        ret = mfs_comm_connect(wb, remote_node, remote_rank) ;
+        ret = mfs_comm_interconnect_all(wb, &conf) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: connection fails :-(", remote_rank) ;
+            mfs_print(DBG_ERROR, "Client[%d]: connect_all fails :-(", -1) ;
         }
     }
 
@@ -173,7 +167,6 @@ int clientstub_init ( comm_t *wb, params_t *params )
 int clientstub_finalize ( comm_t *wb, params_t *params )
 {
     int ret = 0 ;
-    int remote_rank ;
 
     // Remote disconnect...
     if (ret >= 0)
@@ -184,9 +177,7 @@ int clientstub_finalize ( comm_t *wb, params_t *params )
     // Disconnect...
     if (ret >= 0)
     {
-        remote_rank = (mfs_comm_get_rank(wb) % wb->n_servers) ;
-
-        ret = mfs_comm_disconnect(wb, remote_rank) ;
+        ret = mfs_comm_disconnect_all(wb) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: disconnect fails :-(", mfs_comm_get_rank(wb)) ;
         }

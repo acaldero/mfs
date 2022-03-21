@@ -136,7 +136,7 @@
        }
 
        // disconnect from server
-       serverstub_disconnect(&(th.ab), &params, 0) ; // TODO: 0 -> rank of remote node
+       serverstub_disconnect_all(&(th.ab), &params) ;
    }
 
 

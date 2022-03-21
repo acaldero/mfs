@@ -242,14 +242,14 @@ int serverstub_accept ( comm_t *ab, params_t *params, comm_t *wb )
     return 0 ;
 }
 
-int serverstub_disconnect ( comm_t *ab, params_t *params, int remote_rank )
+int serverstub_disconnect_all ( comm_t *ab, params_t *params )
 {
     int ret ;
 
     // Disconnect
-    ret = mfs_comm_disconnect(ab, remote_rank) ;
+    ret = mfs_comm_disconnect_all(ab) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Server[%d]: disconnect fails :-(", mfs_comm_get_rank(ab)) ;
+        mfs_print(DBG_ERROR, "Server[%d]: disconnect_all fails :-(", mfs_comm_get_rank(ab)) ;
         return -1 ;
     }
 

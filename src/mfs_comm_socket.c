@@ -246,7 +246,7 @@ int mfs_comm_socket_unregister ( comm_t *cb )
         return 1 ;
 }
 
-int mfs_comm_socket_accept ( comm_t *ab )
+int mfs_comm_socket_accept ( comm_t *ab, int remote_rank )
 {
 	int    ret ;
 	int    sd, size, val ;
@@ -274,7 +274,6 @@ int mfs_comm_socket_accept ( comm_t *ab )
         }
 
 	// set associated socket to rank
-	int remote_rank = 0 ; // TODO: get remote rank
 	ab->dd[remote_rank] = sd ;
 
         // Return OK
@@ -364,6 +363,43 @@ int mfs_comm_socket_disconnect ( comm_t *cb, int remote_rank )
 	}
 
 	cb->dd[remote_rank] = -1 ;
+
+        // Return OK
+        return 1 ;
+}
+
+int mfs_comm_socket_interconnect_all ( comm_t *cb, conf_t *conf )
+{
+	// TODO
+        // int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri, int remote_rank )
+
+        // Return OK
+        return 1 ;
+}
+
+int mfs_comm_socket_disconnect_all ( comm_t *cb )
+{
+	int ret ;
+
+        // Check params...
+	if (NULL == cb) {
+	    mfs_print(DBG_ERROR, "[COMM]: NULL argument :-(") ;
+	    return -1 ;
+	}
+
+	// Close sockets...
+	for (int i=0; i<cb->size; i++)
+	{
+	     if (cb->dd[i] != -1)
+	     {
+		ret = mfs_comm_socket_close(&(cb->dd[i])) ;
+		if (ret < 0) {
+		    mfs_print(DBG_ERROR, "[COMM]: close socket %d fails :-(", i) ;
+		}
+
+		cb->dd[i] = -1 ;
+	     }
+	}
 
         // Return OK
         return 1 ;

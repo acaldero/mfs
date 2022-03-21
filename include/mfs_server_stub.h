@@ -51,10 +51,10 @@
 
 
     // General API
-    int serverstub_init       ( comm_t *wb, params_t *params ) ;
-    int serverstub_finalize   ( comm_t *wb, params_t *params ) ;
-    int serverstub_accept     ( comm_t *ab, params_t *params, comm_t *wb ) ;
-    int serverstub_disconnect ( comm_t *ab, params_t *params, int     remote_rank ) ;
+    int serverstub_init           ( comm_t *wb, params_t *params ) ;
+    int serverstub_finalize       ( comm_t *wb, params_t *params ) ;
+    int serverstub_accept         ( comm_t *ab, params_t *params, comm_t *wb ) ;
+    int serverstub_disconnect_all ( comm_t *ab, params_t *params ) ;
 
     //  File API
     int serverstub_open       ( comm_t *ab, params_t *params, int *fd, int pathname_length, int flags ) ;

@@ -148,10 +148,18 @@ int mfs_comm_mpi_accept ( comm_t *ab )
     return 1 ;
 }
 
-int mfs_comm_mpi_connect ( comm_t *cb, char *srv_uri, int remote_rank )
+int mfs_comm_mpi_interconnect_all ( comm_t *cb, conf_t *conf )
 {
-    int ret ;
+    int   ret ;
+    int   remote_rank ;
+    char *srv_uri ;
 
+    // Get service name
+    remote_rank = mfs_comm_get_rank(cb) % conf->active->n_nodes ;
+    srv_uri = mfs_conf_get_active_node(conf, remote_rank) ;
+    strcpy(cb->srv_name, srv_uri) ;
+
+    // Lookup...
     ret = MPI_Lookup_name(srv_uri, MPI_INFO_NULL, cb->port_name) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "[COMM]: MPI_Lookup_name fails :-(") ;
@@ -161,7 +169,7 @@ int mfs_comm_mpi_connect ( comm_t *cb, char *srv_uri, int remote_rank )
     // Connect...
     ret = MPI_Comm_connect(cb->port_name, MPI_INFO_NULL, 0, MPI_COMM_SELF, &(cb->endpoint)) ;
     if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_connect(%d) fails :-(", remote_rank) ;
+        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_connect(%s) fails :-(", srv_uri) ;
         return -1 ;
     }
 
@@ -169,14 +177,14 @@ int mfs_comm_mpi_connect ( comm_t *cb, char *srv_uri, int remote_rank )
     return 1 ;
 }
 
-int mfs_comm_mpi_disconnect ( comm_t *cb, int remote_rank )
+int mfs_comm_mpi_disconnect_all ( comm_t *cb )
 {
     int ret ;
 
     // Disconnect...
     ret = MPI_Comm_disconnect(&(cb->endpoint)) ;
     if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_disconnect(%d) fails :-(", remote_rank) ;
+        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_disconnect(...) fails :-(") ;
         return -1 ;
     }
 

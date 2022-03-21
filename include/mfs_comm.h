@@ -37,9 +37,9 @@
     int mfs_comm_register   ( comm_t *cb ) ;
     int mfs_comm_unregister ( comm_t *cb ) ;
 
-    int mfs_comm_accept     ( comm_t *ab, comm_t *wb ) ;
-    int mfs_comm_connect    ( comm_t *cb, char *srv_uri, int remote_rank ) ;
-    int mfs_comm_disconnect ( comm_t *cb,                int remote_rank ) ;
+    int mfs_comm_accept           ( comm_t *ab, comm_t *wb ) ;
+    int mfs_comm_interconnect_all ( comm_t *cb, conf_t *conf ) ;
+    int mfs_comm_disconnect_all   ( comm_t *cb ) ;
 
     int mfs_comm_request_send       ( comm_t *cb, int rank, long  req_action, long  req_arg1, long  req_arg2 ) ;
     int mfs_comm_request_receive    ( comm_t *cb,           long *req_action, long *req_arg1, long *req_arg2 ) ;
