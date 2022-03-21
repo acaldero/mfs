@@ -1,32 +1,29 @@
 /*
  *  Copyright 2020-2022 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
  *
- *  This file is part of MPI_PFS.
+ *  This file is part of MFS.
  *
- *  MPI_PFS is free software: you can redistribute it and/or modify
+ *  MFS is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  MPI_PFS is distributed in the hope that it will be useful,
+ *  MFS is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
  *
  *  You should have received a copy of the GNU Lesser General Public License
- *  along with MPI_PFS.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with MFS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
 #ifndef _MFS_CONF_H_
 #define _MFS_CONF_H_
 
-   #include <stdlib.h>
-   #include <stdio.h>
-   #include <string.h>
-   #include <yaml.h>
-
    #include "mfs_lib.h"
+
+   #include <yaml.h>
 
 
    // Datatype

@@ -2,20 +2,20 @@
 /*
  *  Copyright 2020-2022 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
  *
- *  This file is part of MPI_PFS.
+ *  This file is part of MFS.
  *
- *  MPI_PFS is free software: you can redistribute it and/or modify
+ *  MFS is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  MPI_PFS is distributed in the hope that it will be useful,
+ *  MFS is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
  *
  *  You should have received a copy of the GNU Lesser General Public License
- *  along with MPI_PFS.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with MFS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -77,7 +77,7 @@ int mfs_comm_finalize ( comm_t *cb, params_t *params )
              break ;
 
         case COMM_USE_MPI:
-	     ret = mfs_comm_mpi_finalize(cb, params) ;
+	     ret = mfs_comm_mpi_finalize(cb) ;
              break ;
 
         default:
@@ -110,7 +110,7 @@ int mfs_comm_register ( comm_t *cb, params_t *params )
              break ;
 
         case COMM_USE_MPI:
-	     ret = mfs_comm_mpi_register(cb, params) ;
+	     ret = mfs_comm_mpi_register(cb) ;
              break ;
 
         default:
@@ -134,7 +134,7 @@ int mfs_comm_unregister ( comm_t *cb, params_t *params )
              break ;
 
         case COMM_USE_MPI:
-	     ret = mfs_comm_mpi_unregister(cb, params) ;
+	     ret = mfs_comm_mpi_unregister(cb) ;
              break ;
 
         default:
@@ -162,7 +162,7 @@ int mfs_comm_accept ( comm_t *ab, params_t *params, comm_t *wb )
              break ;
 
         case COMM_USE_MPI:
-	     ret = mfs_comm_mpi_accept(ab, params) ;
+	     ret = mfs_comm_mpi_accept(ab) ;
              break ;
 
         default:
@@ -190,7 +190,7 @@ int mfs_comm_connect ( comm_t *cb, params_t *params, char *srv_uri, int remote_r
              break ;
 
         case COMM_USE_MPI:
-	     ret = mfs_comm_mpi_connect(cb, params, srv_uri, remote_rank) ;
+	     ret = mfs_comm_mpi_connect(cb, srv_uri, remote_rank) ;
              break ;
 
         default:
@@ -218,7 +218,7 @@ int mfs_comm_disconnect ( comm_t *cb, params_t *params, int remote_rank )
              break ;
 
         case COMM_USE_MPI:
-	     ret = mfs_comm_mpi_disconnect(cb, params, remote_rank) ;
+	     ret = mfs_comm_mpi_disconnect(cb, remote_rank) ;
              break ;
 
         default:

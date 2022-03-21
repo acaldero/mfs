@@ -31,18 +31,25 @@ int main_test_file ( params_t *params, comm_t *wb )
     long   fd ;
     char   str[STR_SIZE] ;
 
-    // Example
-    strcpy(str, "hello word") ;
+   MPI_Barrier(MPI_COMM_WORLD) ;
+
+    // write("hello world")
+    strcpy(str, "hello world") ;
 
     printf("Client[%d]: creat(...) + write(...) + close(...)\n", wb->rank) ;
     fd = mfs_api_open(wb, "test1.txt", O_WRONLY | O_CREAT | O_TRUNC) ;
     mfs_api_write(wb, fd, str, strlen(str)) ;
     mfs_api_close(wb, fd) ;
 
+   MPI_Barrier(MPI_COMM_WORLD) ;
+
+    // read("...")
     printf("Client[%d]: open(...) + read(...) + close(...)\n", wb->rank) ;
     fd = mfs_api_open(wb, "test1.txt", O_RDONLY) ;
      mfs_api_read(wb, fd, str, STR_SIZE) ;
     mfs_api_close(wb, fd) ;
+
+   MPI_Barrier(MPI_COMM_WORLD) ;
 
     return 0;
 }
@@ -56,7 +63,7 @@ int main_test_dbm ( params_t *params, comm_t *wb )
     int    str1_len ;
     int    str2_len ;
 
-    MPI_Barrier(MPI_COMM_WORLD) ;
+   MPI_Barrier(MPI_COMM_WORLD) ;
 
     // dbmstore("m1", "hello world")
     if (wb->rank < wb->n_servers)
@@ -73,7 +80,7 @@ int main_test_dbm ( params_t *params, comm_t *wb )
         mfs_api_dbmclose(wb, fd) ;
     }
 
-    MPI_Barrier(MPI_COMM_WORLD) ;
+   MPI_Barrier(MPI_COMM_WORLD) ;
 
     // dbmfetch("m1")
     strcpy(str1, "m1") ;
@@ -87,7 +94,7 @@ int main_test_dbm ( params_t *params, comm_t *wb )
     mfs_api_dbmfetch(wb, fd, str1, str1_len, &str2, &str2_len) ;
     mfs_api_dbmclose(wb, fd) ;
 
-    MPI_Barrier(MPI_COMM_WORLD) ;
+   MPI_Barrier(MPI_COMM_WORLD) ;
 
     // dbmdelete("m1")
     if (wb->rank < wb->n_servers)
