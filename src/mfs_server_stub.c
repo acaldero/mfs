@@ -32,8 +32,8 @@ int stub_prepare_pathname ( comm_t *ab, char **buff_data_sys, char *base_dirname
     int ret, buff_data_len ;
 
     // Check arguments...
-    if (NULL == ab)            { return -1 ; }
-    if (NULL == buff_data_sys) { return -1 ; }
+    NULL_PRT_MSG_RET_VAL(ab,            "[SERV_STUB] NULL ab             :-/", -1) ;
+    NULL_PRT_MSG_RET_VAL(buff_data_sys, "[SERV_STUB] NULL buff_data_sys  :-/", -1) ;
 
     // Malloc for pathname...
     buff_data_len = strlen(base_dirname) + 20 + pathname_length ;  // base_dirname_value + '.' + local_rank + '/' + pathname
@@ -58,8 +58,8 @@ int stub_read_name ( comm_t *ab, char **buff_data_sys, int pathname_length )
     char *buff_data_user ;
 
     // Check arguments...
-    if (NULL == ab)            { return -1 ; }
-    if (NULL == buff_data_sys) { return -1 ; }
+    NULL_PRT_MSG_RET_VAL(ab,            "[SERV_STUB] NULL ab             :-/", -1) ;
+    NULL_PRT_MSG_RET_VAL(buff_data_sys, "[SERV_STUB] NULL buff_data_sys  :-/", -1) ;
 
     // Initialize...
     ret = 0 ;
@@ -268,8 +268,8 @@ int serverstub_open ( comm_t *ab, params_t *params, int *fd, int pathname_length
     char *buff_data_sys ;
 
     // Check arguments...
-    if (NULL == ab)     { return -1 ; }
-    if (NULL == params) { return -1 ; }
+    NULL_PRT_MSG_RET_VAL(ab,     "[SERV_STUB] NULL ab      :-/", -1) ;
+    NULL_PRT_MSG_RET_VAL(params, "[SERV_STUB] NULL params  :-/", -1) ;
 
     // Initialize...
     ret = 0 ;
@@ -329,6 +329,10 @@ int serverstub_close ( comm_t *ab, params_t *params, int fd )
 {
     int  ret ;
 
+    // Check arguments...
+    NULL_PRT_MSG_RET_VAL(ab, "[SERV_STUB] NULL ab :-/", -1) ;
+
+    // Initialize...
     ret = 0 ;
 
     // close file
@@ -364,6 +368,10 @@ int serverstub_read ( comm_t *ab, params_t *params, int fd, int count )
     char   buff_data_local[SRVSTUB_READ_BUFFLOCAL_SIZE] ;
     long   remaining_size, readed ;
 
+    // Check arguments...
+    NULL_PRT_MSG_RET_VAL(ab, "[SERV_STUB] NULL ab :-/", -1) ;
+
+    // Initialize...
     ret = 0 ;
     is_dynamic = (count < SRVSTUB_READ_UP_TO_IS_DYNAMIC) ? 1 : 0 ;
     buff_data  = NULL ;
@@ -444,8 +452,6 @@ int serverstub_read ( comm_t *ab, params_t *params, int fd, int count )
     return ret ;
 }
 
-#define MAX_BUFF_SIZE (10*1024*1024)
-
 int serverstub_write ( comm_t *ab, params_t *params, int fd, int count )
 {
     int    ret ;
@@ -453,10 +459,14 @@ int serverstub_write ( comm_t *ab, params_t *params, int fd, int count )
     int    buffer_size ;
     long   remaining_size, current_size ;
 
+    // Check arguments...
+    NULL_PRT_MSG_RET_VAL(ab, "[SERV_STUB] NULL ab :-/", -1) ;
+
+    // Initialize...
     ret       = 0 ;
     buff_data = NULL ;
-    if (count > MAX_BUFF_SIZE)
-         buffer_size = MAX_BUFF_SIZE ;
+    if (count > SRVSTUB_WRITE_MAXBUFF_SIZE)
+         buffer_size = SRVSTUB_WRITE_MAXBUFF_SIZE ;
     else buffer_size = count ;
 
     // prepare data buffer
@@ -543,8 +553,8 @@ int serverstub_mkdir ( comm_t *ab, params_t *params, int pathname_length, int mo
     char *buff_data_sys ;
 
     // Check arguments...
-    if (NULL == ab)     { return -1 ; }
-    if (NULL == params) { return -1 ; }
+    NULL_PRT_MSG_RET_VAL(ab,     "[SERV_STUB] NULL ab      :-/", -1) ;
+    NULL_PRT_MSG_RET_VAL(params, "[SERV_STUB] NULL params  :-/", -1) ;
 
     // Initialize...
     ret = 0 ;
@@ -603,8 +613,8 @@ int serverstub_rmdir ( comm_t *ab, params_t *params, int pathname_length )
     char *buff_data_sys ;
 
     // Check arguments...
-    if (NULL == ab)     { return -1 ; }
-    if (NULL == params) { return -1 ; }
+    NULL_PRT_MSG_RET_VAL(ab,     "[SERV_STUB] NULL ab      :-/", -1) ;
+    NULL_PRT_MSG_RET_VAL(params, "[SERV_STUB] NULL params  :-/", -1) ;
 
     // Initialize...
     ret = 0 ;
@@ -668,8 +678,8 @@ int serverstub_dbmopen ( comm_t *ab, params_t *params, int *fd, int pathname_len
     char *buff_data_sys ;
 
     // Check arguments...
-    if (NULL == ab) { return -1 ; }
-    if (NULL == fd) { return -1 ; }
+    NULL_PRT_MSG_RET_VAL(ab, "[SERV_STUB] NULL ab  :-/", -1) ;
+    NULL_PRT_MSG_RET_VAL(fd, "[SERV_STUB] NULL fd  :-/", -1) ;
 
     // Initialize...
     ret = 0 ;
@@ -727,8 +737,12 @@ int serverstub_dbmopen ( comm_t *ab, params_t *params, int *fd, int pathname_len
 
 int serverstub_dbmclose ( comm_t *ab, params_t *params, int fd )
 {
-    int  ret ;
+    int ret ;
 
+    // Check arguments...
+    NULL_PRT_MSG_RET_VAL(ab, "[SERV_STUB] NULL ab  :-/", -1) ;
+
+    // Initialize variables
     ret = 0 ;
 
     // close file
@@ -758,6 +772,10 @@ int serverstub_dbmstore ( comm_t *ab, params_t *params, int fd, int count )
     char  *buff_key, *buff_val ;
     int    key_size,  val_size ;
 
+    // Check arguments...
+    NULL_PRT_MSG_RET_VAL(ab, "[SERV_STUB] NULL ab  :-/", -1) ;
+
+    // Initialize variables
     ret      = 0 ;
     key_size = count ;
 
@@ -857,6 +875,10 @@ int serverstub_dbmfetch ( comm_t *ab, params_t *params, int fd, int count )
     int    key_size,  val_size ;
     long   remaining_size, current_size ;
 
+    // Check arguments...
+    NULL_PRT_MSG_RET_VAL(ab, "[SERV_STUB] NULL ab  :-/", -1) ;
+
+    // Initialize variables
     ret      = 0 ;
     key_size = count ;
 
@@ -955,6 +977,10 @@ int serverstub_dbmdelete ( comm_t *ab, params_t *params, int fd, int count )
     int    key_size,  val_size ;
     long   remaining_size, current_size ;
 
+    // Check arguments...
+    NULL_PRT_MSG_RET_VAL(ab, "[SERV_STUB] NULL ab  :-/", -1) ;
+
+    // Initialize variables
     ret      = 0 ;
     key_size = count ;
 

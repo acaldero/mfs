@@ -129,12 +129,6 @@ int mfs_comm_socket_init ( comm_t *cb, conf_part_t *partition, int server_port, 
 {
 	int ret;
 
-        // Check params...
-	if (NULL == cb) {
-	    mfs_print(DBG_ERROR, "[COMM]: NULL argument :-(") ;
-	    return -1 ;
-	}
-
 	// initialize fields
 	cb->rank       = 0 ;
 	cb->size       = partition->n_nodes ;
@@ -171,12 +165,6 @@ int mfs_comm_socket_finalize ( comm_t *cb )
 {
 	int ret ;
 
-        // Check params...
-	if (NULL == cb) {
-	    mfs_print(DBG_ERROR, "[COMM]: NULL argument :-(") ;
-	    return -1 ;
-	}
-
 	// Close socket
         ret = mfs_comm_socket_close(&(cb->sd)) ;
 	if (ret < 0) {
@@ -201,12 +189,6 @@ int mfs_comm_socket_register ( comm_t *cb )
 {
 	int ret ;
 
-        // Check params...
-	if (NULL == cb) {
-	    mfs_print(DBG_ERROR, "[COMM]: NULL argument :-(") ;
-	    return -1 ;
-	}
-
 	// get port_name
 	ret = mfs_ns_get_portname(cb->port_name, cb->sd) ;
         if (MPI_SUCCESS != ret) {
@@ -229,12 +211,6 @@ int mfs_comm_socket_unregister ( comm_t *cb )
 {
 	int ret ;
 
-        // Check params...
-	if (NULL == cb) {
-	    mfs_print(DBG_ERROR, "[COMM]: NULL argument :-(") ;
-	    return -1 ;
-	}
-
 	// unregister service from ns
 	ret = mfs_ns_remove(cb, cb->ns_backend, cb->srv_name) ;
 	if (ret < 0) {
@@ -252,12 +228,6 @@ int mfs_comm_socket_accept ( comm_t *ab, int remote_rank )
 	int    sd, size, val ;
 	struct sockaddr_in client_addr ;
 
-        // Check params...
-	if (NULL == ab) {
-	    mfs_print(DBG_ERROR, "[COMM]: NULL argument :-(") ;
-	    return -1 ;
-	}
-
 	// accept connection...
 	size = sizeof(struct sockaddr_in) ;
 	sd = accept(ab->sd, (struct sockaddr *)&(client_addr), (socklen_t *)&(size)) ;
@@ -274,6 +244,19 @@ int mfs_comm_socket_accept ( comm_t *ab, int remote_rank )
         }
 
 	// set associated socket to rank
+	if (remote_rank < 0)
+	{
+	    for (int i=0; (i<ab->size) && (remote_rank < 0); i++)
+	    {
+	         if (ab->dd[i] != -1) {
+		     remote_rank = i ;
+	         }
+	    }
+	}
+	if (remote_rank < 0) {
+            return -1 ;
+	}
+
 	ab->dd[remote_rank] = sd ;
 
         // Return OK
@@ -286,12 +269,6 @@ int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri, int remote_rank )
 	struct hostent *hp ;
 	int    srv_port, port_name_size ;
 	struct sockaddr_in server_addr ;
-
-        // Check params...
-	if (NULL == cb) {
-	    mfs_print(DBG_ERROR, "[COMM]: NULL argument :-(") ;
-	    return -1 ;
-	}
 
 	// translate srv_uri -> host + port
 	port_name_size = MPI_MAX_PORT_NAME ;
@@ -344,12 +321,6 @@ int mfs_comm_socket_disconnect ( comm_t *cb, int remote_rank )
 {
 	int ret ;
 
-        // Check params...
-	if (NULL == cb) {
-	    mfs_print(DBG_ERROR, "[COMM]: NULL argument :-(") ;
-	    return -1 ;
-	}
-
 	// If already close then return
 	if (-1 == cb->dd[remote_rank]) {
             return 1 ;
@@ -362,30 +333,30 @@ int mfs_comm_socket_disconnect ( comm_t *cb, int remote_rank )
 	    return -1 ;
 	}
 
-	cb->dd[remote_rank] = -1 ;
-
         // Return OK
         return 1 ;
 }
 
 int mfs_comm_socket_interconnect_all ( comm_t *cb, conf_t *conf )
 {
-	// TODO
-        // int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri, int remote_rank )
+	int   ret ;
+        char *srv_uri ;
 
-        // Return OK
-        return 1 ;
+        // Connect to all servers...
+	for (int i=0; i<conf->active->n_nodes; i++)
+	{
+             srv_uri = mfs_conf_get_active_node(conf, i) ;
+           //strcpy(cb->srv_name, srv_uri) ;
+             ret = mfs_comm_socket_connect(cb, srv_uri, i) ;
+	}
+
+        // Return OK/KO
+        return ret ;
 }
 
 int mfs_comm_socket_disconnect_all ( comm_t *cb )
 {
 	int ret ;
-
-        // Check params...
-	if (NULL == cb) {
-	    mfs_print(DBG_ERROR, "[COMM]: NULL argument :-(") ;
-	    return -1 ;
-	}
 
 	// Close sockets...
 	for (int i=0; i<cb->size; i++)
@@ -396,8 +367,6 @@ int mfs_comm_socket_disconnect_all ( comm_t *cb )
 		if (ret < 0) {
 		    mfs_print(DBG_ERROR, "[COMM]: close socket %d fails :-(", i) ;
 		}
-
-		cb->dd[i] = -1 ;
 	     }
 	}
 
@@ -412,37 +381,37 @@ int mfs_comm_socket_disconnect_all ( comm_t *cb )
 
 int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype )
 {
-    int ret ;
-    int buff_size ;
+        int ret ;
+        int buff_size ;
 
-    // Check arguments
-    if (NULL == cb)         { return -1; }
-    if (NULL == cb->dd)     { return -1; }
-    if (-1 == cb->dd[rank]) { return -1; }
+        // Check arguments
+	NULL_PRT_MSG_RET_VAL(cb,     "[COMM]: NULL cb     :-(", -1) ;
+	NULL_PRT_MSG_RET_VAL(cb->dd, "[COMM]: NULL cb->dd :-(", -1) ;
+        if (-1 == cb->dd[rank]) { return -1; }
 
-    // Send data to...
-    MPI_Type_size(datatype, &buff_size) ;
-    ret = mfs_file_read(cb->dd[rank], buff, buff_size) ;
+        // Send data to...
+        MPI_Type_size(datatype, &buff_size) ;
+        ret = mfs_file_read(cb->dd[rank], buff, buff_size) ;
 
-    // Return OK/KO
-    return ret ;
+        // Return OK/KO
+        return ret ;
 }
 
 int mfs_comm_socket_send_data_to  ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype )
 {
-    int ret ;
-    int buff_size ;
+        int ret ;
+        int buff_size ;
 
-    // Check arguments
-    if (NULL == cb)         { return -1; }
-    if (NULL == cb->dd)     { return -1; }
-    if (-1 == cb->dd[rank]) { return -1; }
+        // Check arguments
+	NULL_PRT_MSG_RET_VAL(cb,     "[COMM]: NULL cb     :-(", -1) ;
+	NULL_PRT_MSG_RET_VAL(cb->dd, "[COMM]: NULL cb->dd :-(", -1) ;
+        if (-1 == cb->dd[rank]) { return -1; }
 
-    // Send data to...
-    MPI_Type_size(datatype, &buff_size) ;
-    ret = mfs_file_write(cb->dd[rank], buff, buff_size) ;
+        // Send data to...
+        MPI_Type_size(datatype, &buff_size) ;
+        ret = mfs_file_write(cb->dd[rank], buff, buff_size) ;
 
-    // Return OK/KO
-    return ret ;
+        // Return OK/KO
+        return ret ;
 }
 

@@ -133,9 +133,7 @@ int  mfs_directory_opendir ( int *fd, int directory_backend, const char *path_na
     dir_t *dh ;
 
     // Check params...
-    if (NULL == fd) {
-	return -1 ;
-    }
+    NULL_PRT_MSG_RET_VAL(fd, "[DIR] NULL fd :-/", -1) ;
 
     // Initialize fd
     (*fd) = ret = mfs_descriptor_find_free(&mfs_dir_des, sizeof(dir_t)) ;

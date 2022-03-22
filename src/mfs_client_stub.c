@@ -215,8 +215,8 @@ long clientstub_open ( comm_t *wb, const char *pathname, int flags )
 int  clientstub_close ( comm_t *wb, long fd )
 {
      // Check arguments...
-     if (NULL == wb) { return -1 ; }
-     if (fd < 0)     { return -1 ; }
+     NULL_PRT_MSG_RET_VAL(wb, "[CLNT_STUB] NULL wb :-/", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd, "[CLNT_STUB] fd < 0  :-/", -1) ;
 
      return clientstub_action_over_fd_resource(wb, fd, 0, REQ_ACTION_CLOSE) ;
 }
@@ -228,9 +228,9 @@ int  clientstub_read ( comm_t *wb, long fd, void *buff_char, int count )
      long remaining_size, current_size ;
 
      // Check arguments...
-     if (NULL == wb)        { return -1 ; }
-     if (fd < 0)            { return -1 ; }
-     if (NULL == buff_char) { return -1 ; }
+     NULL_PRT_MSG_RET_VAL(wb,        "[CLNT_STUB] NULL wb        :-/", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd,        "[CLNT_STUB] fd < 0  :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_char, "[CLNT_STUB] NULL buff_char :-/", -1) ;
 
      // Send read msg
      if (ret >= 0)
@@ -280,11 +280,11 @@ int  clientstub_write ( comm_t *wb, long fd, void *buff_char, int count )
      long remaining_size, current_size ;
 
      // Check arguments...
-     if (NULL == wb)        { return -1 ; }
-     if (fd < 0)            { return -1 ; }
-     if (NULL == buff_char) { return -1 ; }
+     NULL_PRT_MSG_RET_VAL(wb,        "[CLNT_STUB] NULL wb        :-/", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd,        "[CLNT_STUB] fd < 0         :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_char, "[CLNT_STUB] NULL buff_char :-/", -1) ;
 
-     ret = 0 ;
+     ret    = 0 ;
      status = -1 ;
 
      // Send write msg
@@ -354,8 +354,8 @@ long clientstub_dbmopen ( comm_t *wb, const char *pathname, int flags )
 int  clientstub_dbmclose ( comm_t *wb, long fd )
 {
      // Check arguments...
-     if (NULL == wb) { return -1 ; }
-     if (fd < 0)     { return -1 ; }
+     NULL_PRT_MSG_RET_VAL(wb, "[CLNT_STUB] NULL wb :-/", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd, "[CLNT_STUB] fd < 0  :-/", -1) ;
 
      return clientstub_action_over_fd_resource(wb, fd, 0, REQ_ACTION_DBMCLOSE) ;
 }
@@ -366,11 +366,12 @@ int  clientstub_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_key, v
      long remaining_size, current_size ;
 
      // Check arguments...
-     if (NULL == wb)        { return -1 ; }
-     if (fd < 0)            { return -1 ; }
-     if (NULL == buff_key)  { return -1 ; }
-     if (NULL == buff_val)  { return -1 ; }
+     NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd,       "[CLNT_STUB] fd < 0        :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_key, "[CLNT_STUB] NULL buff_key :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_val, "[CLNT_STUB] NULL buff_val :-/", -1) ;
 
+     // Set initial values...
      ret = 0 ;
      status = -1 ;
 
@@ -435,11 +436,12 @@ int  clientstub_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_key, v
      int  ret, status  ;
 
      // Check arguments...
-     if (NULL == wb)        { return -1 ; }
-     if (fd < 0)            { return -1 ; }
-     if (NULL == buff_key)  { return -1 ; }
-     if (NULL == buff_val)  { return -1 ; }
+     NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd,       "[CLNT_STUB] fd < 0        :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_key, "[CLNT_STUB] NULL buff_key :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_val, "[CLNT_STUB] NULL buff_val :-/", -1) ;
 
+     // Set initial values...
      ret = 0 ;
      status = -1 ;
 
@@ -505,10 +507,11 @@ int  clientstub_dbmdelete ( comm_t *wb, long fd, void *buff_key, int count_key )
      int  ret, status  ;
 
      // Check arguments...
-     if (NULL == wb)        { return -1 ; }
-     if (fd < 0)            { return -1 ; }
-     if (NULL == buff_key)  { return -1 ; }
+     NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd,       "[CLNT_STUB] fd < 0        :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_key, "[CLNT_STUB] NULL buff_key :-/", -1) ;
 
+     // Set initial values...
      ret = 0 ;
      status = -1 ;
 

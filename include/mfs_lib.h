@@ -27,6 +27,7 @@
     #include <stdlib.h>
     #include <string.h>
     #include <stdarg.h>
+
     #include <sys/time.h>
     #include <fcntl.h>
     #include <unistd.h>
@@ -37,6 +38,18 @@
     #define DBG_ERROR    1, __FILE__, __LINE__, stderr
     #define DBG_WARNING  2, __FILE__, __LINE__, stderr
     #define DBG_INFO     3, __FILE__, __LINE__, stdout
+
+    // debug: check arguments
+    #define NULL_PRT_MSG_RET_VAL(ptr, msg, val) \
+            if (NULL == (ptr)) { \
+                mfs_print(DBG_WARNING, (msg)) ; \
+                return (val) ; \
+            }
+    #define NEG_PRT_MSG_RET_VAL(ret, msg, val) \
+            if ((ret) < 0) { \
+                mfs_print(DBG_WARNING, (msg)) ; \
+                return (val) ; \
+            }
 
     // debug: API
     int mfs_print ( int src_type, char *src_fname, long src_line, FILE *fd, char *msg_fmt, ... ) ;

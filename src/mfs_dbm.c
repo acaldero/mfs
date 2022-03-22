@@ -146,9 +146,8 @@ int  mfs_dbm_open ( int *fd, int dbm_backend, const char *path_name, int flags )
     dbm_t *fh ;
 
     // Check params...
-    if (NULL == fd) {
-	return -1 ;
-    }
+    NULL_PRT_MSG_RET_VAL(fd,        "[DBM] NULL fd        :-/", -1) ;
+    NULL_PRT_MSG_RET_VAL(path_name, "[DBM] NULL path_name :-/", -1) ;
 
     // Get fd
     (*fd) = ret = mfs_descriptor_find_free(&mfs_dbm_des, sizeof(dbm_t)) ;

@@ -30,6 +30,10 @@ int mfs_comm_init ( comm_t *cb, conf_part_t *partition, params_t *params )
 {
     int ret ;
 
+    // Check params...
+    NULL_PRT_MSG_RET_VAL(cb,        "[COMM]: NULL cb        :-(", -1) ;
+    NULL_PRT_MSG_RET_VAL(partition, "[COMM]: NULL partition :-(", -1) ;
+
     // cb->... (stats)
     cb->is_connected = 0 ;
     ret = mfs_comm_stats_reset(cb) ;
@@ -69,6 +73,9 @@ int mfs_comm_finalize ( comm_t *cb )
 {
     int ret ;
 
+    // Check params...
+    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(", -1) ;
+
     // Finalize
     switch (cb->comm_protocol)
     {
@@ -102,6 +109,9 @@ int mfs_comm_register ( comm_t *cb )
 {
     int ret ;
 
+    // Check params...
+    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(", -1) ;
+
     // Open server port...
     switch (cb->comm_protocol)
     {
@@ -125,6 +135,9 @@ int mfs_comm_register ( comm_t *cb )
 int mfs_comm_unregister ( comm_t *cb )
 {
     int ret ;
+
+    // Check params...
+    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(", -1) ;
 
     // Unpublish port name
     switch (cb->comm_protocol)
@@ -151,6 +164,9 @@ int mfs_comm_accept ( comm_t *ab, comm_t *wb )
 {
     int ret ;
 
+    // Check params...
+    NULL_PRT_MSG_RET_VAL(wb, "[COMM]: NULL cb :-(", -1) ;
+
     // *ab = *wb ;
     memmove(ab, wb, sizeof(comm_t)) ;
 
@@ -158,7 +174,7 @@ int mfs_comm_accept ( comm_t *ab, comm_t *wb )
     switch (ab->comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = mfs_comm_socket_accept(ab, 0) ; // TODO: 0 -> remote_rank
+	     ret = mfs_comm_socket_accept(ab, -1) ;
              break ;
 
         case COMM_USE_MPI:
@@ -181,6 +197,10 @@ int mfs_comm_accept ( comm_t *ab, comm_t *wb )
 int mfs_comm_interconnect_all ( comm_t *cb, conf_t *conf )
 {
     int ret ;
+
+    // Check params...
+    NULL_PRT_MSG_RET_VAL(cb,   "[COMM]: NULL cb   :-(", -1) ;
+    NULL_PRT_MSG_RET_VAL(conf, "[COMM]: NULL conf :-(", -1) ;
 
     // Connect
     switch (cb->comm_protocol)
@@ -209,6 +229,9 @@ int mfs_comm_interconnect_all ( comm_t *cb, conf_t *conf )
 int mfs_comm_disconnect_all ( comm_t *cb )
 {
     int ret ;
+
+    // Check params...
+    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(", -1) ;
 
     // Disconnect...
     switch (cb->comm_protocol)
@@ -241,6 +264,9 @@ int mfs_comm_disconnect_all ( comm_t *cb )
 
 int mfs_comm_stats_reset ( comm_t *cb )
 {
+    // Check params...
+    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(", -1) ;
+
     // cb->... (stats)
     cb->n_send_req = 0 ;
     cb->n_recv_req = 0 ;
@@ -252,9 +278,7 @@ int mfs_comm_stats_reset ( comm_t *cb )
 int mfs_comm_stats_show  ( comm_t *cb, char *prefix )
 {
     // Check params...
-    if (NULL == cb) {
-	return -1 ;
-    }
+    NULL_PRT_MSG_RET_VAL(cb, "[COMM] NULL cb", -1) ;
 
     // Print stats...
     printf("%s: Comm:\n",              prefix) ;

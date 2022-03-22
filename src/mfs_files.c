@@ -147,9 +147,7 @@ int  mfs_file_open ( int *fd, int file_backend, const char *path_name, int flags
     file_t *fh ;
 
     // Check params...
-    if (NULL == fd) {
-	return -1 ;
-    }
+    NULL_PRT_MSG_RET_VAL(fd, "[FILE] NULL fd :-/", -1) ;
 
     // Get fd
     (*fd) = ret = mfs_descriptor_find_free(&mfs_files_des, sizeof(file_t)) ;
