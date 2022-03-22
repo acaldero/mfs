@@ -24,12 +24,14 @@
  int  mfs_params_show ( params_t *params )
  {
  	printf(" Current parameters:\n");
-      	printf(" | -d <base directory>:  \t'%s'\n",   params->data_prefix) ;
-      	printf(" | -f (POSIX | MPI-IO):  \t%s\n",     params->file_backend_name) ;
-      	printf(" | -i (POSIX):  \t\t%s\n",            params->directory_backend_name) ;
-      	printf(" | -b (GDBM):  \t\t\t%s\n",           params->dbm_backend_name) ;
-      	printf(" | -t (ondemand | pool):  \t'%s'\n",  params->thread_launch_name) ;
-      	printf(" | -n <partition file>:  \t'%s'\n",   params->conf_fname) ;
+      	printf(" | -d '%s' \t\t <base directory>\n", params->data_prefix) ;
+      	printf(" | -c  %s  \t\t (SOCKET) | MPI\n",   params->comm_backend_name) ;
+      	printf(" | -f  %s  \t\t POSIX | (MPI-IO)\n", params->file_backend_name) ;
+      	printf(" | -i  %s  \t\t POSIX\n",            params->directory_backend_name) ;
+      	printf(" | -b  %s  \t\t GDBM\n",             params->dbm_backend_name) ;
+      	printf(" | -t '%s' \t ondemand | (pool)\n",  params->thread_launch_name) ;
+      	printf(" | -n '%s' \t <partition file>\n",   params->conf_fname) ;
+      	printf(" | -p  %d  \t\t <port number>\n",    params->server_port) ;
 
       	// return OK
       	return 1;
@@ -38,23 +40,27 @@
  void mfs_params_show_usage ( void )
  {
       	printf("Usage:\n");
-      	printf("\t-d <string>:  name of the base directory\n") ;
-      	printf("\t-f <string>:  POSIX | MPI-IO\n") ;
-      	printf("\t-i <string>:  POSIX\n") ;
-      	printf("\t-b <string>:  GDBM\n") ;
-      	printf("\t-t <string>:  ondemand | pool\n") ;
-      	printf("\t-n <string>:  name of the partition file\n") ;
+      	printf("\t-d <string>:  name of the base directory (default: '%s')\n", DEFAULT_DATA_PREFIX) ;
+      	printf("\t-c <string>:  SOCKET | MPI               (default: %s)\n",   "MPI") ;
+      	printf("\t-f <string>:  POSIX | MPI-IO             (default: %s)\n",   "POSIX") ;
+      	printf("\t-i <string>:  POSIX                      (default: %s)\n",   "POSIX") ;
+      	printf("\t-b <string>:  GDBM                       (default: %s)\n",   "GDBM") ;
+      	printf("\t-t <string>:  ondemand | pool            (default: %s)\n",   "ondemand") ;
+      	printf("\t-n <string>:  name of the partition file (default: '%s')\n", DEFAULT_CONF_FILE) ;
+      	printf("\t-p <number>:  port number for SOCKET     (default: %d)\n",   DEFAULT_PORT) ;
  }
 
  struct option long_options[] =
         {
           { "verbose",            no_argument,       NULL, 'v' },
           { "base_directory",     required_argument, NULL, 'd' },
+          { "comm_backend",       required_argument, NULL, 'c' },
           { "file_backend",       required_argument, NULL, 'f' },
           { "directory_backend",  required_argument, NULL, 'i' },
           { "dbm_backend",        required_argument, NULL, 'b' },
           { "thread_backend",     required_argument, NULL, 't' },
-          { "process_in_server",  required_argument, NULL, 'n' },
+          { "partition_file",     required_argument, NULL, 'n' },
+          { "port",               required_argument, NULL, 'p' },
           { 0 }
         } ;
 
@@ -72,7 +78,7 @@
         params->mfs_server_stub_pname = strdup(DEFAULT_STUB_PNAME) ;
         params->data_prefix = strdup(DEFAULT_DATA_PREFIX) ;
         params->conf_fname  = strdup(DEFAULT_CONF_FILE) ;
-	params->server_port = 12345 ; // TODO: get from command-line ??
+	params->server_port = DEFAULT_PORT ;
 
         params->file_backend           = FILE_USE_POSIX ;
         params->file_backend_name      = strdup("POSIX") ;
@@ -88,7 +94,7 @@
         params->ns_backend_name        = strdup("DBM") ;
 
 	// getopt_long...
-	short_opt = "vd:n:f:i:b:t:" ;
+	short_opt = "vb:c:d:f:i:n:p:t:" ;
         c = getopt_long(*argc, *argv, short_opt, long_options, &option_index) ;
 	while (c != -1)
 	{
@@ -104,6 +110,21 @@
 
 	     case 'n':
 		  mfs_free_and_strdup(&(params->conf_fname), optarg) ;
+                  break ;
+
+	     case 'p':
+		  params->server_port = atoi(optarg) ;
+                  break ;
+
+	     case 'c':
+		  if (!strcmp("SOCKET",  optarg)) {
+		      params->comm_backend = COMM_USE_SOCKET ;
+		      mfs_free_and_strdup(&(params->comm_backend_name), "SOCKET") ;
+		  }
+		  if (!strcmp("MPI", optarg)) {
+		      params->comm_backend = COMM_USE_MPI ;
+		      mfs_free_and_strdup(&(params->comm_backend_name), "MPI") ;
+		  }
                   break ;
 
 	     case 'f':

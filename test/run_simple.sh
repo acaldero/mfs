@@ -8,7 +8,8 @@ HOSTNAME=$(hostname)
 SERVER_NP=2
 CLIENT_NP=4
 N_TESTS=1
-F_PROTO=POSIX
+F_BACKEND=POSIX
+C_BACKEND=MPI
 
 # just in case, create data directory
 mkdir -p ./data
@@ -33,7 +34,7 @@ echo "............................."
 echo "../bin/mfs_server &"
 echo "sleep 3"
 echo "............................."
-mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server -f ${F_PROTO} &
+mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server -f ${F_BACKEND} -c ${C_BACKEND} &
 sleep 3
 
 #
@@ -45,7 +46,7 @@ do
    echo "./test_simple ...(test $i)"
    echo "sleep 2"
    echo "............................."
-   mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_simple -n conf.yaml -f ${F_PROTO}
+   mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_simple -n conf.yaml -f ${F_BACKEND} -c ${C_BACKEND}
    echo "............................."
    sleep 2
 done

@@ -37,6 +37,7 @@
    #define DEFAULT_DATA_PREFIX  "./data"
    #define DEFAULT_CONF_FILE    "conf.yaml"
    #define DEFAULT_STUB_PNAME   "mfs"
+   #define DEFAULT_PORT         12345
 
    #define THREAD_USE_ONDEMAND  1
    #define THREAD_USE_POOL      2

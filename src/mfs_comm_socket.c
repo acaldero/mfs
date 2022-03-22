@@ -191,7 +191,7 @@ int mfs_comm_socket_register ( comm_t *cb )
 
 	// get port_name
 	ret = mfs_ns_get_portname(cb->port_name, cb->sd) ;
-        if (MPI_SUCCESS != ret) {
+        if (ret < 0) {
             mfs_print(DBG_ERROR, "[COMM]: mfs_ns_get_portname fails :-(") ;
             return -1 ;
         }
@@ -273,13 +273,13 @@ int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri, int remote_rank )
 	// translate srv_uri -> host + port
 	port_name_size = MPI_MAX_PORT_NAME ;
 	ret = mfs_ns_lookup(cb, cb->ns_backend, srv_uri, cb->port_name, &port_name_size) ;
-        if (MPI_SUCCESS != ret) {
+        if (ret < 0) {
             mfs_print(DBG_ERROR, "[COMM]: mfs_comm_socket_lookup fails :-(") ;
             return -1 ;
         }
 
 	ret = mfs_ns_split_portname(cb->port_name, &hp, &srv_port) ;
-        if (MPI_SUCCESS != ret) {
+        if (ret < 0) {
             mfs_print(DBG_ERROR, "[COMM]: mfs_comm_socket_splithp fails :-(") ;
             return -1 ;
         }
