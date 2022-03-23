@@ -98,7 +98,7 @@ int mfs_workers_onrequest_launch_worker ( comm_t * wb, void (*worker_function)(s
        // create thread...
        ret = pthread_create(&th_worker, &th_attr, (mfs_workers_onrequest_worker_run), (void *)&st_worker);
        if (ret != 0){
-           mfs_print(DBG_ERROR, "[WORKERS]: pthread_create fails :-(") ;
+           mfs_print(DBG_ERROR, "[WORKERS]: pthread_create fails :-(\n") ;
            perror("pthread_create: ");
        }
 

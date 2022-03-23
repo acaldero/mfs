@@ -58,7 +58,14 @@
        while (again)
        {
           mfs_print(DBG_INFO, "Server[%d]: waiting for request...\n", th.ab.rank) ;
-          mfs_protocol_request_receive(&th.ab, &msg) ;
+          ret = mfs_protocol_request_receive(&th.ab, &msg) ;
+	  if (ret < 0)
+	  {
+	      mfs_print(DBG_ERROR, "Server[%d]: mfs_protocol_request_receive with no more request\n", th.ab.rank) ;
+	      again = 0 ;
+	      continue ;
+	  }
+
           switch (msg.req_action)
           {
               case REQ_ACTION_SHUTDOWN:
@@ -169,14 +176,14 @@ int main ( int argc, char **argv )
     // Initialize workers
     ret = mfs_workers_init(&params) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Server[%d]: mfs_workers_init fails :-(", -1) ;
+        mfs_print(DBG_ERROR, "Server[%d]: mfs_workers_init fails :-(\n", -1) ;
         return -1 ;
     }
 
     // Initialize stub...
     ret = serverstub_init(&wb, &params) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Server[%d]: serverstub_init fails :-(", -1) ;
+        mfs_print(DBG_ERROR, "Server[%d]: serverstub_init fails :-(\n", -1) ;
         return -1 ;
     }
 
@@ -191,7 +198,7 @@ int main ( int argc, char **argv )
         mfs_print(DBG_INFO, "Server[%d]: accepting...\n", wb.rank) ;
         ret = serverstub_accept(&ab, &params, &wb) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Server[%d]: accept fails :-(", -1) ;
+            mfs_print(DBG_ERROR, "Server[%d]: accept fails :-(\n", -1) ;
         }
 
 	// new thread...

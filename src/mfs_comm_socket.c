@@ -35,7 +35,7 @@ int mfs_comm_socket_set_default_options ( int ab, int buf_size )
 	val = 1 ;
 	ret = setsockopt(ab, IPPROTO_TCP, TCP_NODELAY, &val, sizeof(int)) ;
 	if (ret < 0) {
-	    mfs_print(DBG_ERROR, "[COMM]: setsockopt fails :-(") ;
+	    mfs_print(DBG_ERROR, "[COMM]: setsockopt fails :-(\n") ;
 	    perror("setsockopt: ") ;
 	    return -1 ;
 	}
@@ -43,14 +43,14 @@ int mfs_comm_socket_set_default_options ( int ab, int buf_size )
         // set sndbuf + rcvbuf
         val = buf_size ;
 	if (setsockopt(ab, SOL_SOCKET, SO_SNDBUF, (char *) &val, sizeof(int)) == -1) {
-	    mfs_print(DBG_ERROR, "[COMM]: setsockopt fails :-(") ;
+	    mfs_print(DBG_ERROR, "[COMM]: setsockopt fails :-(\n") ;
 	    perror("setsockopt: ") ;
 	    return -1 ;
 	}
 
         val = buf_size ;
 	if (setsockopt(ab, SOL_SOCKET, SO_RCVBUF, (char *) &val, sizeof(int)) == -1) {
-	    mfs_print(DBG_ERROR, "[COMM]: setsockopt fails :-(") ;
+	    mfs_print(DBG_ERROR, "[COMM]: setsockopt fails :-(\n") ;
 	    perror("setsockopt: ") ;
 	    return -1 ;
 	}
@@ -67,7 +67,7 @@ int mfs_comm_socket_serversocket ( int *sd, int port )
 	// new socket
 	(*sd) = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP) ;
 	if ((*sd) < 0) {
-	    mfs_print(DBG_ERROR, "[COMM]: socket fails :-(") ;
+	    mfs_print(DBG_ERROR, "[COMM]: socket fails :-(\n") ;
 	    perror("socket: ") ;
 	    return -1 ;
 	}
@@ -82,7 +82,7 @@ int mfs_comm_socket_serversocket ( int *sd, int port )
 	val = 1;
 	ret = setsockopt((*sd), SOL_SOCKET, SO_REUSEADDR, (char *) &val, sizeof(int));
 	if (ret < 0) {
-	    mfs_print(DBG_ERROR, "[COMM]: setsockopt fails :-(") ;
+	    mfs_print(DBG_ERROR, "[COMM]: setsockopt fails :-(\n") ;
 	    perror("setsockopt: ") ;
 	    return -1 ;
 	}
@@ -95,7 +95,7 @@ int mfs_comm_socket_serversocket ( int *sd, int port )
 
 	ret = bind((*sd), (struct sockaddr *)&server_addr, sizeof(server_addr));
 	if (ret < 0) {
-	    mfs_print(DBG_ERROR, "[COMM]: setsockopt fails :-(") ;
+	    mfs_print(DBG_ERROR, "[COMM]: setsockopt fails :-(\n") ;
 	    perror("bind: ") ;
 	    return -1 ;
 	}
@@ -139,7 +139,7 @@ int mfs_comm_socket_init ( comm_t *cb, conf_part_t *partition, int server_port, 
 	{
             ret = mfs_comm_socket_serversocket(&(cb->sd), server_port) ;
 	    if (ret < 0) {
-	        mfs_print(DBG_ERROR, "[COMM]: socket fails :-(") ;
+	        mfs_print(DBG_ERROR, "[COMM]: socket fails :-(\n") ;
 	        perror("socket: ") ;
 	        return -1 ;
 	    }
@@ -148,7 +148,7 @@ int mfs_comm_socket_init ( comm_t *cb, conf_part_t *partition, int server_port, 
 	// initialize descriptors for connections
 	cb->dd = (int *)malloc((cb->size)*sizeof(int)) ;
 	if (NULL == cb->dd) {
-	    mfs_print(DBG_ERROR, "[COMM]: malloc fails :-(") ;
+	    mfs_print(DBG_ERROR, "[COMM]: malloc fails :-(\n") ;
 	    perror("malloc: ") ;
 	    return -1 ;
 	}
@@ -168,7 +168,7 @@ int mfs_comm_socket_finalize ( comm_t *cb )
 	// Close socket
         ret = mfs_comm_socket_close(&(cb->sd)) ;
 	if (ret < 0) {
-	    mfs_print(DBG_ERROR, "[COMM]: close socket fails :-(") ;
+	    mfs_print(DBG_ERROR, "[COMM]: close socket fails :-(\n") ;
 	    return -1 ;
 	}
 
@@ -192,14 +192,14 @@ int mfs_comm_socket_register ( comm_t *cb )
 	// get port_name
 	ret = mfs_ns_get_portname(cb->port_name, cb->sd) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "[COMM]: mfs_ns_get_portname fails :-(") ;
+            mfs_print(DBG_ERROR, "[COMM]: mfs_ns_get_portname fails :-(\n") ;
             return -1 ;
         }
 
 	// register service into ns
 	ret = mfs_ns_insert(cb, cb->ns_backend, cb->srv_name, cb->port_name) ;
 	if (ret < 0) {
-	    mfs_print(DBG_ERROR, "[COMM]: registration fails :-(") ;
+	    mfs_print(DBG_ERROR, "[COMM]: registration fails :-(\n") ;
 	    return -1 ;
 	}
 
@@ -214,7 +214,7 @@ int mfs_comm_socket_unregister ( comm_t *cb )
 	// unregister service from ns
 	ret = mfs_ns_remove(cb, cb->ns_backend, cb->srv_name) ;
 	if (ret < 0) {
-	    mfs_print(DBG_ERROR, "[COMM]: unregistration fails :-(") ;
+	    mfs_print(DBG_ERROR, "[COMM]: unregistration fails :-(\n") ;
 	    return -1 ;
 	}
 
@@ -232,7 +232,7 @@ int mfs_comm_socket_accept ( comm_t *ab, int remote_rank )
 	size = sizeof(struct sockaddr_in) ;
 	sd = accept(ab->sd, (struct sockaddr *)&(client_addr), (socklen_t *)&(size)) ;
 	if (sd < 0) {
-	    mfs_print(DBG_ERROR, "[COMM]: accept fails :-(") ;
+	    mfs_print(DBG_ERROR, "[COMM]: accept fails :-(\n") ;
 	    perror("accept: ") ;
 	    return -1 ;
 	}
@@ -275,14 +275,14 @@ int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri, int remote_rank )
 	ret = mfs_ns_lookup(cb, cb->ns_backend, srv_uri, cb->port_name, &port_name_size) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR,
-	              "[COMM]: mfs_comm_socket_lookup fails for '%s' with backend %d :-(",
+	              "[COMM]: mfs_comm_socket_lookup fails for '%s' with backend %d :-(\n",
 		      srv_uri, cb->ns_backend) ;
             return -1 ;
         }
 
 	ret = mfs_ns_split_portname(cb->port_name, &hp, &srv_port) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "[COMM]: mfs_comm_socket_splithp fails :-(") ;
+            mfs_print(DBG_ERROR, "[COMM]: mfs_comm_socket_splithp fails :-(\n") ;
             return -1 ;
         }
 
@@ -307,7 +307,7 @@ int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri, int remote_rank )
 
 	ret = connect(sd, (struct sockaddr *) &server_addr, sizeof(server_addr)) ;
 	if (ret == -1) {
-	    mfs_print(DBG_ERROR, "[COMM]: connect(%p, %d) fails :-(", server_addr.sin_addr, server_addr.sin_port) ;
+	    mfs_print(DBG_ERROR, "[COMM]: connect(%p, %d) fails :-(\n", server_addr.sin_addr, server_addr.sin_port) ;
 	    perror("connect: ") ;
 	    return -1 ;
 	}
@@ -331,7 +331,7 @@ int mfs_comm_socket_disconnect ( comm_t *cb, int remote_rank )
 	// Close socket
         ret = mfs_comm_socket_close(&(cb->dd[remote_rank])) ;
 	if (ret < 0) {
-	    mfs_print(DBG_ERROR, "[COMM]: close socket fails :-(") ;
+	    mfs_print(DBG_ERROR, "[COMM]: close socket fails :-(\n") ;
 	    return -1 ;
 	}
 
@@ -367,7 +367,7 @@ int mfs_comm_socket_disconnect_all ( comm_t *cb )
 	     {
 		ret = mfs_comm_socket_close(&(cb->dd[i])) ;
 		if (ret < 0) {
-		    mfs_print(DBG_ERROR, "[COMM]: close socket %d fails :-(", i) ;
+		    mfs_print(DBG_ERROR, "[COMM]: close socket %d fails :-(\n", i) ;
 		}
 	     }
 	}
@@ -428,16 +428,44 @@ int mpi_type_size ( MPI_Datatype datatype, int *size )
 int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype )
 {
         int ret ;
-        int buff_size ;
+        int data_size ;
 
         // Check arguments
-	NULL_PRT_MSG_RET_VAL(cb,     "[COMM]: NULL cb     :-(", -1) ;
-	NULL_PRT_MSG_RET_VAL(cb->dd, "[COMM]: NULL cb->dd :-(", -1) ;
-        if (-1 == cb->dd[rank]) { return -1; }
+	NULL_PRT_MSG_RET_VAL(cb,     "[COMM]: NULL cb     :-(\n", -1) ;
+	NULL_PRT_MSG_RET_VAL(cb->dd, "[COMM]: NULL cb->dd :-(\n", -1) ;
 
-        // Send data to...
-        mpi_type_size(datatype, &buff_size) ;
-        ret = mfs_file_read(cb->dd[rank], buff, buff_size) ;
+	// Get datatype size in bytes...
+        ret = mpi_type_size(datatype, &data_size) ;
+	if (ret < 0) {
+	    mfs_print(DBG_ERROR, "[COMM]: mpi_type_size find an unknown datatype %d :-(\n", datatype) ;
+	}
+
+        // Try to receive data from...
+	ret = -1 ;
+	if (MPI_ANY_SOURCE == rank)
+	{
+	    for (int i=0; i<cb->size; i++)
+	    {
+	         if (cb->dd[i] != -1) {
+	             rank = i ;
+		     break ;
+	         }
+	    }
+
+	    if (rank != -1)
+	    {
+	        ret = mfs_file_posix_read(cb->dd[rank], buff, size * data_size) ;
+	        if (ret < 0) {
+	    	    mfs_print(DBG_ERROR, "[COMM]: read from socket %d fails :-(\n", cb->dd[rank]) ;
+	        }
+	    }
+	}
+	else
+	{
+	    if (cb->dd[rank] != -1) {
+                ret = mfs_file_posix_read(cb->dd[rank], buff, size * data_size) ;
+	    }
+	}
 
         // Return OK/KO
         return ret ;
@@ -446,16 +474,16 @@ int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size,
 int mfs_comm_socket_send_data_to  ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype )
 {
         int ret ;
-        int buff_size ;
+        int data_size ;
 
         // Check arguments
-	NULL_PRT_MSG_RET_VAL(cb,     "[COMM]: NULL cb     :-(", -1) ;
-	NULL_PRT_MSG_RET_VAL(cb->dd, "[COMM]: NULL cb->dd :-(", -1) ;
+	NULL_PRT_MSG_RET_VAL(cb,     "[COMM]: NULL cb     :-(\n", -1) ;
+	NULL_PRT_MSG_RET_VAL(cb->dd, "[COMM]: NULL cb->dd :-(\n", -1) ;
         if (-1 == cb->dd[rank]) { return -1; }
 
         // Send data to...
-        mpi_type_size(datatype, &buff_size) ;
-        ret = mfs_file_write(cb->dd[rank], buff, buff_size) ;
+        mpi_type_size(datatype, &data_size) ;
+        ret = mfs_file_posix_write(cb->dd[rank], buff, size * data_size) ;
 
         // Return OK/KO
         return ret ;

@@ -33,7 +33,7 @@ int mfs_protocol_request_send ( comm_t *cb, int rank, msg_t *msg )
     // Send msg
     ret = mfs_comm_send_data_to(cb, rank, msg, 3, MPI_LONG) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "[PROTOCOL]: mfs_comm_send_data_to fails :-(") ;
+        mfs_print(DBG_ERROR, "[PROTOCOL]: mfs_comm_send_data_to fails :-(\n") ;
         return -1 ;
     }
 
@@ -48,7 +48,7 @@ int mfs_protocol_request_receive ( comm_t *cb, msg_t *msg )
     // Receive msg
     ret = mfs_comm_recv_data_from(cb, MPI_ANY_SOURCE, msg, 3, MPI_LONG) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "[PROTOCOL]: mfs_comm_recv_data_from fails :-(") ;
+        mfs_print(DBG_ERROR, "[PROTOCOL]: mfs_comm_recv_data_from fails :-(\n") ;
         return -1 ;
     }
 

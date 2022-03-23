@@ -45,7 +45,7 @@ int mfs_ns_insert ( comm_t *wb, int ns_backend, char *srv_name, char *port_name 
     int fd ;
 
     // Check params...
-    NULL_PRT_MSG_RET_VAL(srv_name, "[COMM]: NULL srv_name :-(", -1) ;
+    NULL_PRT_MSG_RET_VAL(srv_name, "[COMM]: NULL srv_name :-(\n", -1) ;
 
     ret = -1 ;
     switch (ns_backend)
@@ -101,9 +101,9 @@ int mfs_ns_lookup ( comm_t *wb, int ns_backend, char *srv_name, char *port_name,
     int fd ;
 
     // Check params...
-    NULL_PRT_MSG_RET_VAL(wb,        "[COMM]: NULL wb        :-(", -1) ;
-    NULL_PRT_MSG_RET_VAL(srv_name,  "[COMM]: NULL srv_name  :-(", -1) ;
-    NULL_PRT_MSG_RET_VAL(port_name, "[COMM]: NULL port_name :-(", -1) ;
+    NULL_PRT_MSG_RET_VAL(wb,        "[COMM]: NULL wb        :-(\n", -1) ;
+    NULL_PRT_MSG_RET_VAL(srv_name,  "[COMM]: NULL srv_name  :-(\n", -1) ;
+    NULL_PRT_MSG_RET_VAL(port_name, "[COMM]: NULL port_name :-(\n", -1) ;
 
     ret = -1 ;
     switch (ns_backend)
@@ -168,7 +168,7 @@ int mfs_ns_remove ( comm_t *wb, int ns_backend, char *srv_name )
     int fd ;
 
     // Check params...
-    NULL_PRT_MSG_RET_VAL(srv_name,  "[COMM]: NULL srv_name  :-(", -1) ;
+    NULL_PRT_MSG_RET_VAL(srv_name,  "[COMM]: NULL srv_name  :-(\n", -1) ;
 
     ret = -1 ;
     switch (ns_backend)
@@ -274,7 +274,7 @@ int mfs_ns_split_portname ( char *port_name, struct hostent **host, int *port )
 	*port = atoi(srv_port) ;
 	*host = gethostbyname(srv_host) ;
 	if (*host == NULL) {
-	    mfs_print(DBG_ERROR, "[COMM]: gethostbyname(%s) fails :-(", srv_host) ;
+	    mfs_print(DBG_ERROR, "[COMM]: gethostbyname(%s) fails :-(\n", srv_host) ;
 	    return -1 ;
 	}
 
