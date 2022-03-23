@@ -9,7 +9,6 @@ SERVER_NP=2
 CLIENT_NP=4
 N_TESTS=1
 F_BACKEND=POSIX
-C_BACKEND=MPI
 P_NUM=0
 
 # just in case, create data directory
@@ -35,7 +34,8 @@ echo "............................."
 echo "../bin/mfs_server &"
 echo "sleep 3"
 echo "............................."
-mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server -f ${F_BACKEND} -c ${C_BACKEND} &
+ mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server_mpi    -f ${F_BACKEND} -c MPI &
+#mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server_socket -f ${F_BACKEND} -c SOCKET &
 sleep 3
 
 #
@@ -47,7 +47,8 @@ do
    echo "./test_simple ...(test $i)"
    echo "sleep 2"
    echo "............................."
-   mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_simple -n conf.yaml -f ${F_BACKEND} -c ${C_BACKEND} -p ${P_NUM}
+   mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_simple -n conf.yaml -f ${F_BACKEND} -c MPI
+  #mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_simple -n conf.yaml -f ${F_BACKEND} -c SOCKET -p 0
    echo "............................."
    sleep 2
 done

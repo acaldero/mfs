@@ -31,8 +31,8 @@ int mfs_comm_init ( comm_t *cb, conf_part_t *partition, params_t *params )
     int ret ;
 
     // Check params...
-    NULL_PRT_MSG_RET_VAL(cb,        "[COMM]: NULL cb        :-(", -1) ;
-    NULL_PRT_MSG_RET_VAL(partition, "[COMM]: NULL partition :-(", -1) ;
+    NULL_PRT_MSG_RET_VAL(cb,        "[COMM]: NULL cb        :-(\n", -1) ;
+    NULL_PRT_MSG_RET_VAL(partition, "[COMM]: NULL partition :-(\n", -1) ;
 
     // cb->... (stats)
     cb->is_connected = 0 ;
@@ -41,7 +41,7 @@ int mfs_comm_init ( comm_t *cb, conf_part_t *partition, params_t *params )
     // number of servers
     cb->n_servers = partition->n_nodes ;
     if (cb->n_servers < 0) {
-        mfs_print(DBG_ERROR, "[COMM]: set n_servers fails :-(") ;
+        mfs_print(DBG_ERROR, "[COMM]: set n_servers fails :-(\n") ;
         return -1 ;
     }
 
@@ -74,7 +74,7 @@ int mfs_comm_finalize ( comm_t *cb )
     int ret ;
 
     // Check params...
-    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(", -1) ;
+    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(\n", -1) ;
 
     // Finalize
     switch (cb->comm_protocol)
@@ -110,7 +110,7 @@ int mfs_comm_register ( comm_t *cb )
     int ret ;
 
     // Check params...
-    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(", -1) ;
+    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(\n", -1) ;
 
     // Open server port...
     switch (cb->comm_protocol)
@@ -137,7 +137,7 @@ int mfs_comm_unregister ( comm_t *cb )
     int ret ;
 
     // Check params...
-    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(", -1) ;
+    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(\n", -1) ;
 
     // Unpublish port name
     switch (cb->comm_protocol)
@@ -165,7 +165,7 @@ int mfs_comm_accept ( comm_t *ab, comm_t *wb )
     int ret ;
 
     // Check params...
-    NULL_PRT_MSG_RET_VAL(wb, "[COMM]: NULL cb :-(", -1) ;
+    NULL_PRT_MSG_RET_VAL(wb, "[COMM]: NULL cb :-(\n", -1) ;
 
     // *ab = *wb ;
     memmove(ab, wb, sizeof(comm_t)) ;
@@ -199,8 +199,8 @@ int mfs_comm_interconnect_all ( comm_t *cb, conf_t *conf )
     int ret ;
 
     // Check params...
-    NULL_PRT_MSG_RET_VAL(cb,   "[COMM]: NULL cb   :-(", -1) ;
-    NULL_PRT_MSG_RET_VAL(conf, "[COMM]: NULL conf :-(", -1) ;
+    NULL_PRT_MSG_RET_VAL(cb,   "[COMM]: NULL cb   :-(\n", -1) ;
+    NULL_PRT_MSG_RET_VAL(conf, "[COMM]: NULL conf :-(\n", -1) ;
 
     // Connect
     switch (cb->comm_protocol)
@@ -231,7 +231,7 @@ int mfs_comm_disconnect_all ( comm_t *cb )
     int ret ;
 
     // Check params...
-    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(", -1) ;
+    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(\n", -1) ;
 
     // Disconnect...
     switch (cb->comm_protocol)
@@ -265,7 +265,7 @@ int mfs_comm_disconnect_all ( comm_t *cb )
 int mfs_comm_stats_reset ( comm_t *cb )
 {
     // Check params...
-    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(", -1) ;
+    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(\n", -1) ;
 
     // cb->... (stats)
     cb->n_send_req = 0 ;
@@ -308,7 +308,7 @@ int mfs_comm_request_send ( comm_t *cb, int rank, long req_action, long req_arg1
     // send msg
     ret = mfs_comm_send_data_to(cb, rank, buff, 3, MPI_LONG) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "[COMM]: mfs_comm_send_data_to fails :-(") ;
+        mfs_print(DBG_ERROR, "[COMM]: mfs_comm_send_data_to fails :-(\n") ;
         return -1 ;
     }
 
@@ -324,7 +324,7 @@ int mfs_comm_request_receive ( comm_t *cb, long *req_action, long *req_arg1, lon
     // receive msg
     ret = mfs_comm_recv_data_from(cb, MPI_ANY_SOURCE, buff, 3, MPI_LONG) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "[COMM]: mfs_comm_recv_data_from fails :-(") ;
+        mfs_print(DBG_ERROR, "[COMM]: mfs_comm_recv_data_from fails :-(\n") ;
         return -1 ;
     }
 
