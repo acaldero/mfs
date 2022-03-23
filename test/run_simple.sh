@@ -10,6 +10,7 @@ CLIENT_NP=4
 N_TESTS=1
 F_BACKEND=POSIX
 C_BACKEND=MPI
+P_NUM=0
 
 # just in case, create data directory
 mkdir -p ./data
@@ -46,7 +47,7 @@ do
    echo "./test_simple ...(test $i)"
    echo "sleep 2"
    echo "............................."
-   mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_simple -n conf.yaml -f ${F_BACKEND} -c ${C_BACKEND}
+   mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_simple -n conf.yaml -f ${F_BACKEND} -c ${C_BACKEND} -p ${P_NUM}
    echo "............................."
    sleep 2
 done

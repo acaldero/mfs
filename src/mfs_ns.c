@@ -45,10 +45,9 @@ int mfs_ns_insert ( comm_t *wb, int ns_backend, char *srv_name, char *port_name 
     int fd ;
 
     // Check params...
-    if (NULL == srv_name) {
-	return -1 ;
-    }
+    NULL_PRT_MSG_RET_VAL(srv_name, "[COMM]: NULL srv_name :-(", -1) ;
 
+    ret = -1 ;
     switch (ns_backend)
     {
         case NS_USE_MFS:
@@ -62,21 +61,11 @@ int mfs_ns_insert ( comm_t *wb, int ns_backend, char *srv_name, char *port_name 
         case NS_USE_DBM:
 #ifdef HAVE_GDBM_H
              GDBM_FILE fd ;
-             datum key, value ;
 
-	     ret = -1 ;
-	     fd  = gdbm_open(NS_FILE_NAME, 0, GDBM_WRITER | GDBM_WRCREAT, 0700, NULL) ;
-	     if (NULL != fd)
-	     {
-	         // Build key+val
-	         key.dptr    = (char *)srv_name ;
-	         key.dsize   = strlen(srv_name) + 1;
-	         value.dptr  = (char *)port_name ;
-	         value.dsize = strlen(port_name) + 1;
-
-	         // Store key+val
-	         ret = gdbm_store(fd, key, value, GDBM_REPLACE) ;
-		 gdbm_close(fd) ;
+	     ret = mfs_dbm_gdbm_open(&fd, NS_FILE_NAME, GDBM_WRITER | GDBM_WRCREAT) ;
+	     if (ret >= 0) {
+	         ret = mfs_dbm_gdbm_store(fd, srv_name, strlen(srv_name) + 1, port_name, strlen(port_name) + 1) ; 
+	         mfs_dbm_gdbm_close(fd) ;
 	     }
 #endif
              break ;
@@ -112,10 +101,11 @@ int mfs_ns_lookup ( comm_t *wb, int ns_backend, char *srv_name, char *port_name,
     int fd ;
 
     // Check params...
-    if (NULL == wb)        { return -1; }
-    if (NULL == srv_name)  { return -1; }
-    if (NULL == port_name) { return -1; }
+    NULL_PRT_MSG_RET_VAL(wb,        "[COMM]: NULL wb        :-(", -1) ;
+    NULL_PRT_MSG_RET_VAL(srv_name,  "[COMM]: NULL srv_name  :-(", -1) ;
+    NULL_PRT_MSG_RET_VAL(port_name, "[COMM]: NULL port_name :-(", -1) ;
 
+    ret = -1 ;
     switch (ns_backend)
     {
         case NS_USE_MFS:
@@ -130,21 +120,11 @@ int mfs_ns_lookup ( comm_t *wb, int ns_backend, char *srv_name, char *port_name,
         case NS_USE_DBM:
 #ifdef HAVE_GDBM_H
              GDBM_FILE fd ;
-             datum key, value ;
 
-	     ret = -1 ;
-	     fd  = gdbm_open(NS_FILE_NAME, 0, GDBM_READER, 0700, NULL) ;
-	     if (NULL != fd)
-	     {
-	         key.dptr  = (char *)srv_name ;
-	         key.dsize = strlen(srv_name) + 1;
-
-                 value = gdbm_fetch(fd, key) ;
-
-		 *port_name_size = (value.dsize < *port_name_size) ? value.dsize : *port_name_size ;
-	         strncpy(port_name, value.dptr, *port_name_size) ;
-
-		 gdbm_close(fd) ;
+	     ret = mfs_dbm_gdbm_open(&fd, NS_FILE_NAME, GDBM_READER) ;
+	     if (ret >= 0) {
+	         ret = mfs_dbm_gdbm_fetch(fd, (char *)srv_name, strlen(srv_name) + 1, port_name, port_name_size) ;
+	         mfs_dbm_gdbm_close(fd) ;
 	     }
 #endif
              break ;
@@ -188,10 +168,9 @@ int mfs_ns_remove ( comm_t *wb, int ns_backend, char *srv_name )
     int fd ;
 
     // Check params...
-    if (NULL == srv_name) {
-	return -1 ;
-    }
+    NULL_PRT_MSG_RET_VAL(srv_name,  "[COMM]: NULL srv_name  :-(", -1) ;
 
+    ret = -1 ;
     switch (ns_backend)
     {
         case NS_USE_MFS:
@@ -206,17 +185,11 @@ int mfs_ns_remove ( comm_t *wb, int ns_backend, char *srv_name )
         case NS_USE_DBM:
 #ifdef HAVE_GDBM_H
              GDBM_FILE fd ;
-             datum key ;
 
-	     ret = -1 ;
-	     fd  = gdbm_open(NS_FILE_NAME, 0, GDBM_WRITER, 0700, NULL) ;
-	     if (NULL != fd)
-	     {
-	         key.dptr  = (char *)srv_name ;
-	         key.dsize = strlen(srv_name) + 1;
-
-                 ret = gdbm_delete(fd, key) ;
-		 gdbm_close(fd) ;
+	     ret = mfs_dbm_gdbm_open(&fd, NS_FILE_NAME, GDBM_WRITER) ;
+	     if (ret >= 0) {
+	         ret = mfs_dbm_gdbm_delete(fd, (char *)srv_name, strlen(srv_name) + 1) ;
+	         mfs_dbm_gdbm_close(fd) ;
 	     }
 #endif
              break ;
@@ -278,7 +251,7 @@ int mfs_ns_split_portname ( char *port_name, struct hostent **host, int *port )
 
 	// copy default values...
 	strcpy(srv_host, port_name) ;
-	strcpy(srv_port, "12345") ;
+	sprintf(srv_port, "%s", DEFAULT_PORT) ;
 
 	// if "host:port" -> host\0port
 	pch = strchr(srv_host, ':') ;

@@ -274,7 +274,9 @@ int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri, int remote_rank )
 	port_name_size = MPI_MAX_PORT_NAME ;
 	ret = mfs_ns_lookup(cb, cb->ns_backend, srv_uri, cb->port_name, &port_name_size) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "[COMM]: mfs_comm_socket_lookup fails :-(") ;
+            mfs_print(DBG_ERROR,
+	              "[COMM]: mfs_comm_socket_lookup fails for '%s' with backend %d :-(",
+		      srv_uri, cb->ns_backend) ;
             return -1 ;
         }
 
