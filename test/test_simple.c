@@ -41,6 +41,7 @@ int main_test_file ( params_t *params, comm_t *wb )
     mfs_api_write(wb, fd, str, strlen(str)) ;
     mfs_api_close(wb, fd) ;
 
+
    MPI_Barrier(MPI_COMM_WORLD) ;
 
     // read("...")

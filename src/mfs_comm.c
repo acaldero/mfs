@@ -308,7 +308,7 @@ int mfs_comm_request_send ( comm_t *cb, int rank, long req_action, long req_arg1
     // send msg
     ret = mfs_comm_send_data_to(cb, rank, buff, 3, MPI_LONG) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Send fails :-(") ;
+        mfs_print(DBG_ERROR, "[COMM]: mfs_comm_send_data_to fails :-(") ;
         return -1 ;
     }
 
@@ -324,7 +324,7 @@ int mfs_comm_request_receive ( comm_t *cb, long *req_action, long *req_arg1, lon
     // receive msg
     ret = mfs_comm_recv_data_from(cb, MPI_ANY_SOURCE, buff, 3, MPI_LONG) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Recv fails :-(") ;
+        mfs_print(DBG_ERROR, "[COMM]: mfs_comm_recv_data_from fails :-(") ;
         return -1 ;
     }
 

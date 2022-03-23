@@ -381,6 +381,50 @@ int mfs_comm_socket_disconnect_all ( comm_t *cb )
 // Send/Receive buffer of data
 //
 
+int mpi_type_size ( MPI_Datatype datatype, int *size )
+{
+        switch (datatype)
+	{
+	   case MPI_BYTE:
+	   case MPI_CHAR:
+	   case MPI_SIGNED_CHAR:
+	   case MPI_UNSIGNED_CHAR:
+		*size = sizeof(char) ;
+		break;
+
+	   case MPI_SHORT:
+	   case MPI_UNSIGNED_SHORT:
+		*size = sizeof(short) ;
+		break;
+
+	   case MPI_INT:
+	   case MPI_UNSIGNED:
+		*size = sizeof(int) ;
+		break;
+
+	   case MPI_LONG:
+	   case MPI_UNSIGNED_LONG:
+		*size = sizeof(long) ;
+		break;
+
+	   case MPI_FLOAT:
+		*size = sizeof(float) ;
+		break;
+
+	   case MPI_DOUBLE:
+		*size = sizeof(double) ;
+		break;
+
+	   default:
+		*size = 0 ;
+		return -1 ;
+		break;
+	}
+
+        // Return OK
+        return 1 ;
+}
+
 int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype )
 {
         int ret ;
@@ -392,7 +436,7 @@ int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size,
         if (-1 == cb->dd[rank]) { return -1; }
 
         // Send data to...
-        MPI_Type_size(datatype, &buff_size) ;
+        mpi_type_size(datatype, &buff_size) ;
         ret = mfs_file_read(cb->dd[rank], buff, buff_size) ;
 
         // Return OK/KO
@@ -410,7 +454,7 @@ int mfs_comm_socket_send_data_to  ( comm_t *cb, int rank, void *buff, int size, 
         if (-1 == cb->dd[rank]) { return -1; }
 
         // Send data to...
-        MPI_Type_size(datatype, &buff_size) ;
+        mpi_type_size(datatype, &buff_size) ;
         ret = mfs_file_write(cb->dd[rank], buff, buff_size) ;
 
         // Return OK/KO

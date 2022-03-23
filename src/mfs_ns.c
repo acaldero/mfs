@@ -223,7 +223,7 @@ int mfs_ns_get_portname ( char *port_name, int sd )
 	char               my_ip[16] ;
         unsigned int       my_port ;
         struct sockaddr_in my_addr ;
-        int                sockfd ;
+        int                sockfd, ret ;
         socklen_t          len ;
 
 	// initialize variables
@@ -236,8 +236,17 @@ int mfs_ns_get_portname ( char *port_name, int sd )
         inet_ntop(AF_INET, &(my_addr.sin_addr), my_ip, sizeof(my_ip)) ;
         my_port = ntohs(my_addr.sin_port) ;
 
+	// if 0.0.0.0 (ANY_ADDRESS) then
+        char hostname[1024] ;
+        ret = gethostname(hostname, 1024) ;
+        if (ret == -1) {
+            perror("gethostname: ") ;
+	    return -1 ;
+        }
+
 	// set portname
-	sprintf(port_name, "%16s:%d", my_ip, my_port) ;
+	//sprintf(port_name, "%16s:%d", my_ip, my_port) ;
+	  sprintf(port_name, "%s:%d",   hostname, my_port) ;
 
         // Return OK
         return 1 ;
@@ -251,7 +260,7 @@ int mfs_ns_split_portname ( char *port_name, struct hostent **host, int *port )
 
 	// copy default values...
 	strcpy(srv_host, port_name) ;
-	sprintf(srv_port, "%s", DEFAULT_PORT) ;
+	sprintf(srv_port, "%d", DEFAULT_PORT) ;
 
 	// if "host:port" -> host\0port
 	pch = strchr(srv_host, ':') ;
