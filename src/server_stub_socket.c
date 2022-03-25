@@ -20,7 +20,7 @@
  */
 
 
-#include "mfs_server_stub.h"
+#include "server_stub_socket.h"
 
 
 /*
@@ -109,7 +109,7 @@ int stub_read_name ( comm_t *ab, char **buff_data_sys, int pathname_length )
  *  Server stub API
  */
 
-int serverstub_init ( comm_t *wb, params_t *params )
+int serverstub_socket_init ( comm_t *wb, params_t *params )
 {
     int     ret ;
     conf_t  conf ;
@@ -177,7 +177,7 @@ int serverstub_init ( comm_t *wb, params_t *params )
     return 0 ;
 }
 
-int serverstub_finalize ( comm_t *wb, params_t *params )
+int serverstub_socket_finalize ( comm_t *wb, params_t *params )
 {
     int ret ;
 
@@ -227,7 +227,7 @@ int serverstub_finalize ( comm_t *wb, params_t *params )
     return 0 ;
 }
 
-int serverstub_accept ( comm_t *ab, params_t *params, comm_t *wb )
+int serverstub_socket_accept ( comm_t *ab, params_t *params, comm_t *wb )
 {
     int ret ;
 
@@ -242,7 +242,7 @@ int serverstub_accept ( comm_t *ab, params_t *params, comm_t *wb )
     return 0 ;
 }
 
-int serverstub_disconnect_all ( comm_t *ab, params_t *params )
+int serverstub_socket_disconnect_all ( comm_t *ab, params_t *params )
 {
     int ret ;
 
@@ -262,7 +262,7 @@ int serverstub_disconnect_all ( comm_t *ab, params_t *params )
  *  File API
  */
 
-int serverstub_open ( comm_t *ab, params_t *params, int *fd, int pathname_length, int flags )
+int serverstub_socket_open ( comm_t *ab, params_t *params, int *fd, int pathname_length, int flags )
 {
     int   ret ;
     char *buff_data_sys ;
@@ -325,7 +325,7 @@ int serverstub_open ( comm_t *ab, params_t *params, int *fd, int pathname_length
     return ret ;
 }
 
-int serverstub_close ( comm_t *ab, params_t *params, int fd )
+int serverstub_socket_close ( comm_t *ab, params_t *params, int fd )
 {
     int  ret ;
 
@@ -359,7 +359,7 @@ int serverstub_close ( comm_t *ab, params_t *params, int fd )
     return ret ;
 }
 
-int serverstub_read ( comm_t *ab, params_t *params, int fd, int count )
+int serverstub_socket_read ( comm_t *ab, params_t *params, int fd, int count )
 {
     int    ret ;
     int    is_dynamic ;
@@ -452,7 +452,7 @@ int serverstub_read ( comm_t *ab, params_t *params, int fd, int count )
     return ret ;
 }
 
-int serverstub_write ( comm_t *ab, params_t *params, int fd, int count )
+int serverstub_socket_write ( comm_t *ab, params_t *params, int fd, int count )
 {
     int    ret ;
     char  *buff_data ;
@@ -547,7 +547,7 @@ int serverstub_write ( comm_t *ab, params_t *params, int fd, int count )
  *  Directory API
  */
 
-int serverstub_mkdir ( comm_t *ab, params_t *params, int pathname_length, int mode )
+int serverstub_socket_mkdir ( comm_t *ab, params_t *params, int pathname_length, int mode )
 {
     long  ret ;
     char *buff_data_sys ;
@@ -607,7 +607,7 @@ int serverstub_mkdir ( comm_t *ab, params_t *params, int pathname_length, int mo
     return ret ;
 }
 
-int serverstub_rmdir ( comm_t *ab, params_t *params, int pathname_length )
+int serverstub_socket_rmdir ( comm_t *ab, params_t *params, int pathname_length )
 {
     long  ret ;
     char *buff_data_sys ;
@@ -672,7 +672,7 @@ int serverstub_rmdir ( comm_t *ab, params_t *params, int pathname_length )
  *  DBM File API
  */
 
-int serverstub_dbmopen ( comm_t *ab, params_t *params, int *fd, int pathname_length, int flags )
+int serverstub_socket_dbmopen ( comm_t *ab, params_t *params, int *fd, int pathname_length, int flags )
 {
     int   ret ;
     char *buff_data_sys ;
@@ -735,7 +735,7 @@ int serverstub_dbmopen ( comm_t *ab, params_t *params, int *fd, int pathname_len
     return ret ;
 }
 
-int serverstub_dbmclose ( comm_t *ab, params_t *params, int fd )
+int serverstub_socket_dbmclose ( comm_t *ab, params_t *params, int fd )
 {
     int ret ;
 
@@ -766,7 +766,7 @@ int serverstub_dbmclose ( comm_t *ab, params_t *params, int fd )
     return ret ;
 }
 
-int serverstub_dbmstore ( comm_t *ab, params_t *params, int fd, int count )
+int serverstub_socket_dbmstore ( comm_t *ab, params_t *params, int fd, int count )
 {
     int    ret ;
     char  *buff_key, *buff_val ;
@@ -868,7 +868,7 @@ int serverstub_dbmstore ( comm_t *ab, params_t *params, int fd, int count )
     return ret ;
 }
 
-int serverstub_dbmfetch ( comm_t *ab, params_t *params, int fd, int count )
+int serverstub_socket_dbmfetch ( comm_t *ab, params_t *params, int fd, int count )
 {
     int    ret, status ;
     char  *buff_key, *buff_val ;
@@ -970,7 +970,7 @@ int serverstub_dbmfetch ( comm_t *ab, params_t *params, int fd, int count )
     return ret ;
 }
 
-int serverstub_dbmdelete ( comm_t *ab, params_t *params, int fd, int count )
+int serverstub_socket_dbmdelete ( comm_t *ab, params_t *params, int fd, int count )
 {
     int    ret, status ;
     char  *buff_key, *buff_val ;

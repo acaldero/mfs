@@ -19,15 +19,14 @@
  *
  */
 
-#ifndef __MFS_CLIENT_API_H__
-#define __MFS_CLIENT_API_H__
+#ifndef __MFS_API_H__
+#define __MFS_API_H__
 
     // Includes
     #include "mfs_lib.h"
     #include "mfs_dbm.h"
-    #include "mfs_client_stub.h"
-
-    #include <mpi.h>
+    #include "client_stub_mpi.h"
+    #include "client_stub_socket.h"
 
 
     // File System API

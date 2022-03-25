@@ -21,7 +21,7 @@
 
 
 #include <stdio.h>
-#include "mfs_client_api.h"
+#include "mfs_api.h"
 
 #define N_TIMES_BENCHMARK 10
 #define N_SIZES_BENCHMARK 2*1024

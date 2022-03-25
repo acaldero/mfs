@@ -22,8 +22,8 @@ all: begin $(BIN_FILES) end
 
 begin:
 	@echo ""
-	@echo " MPI_FS"
-	@echo " ~~~~~~"
+	@echo " MFS"
+	@echo " ~~~"
 	@echo ""
 	@echo " Compile test_simple and test_benchmark"
 end:

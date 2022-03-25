@@ -21,7 +21,7 @@
 
 
 #include <stdio.h>
-#include "mfs_client_api.h"
+#include "mfs_api.h"
 
 #define STR_SIZE 1024
 

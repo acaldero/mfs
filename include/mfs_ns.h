@@ -25,7 +25,7 @@
     // Includes
     #include "mfs_ns_common.h"
     #include "mfs_dbm_gdbm.h"
-    #include "mfs_client_api.h"
+    #include "mfs_api.h"
 
 
     // API

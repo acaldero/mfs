@@ -20,14 +20,14 @@
  */
 
 
-#include "mfs_client_stub.h"
+#include "client_stub_socket.h"
 
 
 /*
  *  Auxiliar API
  */
 
-long clientstub_action_over_named_resource ( comm_t *wb, const char *pathname, int pathname_size, int opt, int action )
+long clientstub_socket_action_over_named_resource ( comm_t *wb, const char *pathname, int pathname_size, int opt, int action )
 {
     int  ret = 0 ;
     long status ;
@@ -60,7 +60,7 @@ long clientstub_action_over_named_resource ( comm_t *wb, const char *pathname, i
     return status ;
 }
 
-int clientstub_action_over_fd_resource ( comm_t *wb, long fd, int opt, int action )
+int clientstub_socket_action_over_fd_resource ( comm_t *wb, long fd, int opt, int action )
 {
     int ret = 0 ;
     int status ;
@@ -84,7 +84,7 @@ int clientstub_action_over_fd_resource ( comm_t *wb, long fd, int opt, int actio
     return ret ;
 }
 
-int clientstub_action_send_buffer ( comm_t *wb, void *buff_char, int count, int buffer_size )
+int clientstub_socket_action_send_buffer ( comm_t *wb, void *buff_char, int count, int buffer_size )
 {
     int  ret ;
     long remaining_size, current_size ;
@@ -116,7 +116,7 @@ int clientstub_action_send_buffer ( comm_t *wb, void *buff_char, int count, int 
  *  File System API
  */
 
-int clientstub_init ( comm_t *wb, params_t *params )
+int clientstub_socket_init ( comm_t *wb, params_t *params )
 {
     int    ret = 0 ;
     conf_t conf ;
@@ -164,7 +164,7 @@ int clientstub_init ( comm_t *wb, params_t *params )
     return ret ;
 }
 
-int clientstub_finalize ( comm_t *wb, params_t *params )
+int clientstub_socket_finalize ( comm_t *wb, params_t *params )
 {
     int ret = 0 ;
 
@@ -207,21 +207,21 @@ int clientstub_finalize ( comm_t *wb, params_t *params )
  *  File API
  */
 
-long clientstub_open ( comm_t *wb, const char *pathname, int flags )
+long clientstub_socket_open ( comm_t *wb, const char *pathname, int flags )
 {
-     return clientstub_action_over_named_resource(wb, pathname, strlen(pathname) + 1, flags, REQ_ACTION_OPEN) ;
+     return clientstub_socket_action_over_named_resource(wb, pathname, strlen(pathname) + 1, flags, REQ_ACTION_OPEN) ;
 }
 
-int  clientstub_close ( comm_t *wb, long fd )
+int  clientstub_socket_close ( comm_t *wb, long fd )
 {
      // Check arguments...
      NULL_PRT_MSG_RET_VAL(wb, "[CLNT_STUB] NULL wb :-/", -1) ;
       NEG_PRT_MSG_RET_VAL(fd, "[CLNT_STUB] fd < 0  :-/", -1) ;
 
-     return clientstub_action_over_fd_resource(wb, fd, 0, REQ_ACTION_CLOSE) ;
+     return clientstub_socket_action_over_fd_resource(wb, fd, 0, REQ_ACTION_CLOSE) ;
 }
 
-int  clientstub_read ( comm_t *wb, long fd, void *buff_char, int count )
+int  clientstub_socket_read ( comm_t *wb, long fd, void *buff_char, int count )
 {
      int  ret = 0 ;
      int  status ;
@@ -273,7 +273,7 @@ int  clientstub_read ( comm_t *wb, long fd, void *buff_char, int count )
      return current_size ;
 }
 
-int  clientstub_write ( comm_t *wb, long fd, void *buff_char, int count )
+int  clientstub_socket_write ( comm_t *wb, long fd, void *buff_char, int count )
 {
      int  ret, status ;
      int  buffer_size ;
@@ -310,7 +310,7 @@ int  clientstub_write ( comm_t *wb, long fd, void *buff_char, int count )
      // Send buffer and receive status
      if (ret >= 0)
      {
-        ret = clientstub_action_send_buffer(wb, buff_char, count, buffer_size) ;
+        ret = clientstub_socket_action_send_buffer(wb, buff_char, count, buffer_size) ;
      }
 
      // Receive status
@@ -331,14 +331,14 @@ int  clientstub_write ( comm_t *wb, long fd, void *buff_char, int count )
  *  Directory API
  */
 
-long clientstub_mkdir ( comm_t *wb, const char *pathname, int mode )
+long clientstub_socket_mkdir ( comm_t *wb, const char *pathname, int mode )
 {
-     return clientstub_action_over_named_resource(wb, pathname, strlen(pathname) + 1, mode, REQ_ACTION_MKDIR) ;
+     return clientstub_socket_action_over_named_resource(wb, pathname, strlen(pathname) + 1, mode, REQ_ACTION_MKDIR) ;
 }
 
-long clientstub_rmdir ( comm_t *wb, const char *pathname )
+long clientstub_socket_rmdir ( comm_t *wb, const char *pathname )
 {
-     return clientstub_action_over_named_resource(wb, pathname, strlen(pathname) + 1,    0, REQ_ACTION_RMDIR) ;
+     return clientstub_socket_action_over_named_resource(wb, pathname, strlen(pathname) + 1,    0, REQ_ACTION_RMDIR) ;
 }
 
 
@@ -346,21 +346,21 @@ long clientstub_rmdir ( comm_t *wb, const char *pathname )
  *  DBM File API
  */
 
-long clientstub_dbmopen ( comm_t *wb, const char *pathname, int flags )
+long clientstub_socket_dbmopen ( comm_t *wb, const char *pathname, int flags )
 {
-     return clientstub_action_over_named_resource(wb, pathname, strlen(pathname) + 1, flags, REQ_ACTION_DBMOPEN) ;
+     return clientstub_socket_action_over_named_resource(wb, pathname, strlen(pathname) + 1, flags, REQ_ACTION_DBMOPEN) ;
 }
 
-int  clientstub_dbmclose ( comm_t *wb, long fd )
+int  clientstub_socket_dbmclose ( comm_t *wb, long fd )
 {
      // Check arguments...
      NULL_PRT_MSG_RET_VAL(wb, "[CLNT_STUB] NULL wb :-/", -1) ;
       NEG_PRT_MSG_RET_VAL(fd, "[CLNT_STUB] fd < 0  :-/", -1) ;
 
-     return clientstub_action_over_fd_resource(wb, fd, 0, REQ_ACTION_DBMCLOSE) ;
+     return clientstub_socket_action_over_fd_resource(wb, fd, 0, REQ_ACTION_DBMCLOSE) ;
 }
 
-int  clientstub_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int count_val )
+int  clientstub_socket_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int count_val )
 {
      int  ret, status  ;
      long remaining_size, current_size ;
@@ -410,10 +410,10 @@ int  clientstub_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_key, v
      if (ret >= 0)
      {
     	mfs_print(DBG_INFO, "Client[%d]: dbmstore buff_key:%d >> server\n", mfs_comm_get_rank(wb), count_key) ;
-        clientstub_action_send_buffer(wb, buff_key, count_key, count_key) ;
+        clientstub_socket_action_send_buffer(wb, buff_key, count_key, count_key) ;
 
     	mfs_print(DBG_INFO, "Client[%d]: dbmstore buff_val:%d >> server\n", mfs_comm_get_rank(wb), count_val) ;
-        clientstub_action_send_buffer(wb, buff_val, count_val, count_val) ;
+        clientstub_socket_action_send_buffer(wb, buff_val, count_val, count_val) ;
      }
 
      // Receive status
@@ -431,7 +431,7 @@ int  clientstub_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_key, v
      return status ;
 }
 
-int  clientstub_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int *count_val )
+int  clientstub_socket_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int *count_val )
 {
      int  ret, status  ;
 
@@ -477,7 +477,7 @@ int  clientstub_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_key, v
      // Send key
      if (ret >= 0)
      {
-        clientstub_action_send_buffer(wb, buff_key, count_key, count_key) ;
+        clientstub_socket_action_send_buffer(wb, buff_key, count_key, count_key) ;
      }
 
      // Receive status
@@ -502,7 +502,7 @@ int  clientstub_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_key, v
      return status ;
 }
 
-int  clientstub_dbmdelete ( comm_t *wb, long fd, void *buff_key, int count_key )
+int  clientstub_socket_dbmdelete ( comm_t *wb, long fd, void *buff_key, int count_key )
 {
      int  ret, status  ;
 
@@ -524,7 +524,7 @@ int  clientstub_dbmdelete ( comm_t *wb, long fd, void *buff_key, int count_key )
      // Send key
      if (ret >= 0)
      {
-        clientstub_action_send_buffer(wb, buff_key, count_key, count_key) ;
+        clientstub_socket_action_send_buffer(wb, buff_key, count_key, count_key) ;
      }
 
      // Receive status
