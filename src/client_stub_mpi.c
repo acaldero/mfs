@@ -27,6 +27,8 @@
  *  Auxiliar API
  */
 
+// Action over resource
+
 long clientstub_mpi_action_over_named_resource ( comm_t *wb, const char *pathname, int pathname_size, int opt, int action )
 {
     int  ret = 0 ;
@@ -35,13 +37,13 @@ long clientstub_mpi_action_over_named_resource ( comm_t *wb, const char *pathnam
     // Send action msg
     if (ret >= 0)
     {
-        ret = mfs_comm_request_send(wb, 0, action, pathname_size, opt) ;
+        ret = mfs_protocol_request_send2(wb, 0, action, pathname_size, opt) ;
     }
 
     // Send pathname
     if (ret >= 0)
     {
-        ret = mfs_comm_send_data_to(wb, 0, (void *)pathname, pathname_size, MPI_CHAR) ;
+        ret = mfs_comm_mpi_send_data_to(wb, 0, (void *)pathname, pathname_size, MPI_CHAR) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: pathname cannot be sent :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -50,7 +52,7 @@ long clientstub_mpi_action_over_named_resource ( comm_t *wb, const char *pathnam
     // Receive status
     if (ret >= 0)
     {
-        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_LONG) ;
+        ret = mfs_comm_mpi_recv_data_from(wb, 0, &status, 1, MPI_LONG) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -68,13 +70,13 @@ int clientstub_mpi_action_over_fd_resource ( comm_t *wb, long fd, int opt, int a
     // Send action msg
     if (ret >= 0)
     {
-        ret = mfs_comm_request_send(wb, 0, action, fd, opt) ;
+        ret = mfs_protocol_request_send2(wb, 0, action, fd, opt) ;
     }
 
     // Receive status
     if (ret >= 0)
     {
-        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+        ret = mfs_comm_mpi_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -82,33 +84,6 @@ int clientstub_mpi_action_over_fd_resource ( comm_t *wb, long fd, int opt, int a
 
     // Return OK/KO
     return ret ;
-}
-
-int clientstub_mpi_action_send_buffer ( comm_t *wb, void *buff_char, int count, int buffer_size )
-{
-    int  ret ;
-    long remaining_size, current_size ;
-
-    ret            =  1 ;
-    current_size   =  0 ;
-    remaining_size = count ;
-    while ( (ret > 0) && (remaining_size > 0) )
-    {
-        // Send data
-        if (ret >= 0)
-        {
-            ret = mfs_comm_send_data_to(wb, 0, buff_char + current_size, buffer_size, MPI_CHAR) ;
-            if (ret < 0) {
-                mfs_print(DBG_ERROR, "Client[%d]: data cannot be sent :-(\n", mfs_comm_get_rank(wb)) ;
-            }
-        }
-
-        current_size   = current_size   + buffer_size ;
-        remaining_size = remaining_size - buffer_size ;
-    }
-
-    // Return bytes written
-    return current_size ;
 }
 
 
@@ -120,6 +95,8 @@ int clientstub_mpi_init ( comm_t *wb, params_t *params )
 {
     int    ret = 0 ;
     conf_t conf ;
+    int    remote_rank ;
+    char  *srv_uri ;
 
     // Get valid configuration..
     ret = mfs_conf_get(&conf, params->conf_fname) ;
@@ -139,7 +116,7 @@ int clientstub_mpi_init ( comm_t *wb, params_t *params )
     // Initialize
     if (ret >= 0)
     {
-        ret = mfs_comm_init(wb, conf.active, params) ;
+        ret = mfs_comm_mpi_init(wb, conf.active, params->argc, params->argv) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: initialization fails :-(\n", -1) ;
         }
@@ -148,10 +125,24 @@ int clientstub_mpi_init ( comm_t *wb, params_t *params )
     // Connect to service
     if (ret >= 0)
     {
-        ret = mfs_comm_interconnect_all(wb, &conf) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: connect_all fails :-(\n", -1) ;
+        // Get service name
+        remote_rank = mfs_comm_get_rank(wb) % conf.active->n_nodes ;
+        srv_uri     = mfs_conf_get_active_node(&conf, remote_rank) ;
+        strcpy(wb->srv_name, srv_uri) ;
+
+        // Lookup...
+        ret = MPI_Lookup_name(srv_uri, MPI_INFO_NULL, wb->port_name) ;
+        if (MPI_SUCCESS != ret) {
+            mfs_print(DBG_ERROR, "Client[%d]: MPI_Lookup_name for '%s' fails :-(\n", -1, srv_uri) ;
         }
+
+        // Connect...
+        ret = MPI_Comm_connect(wb->port_name, MPI_INFO_NULL, 0, MPI_COMM_SELF, &(wb->endpoint)) ;
+        if (MPI_SUCCESS != ret) {
+            mfs_print(DBG_ERROR, "Client[%d]: MPI_Comm_connect with '%s' fails :-(\n", -1, srv_uri) ;
+        }
+
+        wb->is_connected = 1 ;
     }
 
     // Free configuration
@@ -171,23 +162,26 @@ int clientstub_mpi_finalize ( comm_t *wb, params_t *params )
     // Remote disconnect...
     if (ret >= 0)
     {
-        ret = mfs_comm_request_send(wb, 0, REQ_ACTION_DISCONNECT, 0, 0) ;
+        ret = mfs_protocol_request_send2(wb, 0, REQ_ACTION_DISCONNECT, 0, 0) ;
     }
 
     // Disconnect...
     if (ret >= 0)
     {
-        ret = mfs_comm_disconnect_all(wb) ;
-        if (ret < 0) {
+        ret = MPI_Comm_disconnect(&(wb->endpoint)) ;
+        if (MPI_SUCCESS != ret) {
             mfs_print(DBG_ERROR, "Client[%d]: disconnect fails :-(\n", mfs_comm_get_rank(wb)) ;
         }
+
+        wb->is_connected = 0 ;
     }
 
     // Finalize comms...
     if (ret >= 0)
     {
-        ret = mfs_comm_finalize(wb) ;
-        if (ret < 0) {
+        // Finalize
+        ret = MPI_Finalize() ;
+        if (MPI_SUCCESS != ret) {
             mfs_print(DBG_ERROR, "Client[%d]: finalization fails :-(\n", mfs_comm_get_rank(wb)) ;
         }
     }
@@ -235,7 +229,7 @@ int  clientstub_mpi_read ( comm_t *wb, long fd, void *buff_char, int count )
      // Send read msg
      if (ret >= 0)
      {
-         ret = mfs_comm_request_send(wb, 0, REQ_ACTION_READ, fd, count) ;
+         ret = mfs_protocol_request_send2(wb, 0, REQ_ACTION_READ, fd, count) ;
      }
 
      current_size   = 0 ;
@@ -245,7 +239,7 @@ int  clientstub_mpi_read ( comm_t *wb, long fd, void *buff_char, int count )
           // Receive status
           if (ret >= 0)
           {
-              ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+              ret = mfs_comm_mpi_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
               if (ret < 0) {
                   mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(\n", mfs_comm_get_rank(wb)) ;
               }
@@ -254,7 +248,7 @@ int  clientstub_mpi_read ( comm_t *wb, long fd, void *buff_char, int count )
           // Receive data
           if ( (ret >= 0) && (status > 0) )
           {
-              ret = mfs_comm_recv_data_from(wb, 0, buff_char + current_size, status, MPI_CHAR) ;
+              ret = mfs_comm_mpi_recv_data_from(wb, 0, buff_char + current_size, status, MPI_CHAR) ;
               if (ret < 0) {
     	          mfs_print(DBG_ERROR, "Client[%d]: data not received :-(\n", mfs_comm_get_rank(wb)) ;
               }
@@ -290,13 +284,13 @@ int  clientstub_mpi_write ( comm_t *wb, long fd, void *buff_char, int count )
      // Send write msg
      if (ret >= 0)
      {
-        ret = mfs_comm_request_send(wb, 0, REQ_ACTION_WRITE, fd, count) ;
+        ret = mfs_protocol_request_send2(wb, 0, REQ_ACTION_WRITE, fd, count) ;
      }
 
      // Receive buffer_size
      if (ret >= 0)
      {
-        ret = mfs_comm_recv_data_from(wb, 0, &buffer_size, 1, MPI_INT) ;
+        ret = mfs_comm_mpi_recv_data_from(wb, 0, &buffer_size, 1, MPI_INT) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: buffer_size not received :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -310,13 +304,13 @@ int  clientstub_mpi_write ( comm_t *wb, long fd, void *buff_char, int count )
      // Send buffer and receive status
      if (ret >= 0)
      {
-        ret = clientstub_mpi_action_send_buffer(wb, buff_char, count, buffer_size) ;
+        ret = mfs_comm_mpi_send_buffer_in_chunks(wb, buff_char, count, buffer_size) ;
      }
 
      // Receive status
      //if (ret >= 0)
      {
-        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+        ret = mfs_comm_mpi_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -379,14 +373,14 @@ int  clientstub_mpi_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_ke
      if (ret >= 0)
      {
     	mfs_print(DBG_INFO, "Client[%d]: dbmstore fd:%ld key_size:%d >> server\n", mfs_comm_get_rank(wb), fd, count_key) ;
-        ret = mfs_comm_request_send(wb, 0, REQ_ACTION_DBMSTORE, fd, count_key) ;
+        ret = mfs_protocol_request_send2(wb, 0, REQ_ACTION_DBMSTORE, fd, count_key) ;
      }
 
      // Send value size (in bytes)
      if (ret >= 0)
      {
     	mfs_print(DBG_INFO, "Client[%d]: dbmstore val_size:%d >> server\n", mfs_comm_get_rank(wb), count_val) ;
-        ret = mfs_comm_send_data_to(wb, 0, &count_val, 1, MPI_INT) ;
+        ret = mfs_comm_mpi_send_data_to(wb, 0, &count_val, 1, MPI_INT) ;
         if (ret < 0) {
     	    mfs_print(DBG_ERROR, "Client[%d]: value size cannot be sent :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -395,7 +389,7 @@ int  clientstub_mpi_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_ke
      // Receive status
      if (ret >= 0)
      {
-        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+        ret = mfs_comm_mpi_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: status not received :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -410,16 +404,16 @@ int  clientstub_mpi_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_ke
      if (ret >= 0)
      {
     	mfs_print(DBG_INFO, "Client[%d]: dbmstore buff_key:%d >> server\n", mfs_comm_get_rank(wb), count_key) ;
-        clientstub_mpi_action_send_buffer(wb, buff_key, count_key, count_key) ;
+        mfs_comm_mpi_send_buffer_in_chunks(wb, buff_key, count_key, count_key) ;
 
     	mfs_print(DBG_INFO, "Client[%d]: dbmstore buff_val:%d >> server\n", mfs_comm_get_rank(wb), count_val) ;
-        clientstub_mpi_action_send_buffer(wb, buff_val, count_val, count_val) ;
+        mfs_comm_mpi_send_buffer_in_chunks(wb, buff_val, count_val, count_val) ;
      }
 
      // Receive status
      //if (ret >= 0)
      {
-        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+        ret = mfs_comm_mpi_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -445,25 +439,25 @@ int  clientstub_mpi_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_ke
      ret = 0 ;
      status = -1 ;
 
-     // Send write msg
+     // (1) Send write msg
      if (ret >= 0)
      {
-        ret = mfs_comm_request_send(wb, 0, REQ_ACTION_DBMFETCH, fd, count_key) ;
+        ret = mfs_protocol_request_send2(wb, 0, REQ_ACTION_DBMFETCH, fd, count_key) ;
      }
 
-     // Send value size (in bytes)
+     // (2) Send value size (in bytes)
      if (ret >= 0)
      {
-        ret = mfs_comm_send_data_to(wb, 0, count_val, 1, MPI_INT) ;
+        ret = mfs_comm_mpi_send_data_to(wb, 0, count_val, 1, MPI_INT) ;
         if (ret < 0) {
     	    mfs_print(DBG_ERROR, "Client[%d]: value size cannot be sent :-(\n", mfs_comm_get_rank(wb)) ;
         }
      }
 
-     // Receive status
+     // (3) Receive status
      if (ret >= 0)
      {
-        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+        ret = mfs_comm_mpi_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: status not received :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -474,28 +468,31 @@ int  clientstub_mpi_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_ke
 	}
      }
 
-     // Send key
+     // (4) Send key
      if (ret >= 0)
      {
-        clientstub_mpi_action_send_buffer(wb, buff_key, count_key, count_key) ;
+        mfs_comm_mpi_send_buffer_in_chunks(wb, buff_key, count_key, count_key) ;
      }
 
-     // Receive status
+     // (5) Receive status
      //if (ret >= 0)
      {
-        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+        ret = mfs_comm_mpi_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(\n", mfs_comm_get_rank(wb)) ;
         }
+
+        // if remote error then return
+	if (status < 0) {
+	    return -1 ;
+	}
      }
 
-     // Receive val
-     if (status > 0)
-     {
-        ret = mfs_comm_recv_data_from(wb, 0, buff_val, *count_val, MPI_CHAR) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(\n", mfs_comm_get_rank(wb)) ;
-        }
+     // (6) Receive val
+     *count_val = status ;
+     ret = mfs_comm_mpi_recv_data_from(wb, 0, buff_val, *count_val, MPI_CHAR) ;
+     if (ret < 0) {
+         mfs_print(DBG_ERROR, "Client[%d]: value of %d bytes not received :-(\n", mfs_comm_get_rank(wb), *count_val) ;
      }
 
      // Return bytes written
@@ -518,19 +515,19 @@ int  clientstub_mpi_dbmdelete ( comm_t *wb, long fd, void *buff_key, int count_k
      // Send write msg
      if (ret >= 0)
      {
-        ret = mfs_comm_request_send(wb, 0, REQ_ACTION_DBMDELETE, fd, count_key) ;
+        ret = mfs_protocol_request_send2(wb, 0, REQ_ACTION_DBMDELETE, fd, count_key) ;
      }
 
      // Send key
      if (ret >= 0)
      {
-        clientstub_mpi_action_send_buffer(wb, buff_key, count_key, count_key) ;
+        mfs_comm_mpi_send_buffer_in_chunks(wb, buff_key, count_key, count_key) ;
      }
 
      // Receive status
      //if (ret >= 0)
      {
-        ret = mfs_comm_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
+        ret = mfs_comm_mpi_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(\n", mfs_comm_get_rank(wb)) ;
         }

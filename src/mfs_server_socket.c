@@ -28,7 +28,7 @@
 
 
    // stats
-   char    *ver     = "0.95-socket" ;
+   char    *ver     = "0.98-socket" ;
    int      the_end = 0 ;
    long     t1      = 0L ;
    params_t params ;
@@ -61,7 +61,7 @@
           ret = mfs_protocol_request_receive(&th.ab, &msg) ;
 	  if (ret < 0)
 	  {
-	      mfs_print(DBG_ERROR, "Server[%d]: mfs_protocol_request_receive with no more request\n", th.ab.rank) ;
+	      mfs_print(DBG_ERROR, "Server[%d]: mfs_protocol_socket_request_receive with no more request\n", th.ab.rank) ;
 	      again = 0 ;
 	      continue ;
 	  }

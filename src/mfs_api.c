@@ -35,6 +35,7 @@ int mfs_api_init ( comm_t *wb, params_t *params )
     NULL_PRT_MSG_RET_VAL(wb, "[COMM]: NULL wb :-(\n", -1) ;
 
     // Open server port...
+    wb->comm_protocol = params->comm_backend ;
     switch (wb->comm_protocol)
     {
         case COMM_USE_SOCKET:

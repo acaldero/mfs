@@ -33,7 +33,8 @@ echo "............................."
 echo "../bin/mfs_server &"
 echo "sleep 3"
 echo "............................."
-mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server -f ${F_PROTO} &
+ mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server_mpi    -f ${F_PROTO} &
+#mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server_socket -f ${F_PROTO} -c SOCKET &
 sleep 3
 
 #
@@ -46,6 +47,7 @@ do
    echo "sleep 2"
    echo "............................."
    mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_benchmark -n conf.yaml -f ${F_PROTO}
+  #mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_benchmark -n conf.yaml -f ${F_PROTO} -c SOCKET -p 0
    echo "............................."
    sleep 2
 done

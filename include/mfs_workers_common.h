@@ -23,7 +23,6 @@
 
    #include "mfs_lib.h"
    #include "mfs_params.h"
-   #include "mfs_comm.h"
    #include "mfs_protocol.h"
 
    #include <pthread.h>

@@ -79,7 +79,7 @@ int stubmpi_read_name ( comm_t *ab, char **buff_data_sys, int pathname_length )
     {
 	mfs_print(DBG_INFO, "Server[%d]: request for a name of %d chars\n", mfs_comm_get_rank(ab), pathname_length) ;
 
-        ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_data_user, pathname_length, MPI_CHAR) ;
+        ret = mfs_comm_mpi_recv_data_from(ab, MPI_ANY_SOURCE, buff_data_user, pathname_length, MPI_CHAR) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: name not received :-(\n", mfs_comm_get_rank(ab)) ;
         }
@@ -149,7 +149,7 @@ int serverstub_mpi_init ( comm_t *wb, params_t *params )
     }
 
     // Initialize
-    ret = mfs_comm_init(wb, conf.active, params) ;
+    ret = mfs_comm_mpi_init(wb, conf.active, params->argc, params->argv) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: initialization fails for comm :-(\n", -1) ;
         return -1 ;
@@ -164,8 +164,20 @@ int serverstub_mpi_init ( comm_t *wb, params_t *params )
     local_node = mfs_conf_get_active_node(&conf, local_rank) ;
     strcpy(wb->srv_name, local_node) ;
 
-    ret = mfs_comm_register(wb) ;
-    if (ret < 0) {
+    // Open server port...
+    ret = MPI_Open_port(MPI_INFO_NULL, wb->port_name);
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_ERROR, "Server[%d]: port registration fails :-(\n", mfs_comm_get_rank(wb)) ;
+        return -1 ;
+    }
+
+    MPI_Info info ;
+    MPI_Info_create(&info) ;
+    MPI_Info_set(info, "ompi_global_scope", "true") ;
+
+    // Publish port name
+    ret = MPI_Publish_name(wb->srv_name, info, wb->port_name) ;
+    if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "Server[%d]: port registration fails :-(\n", mfs_comm_get_rank(wb)) ;
         return -1 ;
     }
@@ -181,19 +193,24 @@ int serverstub_mpi_finalize ( comm_t *wb, params_t *params )
 {
     int ret ;
 
-    // UnRegister
-    ret = mfs_comm_unregister(wb) ;
-    if (ret < 0) {
+    // Unpublish port name
+    ret = MPI_Unpublish_name(wb->srv_name, MPI_INFO_NULL, wb->port_name) ;
+    if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "Server[%d]: port unregistration fails :-(\n", mfs_comm_get_rank(wb)) ;
         return -1 ;
     }
 
+    // Close port
+    MPI_Close_port(wb->port_name) ;
+
     // Finalize
-    ret = mfs_comm_finalize(wb) ;
-    if (ret < 0) {
+    ret = MPI_Finalize() ;
+    if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "Server[%d]: finalization fails :-(\n", mfs_comm_get_rank(wb)) ;
         return -1 ;
     }
+
+    wb->is_connected = 0 ;
 
     // Finalize directories
     ret = mfs_directory_finalize() ;
@@ -231,12 +248,17 @@ int serverstub_mpi_accept ( comm_t *ab, params_t *params, comm_t *wb )
 {
     int ret ;
 
+    // *ab = *wb ;
+    memmove(ab, wb, sizeof(comm_t)) ;
+
     // Accept connections...
-    ret = mfs_comm_accept(ab, wb) ;
-    if (ret < 0) {
+    ret = MPI_Comm_accept(ab->port_name, MPI_INFO_NULL, 0, MPI_COMM_SELF, &(ab->endpoint)) ;
+    if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "Server[%d]: accept connections fails :-(\n", mfs_comm_get_rank(ab)) ;
         return -1 ;
     }
+
+    ab->is_connected = 1 ;
 
     // Return OK
     return 0 ;
@@ -247,11 +269,13 @@ int serverstub_mpi_disconnect_all ( comm_t *ab, params_t *params )
     int ret ;
 
     // Disconnect
-    ret = mfs_comm_disconnect_all(ab) ;
-    if (ret < 0) {
+    ret = MPI_Comm_disconnect(&(ab->endpoint)) ;
+    if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "Server[%d]: disconnect_all fails :-(\n", mfs_comm_get_rank(ab)) ;
         return -1 ;
     }
+
+    ab->is_connected = 0 ;
 
     // Return OK/KO
     return ret ;
@@ -306,7 +330,7 @@ int serverstub_mpi_open ( comm_t *ab, params_t *params, int *fd, int pathname_le
 	long fref = mfs_file_fd2long(*fd) ;
         mfs_print(DBG_INFO, "Server[%d]: File[%ld]: open(flags=%d) >> client\n", mfs_comm_get_rank(ab), fref, flags) ;
 
-        ret = mfs_comm_send_data_to(ab, 0, &(fref), 1, MPI_LONG) ;
+        ret = mfs_comm_mpi_send_data_to(ab, 0, &(fref), 1, MPI_LONG) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: file descriptor cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
         }
@@ -349,7 +373,7 @@ int serverstub_mpi_close ( comm_t *ab, params_t *params, int fd )
     // send back status
     if (ret >= 0)
     {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        ret = mfs_comm_mpi_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
         }
@@ -413,7 +437,7 @@ int serverstub_mpi_read ( comm_t *ab, params_t *params, int fd, int count )
            // send back status
            if (ret >= 0)
            {
-               ret = mfs_comm_send_data_to(ab, 0, &readed, 1, MPI_INT) ;
+               ret = mfs_comm_mpi_send_data_to(ab, 0, &readed, 1, MPI_INT) ;
                if (ret < 0) {
                    mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
                }
@@ -424,7 +448,7 @@ int serverstub_mpi_read ( comm_t *ab, params_t *params, int fd, int count )
            {
 	       mfs_print(DBG_INFO, "Server[%d]: File[%ld]: read(bytes=%d) >> client\n", mfs_comm_get_rank(ab), fd, ret) ;
 
-               ret = mfs_comm_send_data_to(ab, 0, buff_data, readed, MPI_CHAR) ;
+               ret = mfs_comm_mpi_send_data_to(ab, 0, buff_data, readed, MPI_CHAR) ;
                if (ret < 0) {
                    mfs_print(DBG_WARNING, "Server[%d]: data cannot be sent fails :-(\n", mfs_comm_get_rank(ab)) ;
                }
@@ -477,12 +501,12 @@ int serverstub_mpi_write ( comm_t *ab, params_t *params, int fd, int count )
 
     // if error then send back error and return
     if (ret < 0) {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        ret = mfs_comm_mpi_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
 	return -1 ;
     }
 
     // send back buffer_size
-    ret = mfs_comm_send_data_to(ab, 0, &buffer_size, 1, MPI_INT) ;
+    ret = mfs_comm_mpi_send_data_to(ab, 0, &buffer_size, 1, MPI_INT) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: buffer_size cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
     }
@@ -502,7 +526,7 @@ int serverstub_mpi_write ( comm_t *ab, params_t *params, int fd, int count )
         {
 	    mfs_print(DBG_INFO, "Server[%d]: File[%ld]: write(bytes=%d) << client\n", mfs_comm_get_rank(ab), fd, buffer_size) ;
 
-            ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_data, buffer_size, MPI_CHAR) ;
+            ret = mfs_comm_mpi_recv_data_from(ab, MPI_ANY_SOURCE, buff_data, buffer_size, MPI_CHAR) ;
             if (ret < 0) {
                 mfs_print(DBG_WARNING, "Server[%d]: data not received :-(\n", mfs_comm_get_rank(ab)) ;
             }
@@ -526,7 +550,7 @@ int serverstub_mpi_write ( comm_t *ab, params_t *params, int fd, int count )
     // send back status
     //if (ret >= 0)
     {
-        ret = mfs_comm_send_data_to(ab, 0, &current_size, 1, MPI_INT) ;
+        ret = mfs_comm_mpi_send_data_to(ab, 0, &current_size, 1, MPI_INT) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
         }
@@ -588,7 +612,7 @@ int serverstub_mpi_mkdir ( comm_t *ab, params_t *params, int pathname_length, in
     // send back status
     if (ret >= 0)
     {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_LONG) ;
+        ret = mfs_comm_mpi_send_data_to(ab, 0, &ret, 1, MPI_LONG) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
         }
@@ -648,7 +672,7 @@ int serverstub_mpi_rmdir ( comm_t *ab, params_t *params, int pathname_length )
     // send back status
     if (ret >= 0)
     {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_LONG) ;
+        ret = mfs_comm_mpi_send_data_to(ab, 0, &ret, 1, MPI_LONG) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
         }
@@ -716,7 +740,7 @@ int serverstub_mpi_dbmopen ( comm_t *ab, params_t *params, int *fd, int pathname
 	long fref = mfs_dbm_fd2long(*fd) ;
         mfs_print(DBG_INFO, "Server[%d]: File[%ld]: open(flags=%d) >> client\n", mfs_comm_get_rank(ab), fref, flags) ;
 
-        ret = mfs_comm_send_data_to(ab, 0, &(fref), 1, MPI_LONG) ;
+        ret = mfs_comm_mpi_send_data_to(ab, 0, &(fref), 1, MPI_LONG) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: file descriptor cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
         }
@@ -757,7 +781,7 @@ int serverstub_mpi_dbmclose ( comm_t *ab, params_t *params, int fd )
     }
 
     // send back status
-    ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+    ret = mfs_comm_mpi_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
     }
@@ -782,7 +806,7 @@ int serverstub_mpi_dbmstore ( comm_t *ab, params_t *params, int fd, int count )
     // (1) receive val_size
     if (ret >= 0)
     {
-        ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, &val_size, 1, MPI_INT) ;
+        ret = mfs_comm_mpi_recv_data_from(ab, MPI_ANY_SOURCE, &val_size, 1, MPI_INT) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: data not received :-(\n", mfs_comm_get_rank(ab)) ;
         }
@@ -808,27 +832,27 @@ int serverstub_mpi_dbmstore ( comm_t *ab, params_t *params, int fd, int count )
 
     // (3) if error then send back error and return
     if (ret < 0) {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        ret = mfs_comm_mpi_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
         mfs_print(DBG_WARNING, "Server[%d]: dbmstore(status:%d) >> client\n", mfs_comm_get_rank(ab), ret) ;
 	return -1 ;
     }
 
     // send back status for malloc...
-    ret = mfs_comm_send_data_to(ab, 0, &val_size, 1, MPI_INT) ;
+    ret = mfs_comm_mpi_send_data_to(ab, 0, &val_size, 1, MPI_INT) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: buff_val cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
     }
 
     // (4) receive key
     mfs_print(DBG_INFO, "Server[%d]: File[%ld]: dbmstore(bytes=%d) << client\n", mfs_comm_get_rank(ab), fd, key_size) ;
-    ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_key, key_size, MPI_CHAR) ;
+    ret = mfs_comm_mpi_recv_data_from(ab, MPI_ANY_SOURCE, buff_key, key_size, MPI_CHAR) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: data not received :-(\n", mfs_comm_get_rank(ab)) ;
     }
 
     // (5) receive val
     mfs_print(DBG_INFO, "Server[%d]: File[%ld]: dbmstore(bytes=%d) << client\n", mfs_comm_get_rank(ab), fd, val_size) ;
-    ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_val, val_size, MPI_CHAR) ;
+    ret = mfs_comm_mpi_recv_data_from(ab, MPI_ANY_SOURCE, buff_val, val_size, MPI_CHAR) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: data not received :-(\n", mfs_comm_get_rank(ab)) ;
     }
@@ -847,7 +871,7 @@ int serverstub_mpi_dbmstore ( comm_t *ab, params_t *params, int fd, int count )
     // (7) send back status for val
     //if (ret >= 0)
     {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        ret = mfs_comm_mpi_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
         }
@@ -878,20 +902,20 @@ int serverstub_mpi_dbmfetch ( comm_t *ab, params_t *params, int fd, int count )
     // Check arguments...
     NULL_PRT_MSG_RET_VAL(ab, "[SERV_STUB] NULL ab  :-/", -1) ;
 
-    // Initialize variables
+    // (1) Initialize variables
     ret      = 0 ;
     key_size = count ;
 
-    // (1) receive val_size
+    // (2) receive val_size
     if (ret >= 0)
     {
-        ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, &val_size, 1, MPI_INT) ;
+        ret = mfs_comm_mpi_recv_data_from(ab, MPI_ANY_SOURCE, &val_size, 1, MPI_INT) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: data not received :-(\n", mfs_comm_get_rank(ab)) ;
         }
     }
 
-    // (2) prepare key buffer
+    // prepare key buffer
     if (ret >= 0)
     {
         ret = mfs_malloc(&buff_key, key_size) ;
@@ -909,26 +933,25 @@ int serverstub_mpi_dbmfetch ( comm_t *ab, params_t *params, int fd, int count )
         }
     }
 
-    // (3) if error then send back error and return
+    // (3) send back status for ko or val_size for ok
     if (ret < 0) {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        ret = mfs_comm_mpi_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
         mfs_print(DBG_WARNING, "Server[%d]: dbmfetch(status:%d) >> client\n", mfs_comm_get_rank(ab), ret) ;
 	return -1 ;
     }
 
-    // send back status for malloc...
-    ret = mfs_comm_send_data_to(ab, 0, &val_size, 1, MPI_INT) ;
+    ret = mfs_comm_mpi_send_data_to(ab, 0, &val_size, 1, MPI_INT) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: buff_val cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
     }
 
     // (4) receive key
-    ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_key, key_size, MPI_CHAR) ;
+    ret = mfs_comm_mpi_recv_data_from(ab, MPI_ANY_SOURCE, buff_key, key_size, MPI_CHAR) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: data not received :-(\n", mfs_comm_get_rank(ab)) ;
     }
 
-    // (5) do dbm_fetch ...
+    // do dbm_fetch ...
     if (ret >= 0)
     {
         ret = status = mfs_dbm_fetch(fd, buff_key, key_size, (void **)&buff_val, &val_size) ;
@@ -937,25 +960,28 @@ int serverstub_mpi_dbmfetch ( comm_t *ab, params_t *params, int fd, int count )
         }
     }
 
-    // (6) send back status for malloc...
-    ret = mfs_comm_send_data_to(ab, 0, &status, 1, MPI_INT) ;
-    if (ret < 0) {
-        mfs_print(DBG_WARNING, "Server[%d]: buff_val cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
-    }
-    mfs_print(DBG_INFO, "Server[%d]: dbmfetch(status:%d) >> client\n", mfs_comm_get_rank(ab), status) ;
-
-    // (7) send val
-    if (status >= 0)
+    // (5) send back status for ko or val_size for ok
+    if (ret < 0)
     {
-        mfs_print(DBG_INFO, "Server[%d]: File[%ld]: dbmfetch(buff_val=%.*s of %d bytes) >> client\n", mfs_comm_get_rank(ab), fd, val_size, buff_val, val_size) ;
-
-        ret = mfs_comm_send_data_to(ab, 0, buff_val, val_size, MPI_CHAR) ;
-        if (ret < 0) {
-            mfs_print(DBG_WARNING, "Server[%d]: data not received :-(\n", mfs_comm_get_rank(ab)) ;
-        }
+        ret = mfs_comm_mpi_send_data_to(ab, 0, &ret,   1, MPI_INT) ;
+        mfs_print(DBG_WARNING, "Server[%d]: dbmfetch(status:%d) >> client\n", mfs_comm_get_rank(ab), ret) ;
+	return -1 ;
     }
 
-    // (8) free data buffer
+    ret = mfs_comm_mpi_send_data_to(ab, 0, &val_size, 1, MPI_INT) ;
+    if (ret < 0) {
+        mfs_print(DBG_WARNING, "Server[%d]: val_size cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
+    }
+
+    // (6) send val
+    mfs_print(DBG_INFO, "Server[%d]: File[%ld]: dbmfetch(buff_val='%.*s' of %d bytes) >> client\n", mfs_comm_get_rank(ab), fd, val_size, buff_val, val_size) ;
+
+    ret = mfs_comm_mpi_send_data_to(ab, 0, buff_val, val_size, MPI_CHAR) ;
+    if (ret < 0) {
+        mfs_print(DBG_WARNING, "Server[%d]: data not received :-(\n", mfs_comm_get_rank(ab)) ;
+    }
+
+    // free data buffer
     ret = mfs_free(&buff_key) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: problem on free :-(\n", mfs_comm_get_rank(ab)) ;
@@ -995,7 +1021,7 @@ int serverstub_mpi_dbmdelete ( comm_t *ab, params_t *params, int fd, int count )
 
     // (2) receive key
     mfs_print(DBG_INFO, "Server[%d]: File[%ld]: dbmdelete(bytes=%d) << client\n", mfs_comm_get_rank(ab), fd, key_size) ;
-    ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_key, key_size, MPI_CHAR) ;
+    ret = mfs_comm_mpi_recv_data_from(ab, MPI_ANY_SOURCE, buff_key, key_size, MPI_CHAR) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: data not received :-(\n", mfs_comm_get_rank(ab)) ;
     }
@@ -1010,7 +1036,7 @@ int serverstub_mpi_dbmdelete ( comm_t *ab, params_t *params, int fd, int count )
     }
 
     // (4) send back status for malloc...
-    ret = mfs_comm_send_data_to(ab, 0, &status, 1, MPI_INT) ;
+    ret = mfs_comm_mpi_send_data_to(ab, 0, &status, 1, MPI_INT) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: buff_val cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
     }
