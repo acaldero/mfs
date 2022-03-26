@@ -63,16 +63,7 @@ int mfs_api_init ( comm_t *wb, params_t *params )
              break ;
 
         case COMM_USE_LOCAL:
-             // Initialize files, dbm and directories
-             if (ret >= 0) {
-                 ret = mfs_file_init() ;
-             }
-             if (ret >= 0) {
-                 ret = mfs_dbm_init() ;
-             }
-             if (ret >= 0) {
-                 ret = mfs_directory_init() ;
-             }
+             ret = clientstub_local_init(wb, params, &conf) ;
              break ;
 
         default:
@@ -110,16 +101,7 @@ int mfs_api_finalize ( comm_t *wb, params_t *params )
              break ;
 
         case COMM_USE_LOCAL:
-             // Finalize files, dbm and directories
-             if (ret >= 0) {
-                 ret = mfs_directory_finalize() ;
-             }
-             if (ret >= 0) {
-                 ret = mfs_file_finalize() ;
-             }
-             if (ret >= 0) {
-                 ret = mfs_dbm_finalize() ;
-             }
+             ret = clientstub_local_finalize(wb, params) ;
              break ;
 
         default:
@@ -140,7 +122,6 @@ int mfs_api_finalize ( comm_t *wb, params_t *params )
 long mfs_api_open ( comm_t *wb, const char *pathname, int flags )
 {
     int ret ;
-    int fd ;
 
     // Check params...
     NULL_PRT_MSG_RET_VAL(wb, "[MFS_API]: NULL wb :-(\n", -1) ;
@@ -157,12 +138,7 @@ long mfs_api_open ( comm_t *wb, const char *pathname, int flags )
              break ;
 
         case COMM_USE_LOCAL:
-             ret = mfs_file_open(&fd, FILE_USE_POSIX, pathname, flags) ;
-             if (ret < 0) {
-                 mfs_print(DBG_WARNING, "[MFS_API]: file '%s' not opened :-(\n", pathname) ;
-	         return -1 ;
-             }
-	     ret = fd ;
+	     ret = clientstub_local_open(wb, pathname, flags) ;
              break ;
 
         default:
@@ -194,7 +170,7 @@ int  mfs_api_close ( comm_t *wb, long fd )
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = mfs_file_close(fd) ;
+	     ret = clientstub_local_close(wb, fd) ;
              break ;
 
         default:
@@ -226,7 +202,7 @@ int mfs_api_read ( comm_t *wb, long fd, void *buff_char, int count )
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = mfs_file_read(fd, buff_char, count) ;
+	     ret = clientstub_local_read(wb, fd, buff_char, count) ;
              break ;
 
         default:
@@ -258,7 +234,7 @@ int mfs_api_write ( comm_t *wb, long fd, void *buff_char, int count )
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = mfs_file_write(fd, buff_char, count) ;
+	     ret = clientstub_local_write(wb, fd, buff_char, count) ;
              break ;
 
         default:
@@ -295,7 +271,7 @@ long mfs_api_mkdir ( comm_t *wb, const char *pathname, int mode )
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = mfs_directory_mkdir(DIRECTORY_USE_POSIX, (char *)pathname, mode) ;
+	     ret = clientstub_local_mkdir(wb, pathname, mode) ;
              break ;
 
         default:
@@ -327,7 +303,7 @@ long mfs_api_rmdir ( comm_t *wb, const char *pathname )
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = mfs_directory_rmdir(DIRECTORY_USE_POSIX, (char *)pathname) ;
+	     ret = clientstub_local_rmdir(wb, pathname) ;
              break ;
 
         default:
@@ -365,12 +341,7 @@ long mfs_api_dbmopen ( comm_t *wb, const char *pathname, int flags )
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = mfs_dbm_open(&fd, DBM_USE_GDBM, pathname, flags) ;
-             if (ret < 0) {
-                 mfs_print(DBG_WARNING, "[MFS_API]: file '%s' not opened :-(\n", pathname) ;
-	         return -1 ;
-             }
-	     ret = fd ;
+	     ret = clientstub_local_dbmopen(wb, pathname, flags) ;
              break ;
 
         default:
@@ -402,7 +373,7 @@ int  mfs_api_dbmclose ( comm_t *wb, long fd )
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = mfs_dbm_close(fd) ;
+	     ret = clientstub_local_dbmclose(wb, fd) ;
              break ;
 
         default:
@@ -434,7 +405,7 @@ int  mfs_api_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_key, void
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = mfs_dbm_store(fd, buff_key, count_key, buff_val, count_val) ;
+	     ret = clientstub_local_dbmstore(wb, fd, buff_key, count_key, buff_val, count_val) ;
              break ;
 
         default:
@@ -466,7 +437,7 @@ int  mfs_api_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_key, void
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = mfs_dbm_fetch(fd, buff_key, count_key, &buff_val, count_val) ;
+	     ret = clientstub_local_dbmfetch(wb, fd, buff_key, count_key, buff_val, count_val) ;
              break ;
 
         default:
@@ -498,7 +469,7 @@ int  mfs_api_dbmdelete ( comm_t *wb, long fd, void *buff_key, int count_key )
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = mfs_dbm_delete(fd, buff_key, count_key) ;
+	     ret = clientstub_local_dbmdelete(wb, fd, buff_key, count_key) ;
              break ;
 
         default:
