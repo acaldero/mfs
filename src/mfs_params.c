@@ -24,14 +24,14 @@
  int  mfs_params_show ( params_t *params )
  {
  	printf(" Current parameters:\n");
-      	printf(" | -d '%s' \t\t <base directory>\n", params->data_prefix) ;
-      	printf(" | -c  %s  \t\t (SOCKET) | MPI\n",   params->comm_backend_name) ;
-      	printf(" | -f  %s  \t\t POSIX | (MPI-IO)\n", params->file_backend_name) ;
-      	printf(" | -i  %s  \t\t POSIX\n",            params->directory_backend_name) ;
-      	printf(" | -b  %s  \t\t GDBM\n",             params->dbm_backend_name) ;
-      	printf(" | -t '%s' \t ondemand | (pool)\n",  params->thread_launch_name) ;
-      	printf(" | -n '%s' \t <partition file>\n",   params->conf_fname) ;
-      	printf(" | -p  %d  \t\t <port number>\n",    params->server_port) ;
+      	printf(" | -d '%s' \t\t <base directory>\n",        params->data_prefix) ;
+      	printf(" | -c  %s  \t\t (SOCKET) | MPI | LOCAL\n",  params->comm_backend_name) ;
+      	printf(" | -f  %s  \t\t POSIX | (MPI-IO)\n",        params->file_backend_name) ;
+      	printf(" | -i  %s  \t\t POSIX\n",                   params->directory_backend_name) ;
+      	printf(" | -b  %s  \t\t GDBM\n",                    params->dbm_backend_name) ;
+      	printf(" | -t '%s' \t ondemand | (pool)\n",         params->thread_launch_name) ;
+      	printf(" | -n '%s' \t <partition file>\n",          params->conf_fname) ;
+      	printf(" | -p  %d  \t\t <port number>\n",           params->server_port) ;
 
       	// return OK
       	return 1;
@@ -41,7 +41,7 @@
  {
       	printf("Usage:\n");
       	printf("\t-d <string>:  name of the base directory (default: '%s')\n", DEFAULT_DATA_PREFIX) ;
-      	printf("\t-c <string>:  SOCKET | MPI               (default: %s)\n",   "MPI") ;
+      	printf("\t-c <string>:  SOCKET | MPI | LOCAL       (default: %s)\n",   "MPI") ;
       	printf("\t-f <string>:  POSIX | MPI-IO             (default: %s)\n",   "POSIX") ;
       	printf("\t-i <string>:  POSIX                      (default: %s)\n",   "POSIX") ;
       	printf("\t-b <string>:  GDBM                       (default: %s)\n",   "GDBM") ;
