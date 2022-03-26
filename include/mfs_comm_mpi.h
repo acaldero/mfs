@@ -32,18 +32,15 @@
 
 
     // API
-    int mfs_comm_mpi_init       ( comm_t *cb, conf_part_t *partition, int *main_argc, char ***main_argv ) ;
-    int mfs_comm_mpi_finalize   ( comm_t *cb ) ;
-
-    int mfs_comm_mpi_register   ( comm_t *cb ) ;
-    int mfs_comm_mpi_unregister ( comm_t *cb ) ;
-
-    int mfs_comm_mpi_accept           ( comm_t *ab ) ;
-    int mfs_comm_mpi_interconnect_all ( comm_t *cb, conf_t *conf ) ;
-    int mfs_comm_mpi_disconnect_all   ( comm_t *cb ) ;
+    int mfs_comm_mpi_init           ( comm_t *cb, conf_part_t *partition, int *main_argc, char ***main_argv ) ;
 
     int mfs_comm_mpi_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
     int mfs_comm_mpi_send_data_to   ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
+
+    int mfs_comm_mpi_send_buffer_in_chunks ( comm_t *wb, void *buff_char, int count, int buffer_size ) ;
+
+    int mfs_comm_mpi_stats_reset    ( comm_t *cb ) ;
+    int mfs_comm_mpi_stats_show     ( comm_t *cb, char *prefix ) ;
 
 #endif
 

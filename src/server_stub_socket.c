@@ -20,7 +20,7 @@
  */
 
 
-#include "mfs_server_stub.h"
+#include "server_stub_socket.h"
 
 
 /*
@@ -79,7 +79,7 @@ int stub_read_name ( comm_t *ab, char **buff_data_sys, int pathname_length )
     {
 	mfs_print(DBG_INFO, "Server[%d]: request for a name of %d chars\n", mfs_comm_get_rank(ab), pathname_length) ;
 
-        ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_data_user, pathname_length, MPI_CHAR) ;
+        ret = mfs_comm_socket_recv_data_from(ab, MPI_ANY_SOURCE, buff_data_user, pathname_length, sizeof(char)) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: name not received :-(\n", mfs_comm_get_rank(ab)) ;
         }
@@ -109,7 +109,7 @@ int stub_read_name ( comm_t *ab, char **buff_data_sys, int pathname_length )
  *  Server stub API
  */
 
-int serverstub_init ( comm_t *wb, params_t *params )
+int serverstub_socket_init ( comm_t *wb, params_t *params )
 {
     int     ret ;
     conf_t  conf ;
@@ -149,7 +149,7 @@ int serverstub_init ( comm_t *wb, params_t *params )
     }
 
     // Initialize
-    ret = mfs_comm_init(wb, conf.active, params) ;
+    ret = mfs_comm_socket_init(wb, conf.active, params->server_port, params->ns_backend) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: initialization fails for comm :-(\n", -1) ;
         return -1 ;
@@ -164,7 +164,13 @@ int serverstub_init ( comm_t *wb, params_t *params )
     local_node = mfs_conf_get_active_node(&conf, local_rank) ;
     strcpy(wb->srv_name, local_node) ;
 
-    ret = mfs_comm_register(wb) ;
+    ret = mfs_ns_get_portname(wb->port_name, wb->sd) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: mfs_ns_get_portname fails :-(\n", mfs_comm_get_rank(wb)) ;
+        return -1 ;
+    }
+
+    ret = mfs_ns_insert(wb, wb->ns_backend, wb->srv_name, wb->port_name) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: port registration fails :-(\n", mfs_comm_get_rank(wb)) ;
         return -1 ;
@@ -177,23 +183,25 @@ int serverstub_init ( comm_t *wb, params_t *params )
     return 0 ;
 }
 
-int serverstub_finalize ( comm_t *wb, params_t *params )
+int serverstub_socket_finalize ( comm_t *wb, params_t *params )
 {
     int ret ;
 
     // UnRegister
-    ret = mfs_comm_unregister(wb) ;
+    ret = mfs_ns_remove(wb, wb->ns_backend, wb->srv_name) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: port unregistration fails :-(\n", mfs_comm_get_rank(wb)) ;
         return -1 ;
     }
 
     // Finalize
-    ret = mfs_comm_finalize(wb) ;
+    ret = mfs_comm_socket_finalize(wb) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: finalization fails :-(\n", mfs_comm_get_rank(wb)) ;
         return -1 ;
     }
+
+    wb->is_connected = 0 ;
 
     // Finalize directories
     ret = mfs_directory_finalize() ;
@@ -227,31 +235,43 @@ int serverstub_finalize ( comm_t *wb, params_t *params )
     return 0 ;
 }
 
-int serverstub_accept ( comm_t *ab, params_t *params, comm_t *wb )
+int serverstub_socket_accept ( comm_t *ab, params_t *params, comm_t *wb )
 {
     int ret ;
 
+    // *ab = *wb ;
+    memmove(ab, wb, sizeof(comm_t)) ;
+
     // Accept connections...
-    ret = mfs_comm_accept(ab, wb) ;
+    ret = mfs_comm_socket_accept(ab, -1) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: accept connections fails :-(\n", mfs_comm_get_rank(ab)) ;
         return -1 ;
     }
 
+    ab->is_connected = 1 ;
+
     // Return OK
     return 0 ;
 }
 
-int serverstub_disconnect_all ( comm_t *ab, params_t *params )
+int serverstub_socket_disconnect_all ( comm_t *ab, params_t *params )
 {
     int ret ;
 
     // Disconnect
-    ret = mfs_comm_disconnect_all(ab) ;
-    if (ret < 0) {
-        mfs_print(DBG_ERROR, "Server[%d]: disconnect_all fails :-(\n", mfs_comm_get_rank(ab)) ;
-        return -1 ;
+    for (int i=0; i<ab->size; i++)
+    {
+         if (ab->dd[i] != -1)
+         {
+             ret = mfs_comm_socket_close(&(ab->dd[i])) ;
+             if (ret < 0) {
+                 mfs_print(DBG_ERROR, "Server[%d]: disconnect %d fails :-(\n", mfs_comm_get_rank(ab), i) ;
+             }
+         }
     }
+
+    ab->is_connected = 0 ;
 
     // Return OK/KO
     return ret ;
@@ -262,7 +282,7 @@ int serverstub_disconnect_all ( comm_t *ab, params_t *params )
  *  File API
  */
 
-int serverstub_open ( comm_t *ab, params_t *params, int *fd, int pathname_length, int flags )
+int serverstub_socket_open ( comm_t *ab, params_t *params, int *fd, int pathname_length, int flags )
 {
     int   ret ;
     char *buff_data_sys ;
@@ -306,7 +326,7 @@ int serverstub_open ( comm_t *ab, params_t *params, int *fd, int pathname_length
 	long fref = mfs_file_fd2long(*fd) ;
         mfs_print(DBG_INFO, "Server[%d]: File[%ld]: open(flags=%d) >> client\n", mfs_comm_get_rank(ab), fref, flags) ;
 
-        ret = mfs_comm_send_data_to(ab, 0, &(fref), 1, MPI_LONG) ;
+        ret = mfs_comm_socket_send_data_to(ab, 0, &(fref), 1, sizeof(long)) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: file descriptor cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
         }
@@ -325,7 +345,7 @@ int serverstub_open ( comm_t *ab, params_t *params, int *fd, int pathname_length
     return ret ;
 }
 
-int serverstub_close ( comm_t *ab, params_t *params, int fd )
+int serverstub_socket_close ( comm_t *ab, params_t *params, int fd )
 {
     int  ret ;
 
@@ -349,7 +369,7 @@ int serverstub_close ( comm_t *ab, params_t *params, int fd )
     // send back status
     if (ret >= 0)
     {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        ret = mfs_comm_socket_send_data_to(ab, 0, &ret, 1, sizeof(int)) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
         }
@@ -359,7 +379,7 @@ int serverstub_close ( comm_t *ab, params_t *params, int fd )
     return ret ;
 }
 
-int serverstub_read ( comm_t *ab, params_t *params, int fd, int count )
+int serverstub_socket_read ( comm_t *ab, params_t *params, int fd, int count )
 {
     int    ret ;
     int    is_dynamic ;
@@ -413,7 +433,7 @@ int serverstub_read ( comm_t *ab, params_t *params, int fd, int count )
            // send back status
            if (ret >= 0)
            {
-               ret = mfs_comm_send_data_to(ab, 0, &readed, 1, MPI_INT) ;
+               ret = mfs_comm_socket_send_data_to(ab, 0, &readed, 1, sizeof(int)) ;
                if (ret < 0) {
                    mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
                }
@@ -424,7 +444,7 @@ int serverstub_read ( comm_t *ab, params_t *params, int fd, int count )
            {
 	       mfs_print(DBG_INFO, "Server[%d]: File[%ld]: read(bytes=%d) >> client\n", mfs_comm_get_rank(ab), fd, ret) ;
 
-               ret = mfs_comm_send_data_to(ab, 0, buff_data, readed, MPI_CHAR) ;
+               ret = mfs_comm_socket_send_data_to(ab, 0, buff_data, readed, sizeof(char)) ;
                if (ret < 0) {
                    mfs_print(DBG_WARNING, "Server[%d]: data cannot be sent fails :-(\n", mfs_comm_get_rank(ab)) ;
                }
@@ -452,7 +472,7 @@ int serverstub_read ( comm_t *ab, params_t *params, int fd, int count )
     return ret ;
 }
 
-int serverstub_write ( comm_t *ab, params_t *params, int fd, int count )
+int serverstub_socket_write ( comm_t *ab, params_t *params, int fd, int count )
 {
     int    ret ;
     char  *buff_data ;
@@ -477,12 +497,12 @@ int serverstub_write ( comm_t *ab, params_t *params, int fd, int count )
 
     // if error then send back error and return
     if (ret < 0) {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        ret = mfs_comm_socket_send_data_to(ab, 0, &ret, 1, sizeof(int)) ;
 	return -1 ;
     }
 
     // send back buffer_size
-    ret = mfs_comm_send_data_to(ab, 0, &buffer_size, 1, MPI_INT) ;
+    ret = mfs_comm_socket_send_data_to(ab, 0, &buffer_size, 1, sizeof(int)) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: buffer_size cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
     }
@@ -502,7 +522,7 @@ int serverstub_write ( comm_t *ab, params_t *params, int fd, int count )
         {
 	    mfs_print(DBG_INFO, "Server[%d]: File[%ld]: write(bytes=%d) << client\n", mfs_comm_get_rank(ab), fd, buffer_size) ;
 
-            ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_data, buffer_size, MPI_CHAR) ;
+            ret = mfs_comm_socket_recv_data_from(ab, MPI_ANY_SOURCE, buff_data, buffer_size, sizeof(char)) ;
             if (ret < 0) {
                 mfs_print(DBG_WARNING, "Server[%d]: data not received :-(\n", mfs_comm_get_rank(ab)) ;
             }
@@ -526,7 +546,7 @@ int serverstub_write ( comm_t *ab, params_t *params, int fd, int count )
     // send back status
     //if (ret >= 0)
     {
-        ret = mfs_comm_send_data_to(ab, 0, &current_size, 1, MPI_INT) ;
+        ret = mfs_comm_socket_send_data_to(ab, 0, &current_size, 1, sizeof(int)) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
         }
@@ -547,7 +567,7 @@ int serverstub_write ( comm_t *ab, params_t *params, int fd, int count )
  *  Directory API
  */
 
-int serverstub_mkdir ( comm_t *ab, params_t *params, int pathname_length, int mode )
+int serverstub_socket_mkdir ( comm_t *ab, params_t *params, int pathname_length, int mode )
 {
     long  ret ;
     char *buff_data_sys ;
@@ -588,7 +608,7 @@ int serverstub_mkdir ( comm_t *ab, params_t *params, int pathname_length, int mo
     // send back status
     if (ret >= 0)
     {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_LONG) ;
+        ret = mfs_comm_socket_send_data_to(ab, 0, &ret, 1, sizeof(long)) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
         }
@@ -607,7 +627,7 @@ int serverstub_mkdir ( comm_t *ab, params_t *params, int pathname_length, int mo
     return ret ;
 }
 
-int serverstub_rmdir ( comm_t *ab, params_t *params, int pathname_length )
+int serverstub_socket_rmdir ( comm_t *ab, params_t *params, int pathname_length )
 {
     long  ret ;
     char *buff_data_sys ;
@@ -648,7 +668,7 @@ int serverstub_rmdir ( comm_t *ab, params_t *params, int pathname_length )
     // send back status
     if (ret >= 0)
     {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_LONG) ;
+        ret = mfs_comm_socket_send_data_to(ab, 0, &ret, 1, sizeof(long)) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
         }
@@ -672,7 +692,7 @@ int serverstub_rmdir ( comm_t *ab, params_t *params, int pathname_length )
  *  DBM File API
  */
 
-int serverstub_dbmopen ( comm_t *ab, params_t *params, int *fd, int pathname_length, int flags )
+int serverstub_socket_dbmopen ( comm_t *ab, params_t *params, int *fd, int pathname_length, int flags )
 {
     int   ret ;
     char *buff_data_sys ;
@@ -716,7 +736,7 @@ int serverstub_dbmopen ( comm_t *ab, params_t *params, int *fd, int pathname_len
 	long fref = mfs_dbm_fd2long(*fd) ;
         mfs_print(DBG_INFO, "Server[%d]: File[%ld]: open(flags=%d) >> client\n", mfs_comm_get_rank(ab), fref, flags) ;
 
-        ret = mfs_comm_send_data_to(ab, 0, &(fref), 1, MPI_LONG) ;
+        ret = mfs_comm_socket_send_data_to(ab, 0, &(fref), 1, sizeof(long)) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: file descriptor cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
         }
@@ -735,7 +755,7 @@ int serverstub_dbmopen ( comm_t *ab, params_t *params, int *fd, int pathname_len
     return ret ;
 }
 
-int serverstub_dbmclose ( comm_t *ab, params_t *params, int fd )
+int serverstub_socket_dbmclose ( comm_t *ab, params_t *params, int fd )
 {
     int ret ;
 
@@ -757,7 +777,7 @@ int serverstub_dbmclose ( comm_t *ab, params_t *params, int fd )
     }
 
     // send back status
-    ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+    ret = mfs_comm_socket_send_data_to(ab, 0, &ret, 1, sizeof(int)) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
     }
@@ -766,7 +786,7 @@ int serverstub_dbmclose ( comm_t *ab, params_t *params, int fd )
     return ret ;
 }
 
-int serverstub_dbmstore ( comm_t *ab, params_t *params, int fd, int count )
+int serverstub_socket_dbmstore ( comm_t *ab, params_t *params, int fd, int count )
 {
     int    ret ;
     char  *buff_key, *buff_val ;
@@ -782,7 +802,7 @@ int serverstub_dbmstore ( comm_t *ab, params_t *params, int fd, int count )
     // (1) receive val_size
     if (ret >= 0)
     {
-        ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, &val_size, 1, MPI_INT) ;
+        ret = mfs_comm_socket_recv_data_from(ab, MPI_ANY_SOURCE, &val_size, 1, sizeof(int)) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: data not received :-(\n", mfs_comm_get_rank(ab)) ;
         }
@@ -808,27 +828,27 @@ int serverstub_dbmstore ( comm_t *ab, params_t *params, int fd, int count )
 
     // (3) if error then send back error and return
     if (ret < 0) {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        ret = mfs_comm_socket_send_data_to(ab, 0, &ret, 1, sizeof(int)) ;
         mfs_print(DBG_WARNING, "Server[%d]: dbmstore(status:%d) >> client\n", mfs_comm_get_rank(ab), ret) ;
 	return -1 ;
     }
 
     // send back status for malloc...
-    ret = mfs_comm_send_data_to(ab, 0, &val_size, 1, MPI_INT) ;
+    ret = mfs_comm_socket_send_data_to(ab, 0, &val_size, 1, sizeof(int)) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: buff_val cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
     }
 
     // (4) receive key
     mfs_print(DBG_INFO, "Server[%d]: File[%ld]: dbmstore(bytes=%d) << client\n", mfs_comm_get_rank(ab), fd, key_size) ;
-    ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_key, key_size, MPI_CHAR) ;
+    ret = mfs_comm_socket_recv_data_from(ab, MPI_ANY_SOURCE, buff_key, key_size, sizeof(char)) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: data not received :-(\n", mfs_comm_get_rank(ab)) ;
     }
 
     // (5) receive val
     mfs_print(DBG_INFO, "Server[%d]: File[%ld]: dbmstore(bytes=%d) << client\n", mfs_comm_get_rank(ab), fd, val_size) ;
-    ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_val, val_size, MPI_CHAR) ;
+    ret = mfs_comm_socket_recv_data_from(ab, MPI_ANY_SOURCE, buff_val, val_size, sizeof(char)) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: data not received :-(\n", mfs_comm_get_rank(ab)) ;
     }
@@ -847,7 +867,7 @@ int serverstub_dbmstore ( comm_t *ab, params_t *params, int fd, int count )
     // (7) send back status for val
     //if (ret >= 0)
     {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        ret = mfs_comm_socket_send_data_to(ab, 0, &ret, 1, sizeof(int)) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: operation status cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
         }
@@ -868,7 +888,7 @@ int serverstub_dbmstore ( comm_t *ab, params_t *params, int fd, int count )
     return ret ;
 }
 
-int serverstub_dbmfetch ( comm_t *ab, params_t *params, int fd, int count )
+int serverstub_socket_dbmfetch ( comm_t *ab, params_t *params, int fd, int count )
 {
     int    ret, status ;
     char  *buff_key, *buff_val ;
@@ -885,7 +905,7 @@ int serverstub_dbmfetch ( comm_t *ab, params_t *params, int fd, int count )
     // (1) receive val_size
     if (ret >= 0)
     {
-        ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, &val_size, 1, MPI_INT) ;
+        ret = mfs_comm_socket_recv_data_from(ab, MPI_ANY_SOURCE, &val_size, 1, sizeof(int)) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: data not received :-(\n", mfs_comm_get_rank(ab)) ;
         }
@@ -911,19 +931,19 @@ int serverstub_dbmfetch ( comm_t *ab, params_t *params, int fd, int count )
 
     // (3) if error then send back error and return
     if (ret < 0) {
-        ret = mfs_comm_send_data_to(ab, 0, &ret, 1, MPI_INT) ;
+        ret = mfs_comm_socket_send_data_to(ab, 0, &ret, 1, sizeof(int)) ;
         mfs_print(DBG_WARNING, "Server[%d]: dbmfetch(status:%d) >> client\n", mfs_comm_get_rank(ab), ret) ;
 	return -1 ;
     }
 
     // send back status for malloc...
-    ret = mfs_comm_send_data_to(ab, 0, &val_size, 1, MPI_INT) ;
+    ret = mfs_comm_socket_send_data_to(ab, 0, &val_size, 1, sizeof(int)) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: buff_val cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
     }
 
     // (4) receive key
-    ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_key, key_size, MPI_CHAR) ;
+    ret = mfs_comm_socket_recv_data_from(ab, MPI_ANY_SOURCE, buff_key, key_size, sizeof(char)) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: data not received :-(\n", mfs_comm_get_rank(ab)) ;
     }
@@ -938,7 +958,7 @@ int serverstub_dbmfetch ( comm_t *ab, params_t *params, int fd, int count )
     }
 
     // (6) send back status for malloc...
-    ret = mfs_comm_send_data_to(ab, 0, &status, 1, MPI_INT) ;
+    ret = mfs_comm_socket_send_data_to(ab, 0, &status, 1, sizeof(int)) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: buff_val cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
     }
@@ -949,7 +969,7 @@ int serverstub_dbmfetch ( comm_t *ab, params_t *params, int fd, int count )
     {
         mfs_print(DBG_INFO, "Server[%d]: File[%ld]: dbmfetch(buff_val=%.*s of %d bytes) >> client\n", mfs_comm_get_rank(ab), fd, val_size, buff_val, val_size) ;
 
-        ret = mfs_comm_send_data_to(ab, 0, buff_val, val_size, MPI_CHAR) ;
+        ret = mfs_comm_socket_send_data_to(ab, 0, buff_val, val_size, sizeof(char)) ;
         if (ret < 0) {
             mfs_print(DBG_WARNING, "Server[%d]: data not received :-(\n", mfs_comm_get_rank(ab)) ;
         }
@@ -970,7 +990,7 @@ int serverstub_dbmfetch ( comm_t *ab, params_t *params, int fd, int count )
     return ret ;
 }
 
-int serverstub_dbmdelete ( comm_t *ab, params_t *params, int fd, int count )
+int serverstub_socket_dbmdelete ( comm_t *ab, params_t *params, int fd, int count )
 {
     int    ret, status ;
     char  *buff_key, *buff_val ;
@@ -995,7 +1015,7 @@ int serverstub_dbmdelete ( comm_t *ab, params_t *params, int fd, int count )
 
     // (2) receive key
     mfs_print(DBG_INFO, "Server[%d]: File[%ld]: dbmdelete(bytes=%d) << client\n", mfs_comm_get_rank(ab), fd, key_size) ;
-    ret = mfs_comm_recv_data_from(ab, MPI_ANY_SOURCE, buff_key, key_size, MPI_CHAR) ;
+    ret = mfs_comm_socket_recv_data_from(ab, MPI_ANY_SOURCE, buff_key, key_size, sizeof(char)) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: data not received :-(\n", mfs_comm_get_rank(ab)) ;
     }
@@ -1010,7 +1030,7 @@ int serverstub_dbmdelete ( comm_t *ab, params_t *params, int fd, int count )
     }
 
     // (4) send back status for malloc...
-    ret = mfs_comm_send_data_to(ab, 0, &status, 1, MPI_INT) ;
+    ret = mfs_comm_socket_send_data_to(ab, 0, &status, 1, sizeof(int)) ;
     if (ret < 0) {
         mfs_print(DBG_WARNING, "Server[%d]: buff_val cannot be sent :-(\n", mfs_comm_get_rank(ab)) ;
     }

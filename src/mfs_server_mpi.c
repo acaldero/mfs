@@ -23,12 +23,12 @@
    #include <signal.h>
    #include "mfs_params.h"
    #include "mfs_protocol.h"
-   #include "mfs_server_stub.h"
    #include "mfs_workers.h"
+   #include "server_stub_mpi.h"
 
 
    // stats
-   char    *ver     = "0.95" ;
+   char    *ver     = "0.98-mpi" ;
    int      the_end = 0 ;
    long     t1      = 0L ;
    params_t params ;
@@ -61,7 +61,7 @@
           ret = mfs_protocol_request_receive(&th.ab, &msg) ;
 	  if (ret < 0)
 	  {
-	      mfs_print(DBG_ERROR, "Server[%d]: mfs_protocol_request_receive with no more request\n", th.ab.rank) ;
+	      mfs_print(DBG_ERROR, "Server[%d]: mfs_protocol_mpi_request_receive with no more request\n", th.ab.rank) ;
 	      again = 0 ;
 	      continue ;
 	  }
@@ -84,56 +84,56 @@
 
               // Files
 	      case REQ_ACTION_OPEN:
-                   ret = serverstub_open(&th.ab, &params, &fd, msg.req_arg1, msg.req_arg2) ;
+                   ret = serverstub_mpi_open(&th.ab, &params, &fd, msg.req_arg1, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_CLOSE:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_close(&th.ab, &params, fd) ;
+                   ret = serverstub_mpi_close(&th.ab, &params, fd) ;
 	           break;
 
 	      case REQ_ACTION_READ:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_read(&th.ab, &params, fd, msg.req_arg2) ;
+                   ret = serverstub_mpi_read(&th.ab, &params, fd, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_WRITE:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_write(&th.ab, &params, fd, msg.req_arg2) ;
+                   ret = serverstub_mpi_write(&th.ab, &params, fd, msg.req_arg2) ;
 	           break;
 
               // Directories
 	      case REQ_ACTION_MKDIR:
-                   ret = serverstub_mkdir(&th.ab, &params, msg.req_arg1, msg.req_arg2) ;
+                   ret = serverstub_mpi_mkdir(&th.ab, &params, msg.req_arg1, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_RMDIR:
-                   ret = serverstub_rmdir(&th.ab, &params, msg.req_arg1) ;
+                   ret = serverstub_mpi_rmdir(&th.ab, &params, msg.req_arg1) ;
 	           break;
 
               // DBM Files
 	      case REQ_ACTION_DBMOPEN:
-                   ret = serverstub_dbmopen(&th.ab, &params, &fd, msg.req_arg1, msg.req_arg2) ;
+                   ret = serverstub_mpi_dbmopen(&th.ab, &params, &fd, msg.req_arg1, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_DBMCLOSE:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_dbmclose(&th.ab, &params, fd) ;
+                   ret = serverstub_mpi_dbmclose(&th.ab, &params, fd) ;
 	           break;
 
 	      case REQ_ACTION_DBMSTORE:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_dbmstore(&th.ab, &params, fd, msg.req_arg2) ;
+                   ret = serverstub_mpi_dbmstore(&th.ab, &params, fd, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_DBMFETCH:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_dbmfetch(&th.ab, &params, fd, msg.req_arg2) ;
+                   ret = serverstub_mpi_dbmfetch(&th.ab, &params, fd, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_DBMDELETE:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_dbmdelete(&th.ab, &params, fd, msg.req_arg2) ;
+                   ret = serverstub_mpi_dbmdelete(&th.ab, &params, fd, msg.req_arg2) ;
 	           break;
 
 	      // Default
@@ -143,7 +143,7 @@
        }
 
        // disconnect from server
-       serverstub_disconnect_all(&(th.ab), &params) ;
+       serverstub_mpi_disconnect_all(&(th.ab), &params) ;
    }
 
 
@@ -181,9 +181,9 @@ int main ( int argc, char **argv )
     }
 
     // Initialize stub...
-    ret = serverstub_init(&wb, &params) ;
+    ret = serverstub_mpi_init(&wb, &params) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Server[%d]: serverstub_init fails :-(\n", -1) ;
+        mfs_print(DBG_ERROR, "Server[%d]: serverstub_mpi_init fails :-(\n", -1) ;
         return -1 ;
     }
 
@@ -196,7 +196,7 @@ int main ( int argc, char **argv )
     {
 	// To serve next request...
         mfs_print(DBG_INFO, "Server[%d]: accepting...\n", wb.rank) ;
-        ret = serverstub_accept(&ab, &params, &wb) ;
+        ret = serverstub_mpi_accept(&ab, &params, &wb) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Server[%d]: accept fails :-(\n", -1) ;
         }
@@ -212,7 +212,7 @@ int main ( int argc, char **argv )
 
     // Finalize...
     mfs_print(DBG_INFO, "Server[%d]: ends.\n", wb.rank) ;
-    serverstub_finalize(&wb, &params) ;
+    serverstub_mpi_finalize(&wb, &params) ;
 
     return 0 ;
 }

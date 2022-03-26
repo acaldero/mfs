@@ -24,7 +24,9 @@
 
     // Includes
     #include "mfs_lib.h"
-    #include "mfs_comm.h"
+    #include "mfs_comm_common.h"
+    #include "mfs_comm_mpi.h"
+    #include "mfs_comm_socket.h"
 
 
     /*
@@ -62,20 +64,13 @@
         long  req_arg2 ;
     } msg_t ;
 
-    typedef struct
-    {
-	void        *buff ;
-	int          size ;
-	MPI_Datatype datatype ;
-	int          remote ;
-	int          comm_action ;
-	char        *err_msg ;
-    } buffer_t ;
-
 
     // Communications
     int mfs_protocol_request_send    ( comm_t *cb, int rank, msg_t *msg ) ;
     int mfs_protocol_request_receive ( comm_t *cb,           msg_t *msg ) ;
+
+    int mfs_protocol_request_receive2 ( comm_t *cb, long *req_action, long *req_arg1, long *req_arg2 ) ;
+    int mfs_protocol_request_send2    ( comm_t *cb, int rank, long req_action, long req_arg1, long req_arg2 ) ;
 
 #endif
 

@@ -23,13 +23,33 @@
 
 
 //
-// Init, Finalize
+// Init, interconnect
 //
 
 int mfs_comm_mpi_init ( comm_t *cb, conf_part_t *partition, int *main_argc, char ***main_argv )
 {
     int ret ;
     int claimed, provided ;
+
+    // Check params...
+    NULL_PRT_MSG_RET_VAL(cb,        "[COMM]: NULL cb        :-(\n", -1) ;
+    NULL_PRT_MSG_RET_VAL(partition, "[COMM]: NULL partition :-(\n", -1) ;
+
+    // Initialization
+    cb->comm_protocol = COMM_USE_MPI ;
+    cb->comm_protocol_name = "MPI" ;
+    cb->n_send_req    = 0 ;
+    cb->n_recv_req    = 0 ;
+    cb->status_rank   = -1 ;
+    cb->status_tag    = -1 ;
+    cb->status_count  = -1 ;
+
+    // number of servers
+    cb->n_servers = partition->n_nodes ;
+    if (cb->n_servers < 0) {
+        mfs_print(DBG_ERROR, "[COMM]: set n_servers fails :-(\n") ;
+        return -1 ;
+    }
 
     // MPI_Init
     ret = MPI_Init_thread(main_argc, main_argv, MPI_THREAD_MULTIPLE, &provided) ;
@@ -57,136 +77,9 @@ int mfs_comm_mpi_init ( comm_t *cb, conf_part_t *partition, int *main_argc, char
         return -1 ;
     }
 
-    // cb->status_...
-    cb->status_rank  = -1 ;
-    cb->status_tag   = -1 ;
-    cb->status_count = -1 ;
-
     // id within local node...
     MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &(cb->local_comm)) ;
     MPI_Comm_rank(cb->local_comm, &(cb->local_rank)) ;
-
-    // Return OK
-    return 1 ;
-}
-
-int mfs_comm_mpi_finalize ( comm_t *cb )
-{
-    int ret ;
-
-    // Finalize
-    ret = MPI_Finalize() ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Finalize fails :-(\n") ;
-        return -1 ;
-    }
-
-    // Return OK
-    return 1 ;
-}
-
-
-//
-// Register, unregister, connect, disconnect
-//
-
-int mfs_comm_mpi_register ( comm_t *cb )
-{
-    int ret ;
-
-    // Open server port...
-    ret = MPI_Open_port(MPI_INFO_NULL, cb->port_name);
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Open_port fails :-(\n") ;
-        return -1 ;
-    }
-
-    MPI_Info info ;
-    MPI_Info_create(&info) ;
-    MPI_Info_set(info, "ompi_global_scope", "true") ;
-
-    ret = MPI_Publish_name(cb->srv_name, info, cb->port_name) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Publish_name fails :-(\n") ;
-        return -1 ;
-    }
-
-    // Return OK
-    return 1 ;
-}
-
-int mfs_comm_mpi_unregister ( comm_t *cb )
-{
-    int ret ;
-
-    // Unpublish port name
-    ret = MPI_Unpublish_name(cb->srv_name, MPI_INFO_NULL, cb->port_name) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Unpublish_name fails :-(\n") ;
-        return -1 ;
-    }
-
-    // Close port
-    MPI_Close_port(cb->port_name) ;
-
-    // Return OK
-    return 1 ;
-}
-
-int mfs_comm_mpi_accept ( comm_t *ab )
-{
-    int ret ;
-
-    // Accept
-    ret = MPI_Comm_accept(ab->port_name, MPI_INFO_NULL, 0, MPI_COMM_SELF, &(ab->endpoint)) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_accept fails :-(\n") ;
-        return -1 ;
-    }
-
-    // Return OK
-    return 1 ;
-}
-
-int mfs_comm_mpi_interconnect_all ( comm_t *cb, conf_t *conf )
-{
-    int   ret ;
-    int   remote_rank ;
-    char *srv_uri ;
-
-    // Get service name
-    remote_rank = mfs_comm_get_rank(cb) % conf->active->n_nodes ;
-    srv_uri = mfs_conf_get_active_node(conf, remote_rank) ;
-    strcpy(cb->srv_name, srv_uri) ;
-
-    // Lookup...
-    ret = MPI_Lookup_name(srv_uri, MPI_INFO_NULL, cb->port_name) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Lookup_name fails :-(\n") ;
-        return -1 ;
-    }
-
-    // Connect...
-    ret = MPI_Comm_connect(cb->port_name, MPI_INFO_NULL, 0, MPI_COMM_SELF, &(cb->endpoint)) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_connect(%s) fails :-(\n", srv_uri) ;
-        return -1 ;
-    }
-
-    // Return OK
-    return 1 ;
-}
-
-int mfs_comm_mpi_disconnect_all ( comm_t *cb )
-{
-    int ret ;
-
-    // Disconnect...
-    ret = MPI_Comm_disconnect(&(cb->endpoint)) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_disconnect(...) fails :-(\n") ;
-        return -1 ;
-    }
 
     // Return OK
     return 1 ;
@@ -228,6 +121,9 @@ int mfs_comm_mpi_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MP
     cb->status_tag  = status.MPI_TAG ;
     MPI_Get_count(&status, datatype, &(cb->status_count));
 
+    // Stats
+    cb->n_recv_req++ ;
+
     // Return OK
     return 1 ;
 }
@@ -242,6 +138,74 @@ int mfs_comm_mpi_send_data_to  ( comm_t *cb, int rank, void *buff, int size, MPI
         mfs_print(DBG_WARNING, "[COMM]: MPI_Send fails :-(\n") ;
         return -1 ;
     }
+
+    // Stats
+    cb->n_send_req++ ;
+
+    // Return OK
+    return 1 ;
+}
+
+
+//
+// Send buffer in chunks of buffer_size bytes
+//
+
+int mfs_comm_mpi_send_buffer_in_chunks ( comm_t *wb, void *buff_char, int count, int buffer_size )
+{
+    int  ret ;
+    long remaining_size, current_size ;
+
+    ret            =  1 ;
+    current_size   =  0 ;
+    remaining_size = count ;
+    while ( (ret > 0) && (remaining_size > 0) )
+    {
+        // Send data
+        if (ret >= 0)
+        {
+            ret = mfs_comm_mpi_send_data_to(wb, 0, buff_char + current_size, buffer_size, MPI_CHAR) ;
+            if (ret < 0) {
+                mfs_print(DBG_ERROR, "Client[%d]: data cannot be sent :-(\n", mfs_comm_get_rank(wb)) ;
+            }
+        }
+
+        current_size   = current_size   + buffer_size ;
+        remaining_size = remaining_size - buffer_size ;
+    }
+
+    // Return bytes written
+    return current_size ;
+}
+
+
+//
+// Stats
+//
+
+int mfs_comm_mpi_stats_reset ( comm_t *cb )
+{
+    // Check params...
+    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(\n", -1) ;
+
+    // cb->... (stats)
+    cb->n_send_req = 0 ;
+    cb->n_recv_req = 0 ;
+
+    // Return OK
+    return 0 ;
+}
+
+int mfs_comm_mpi_stats_show  ( comm_t *cb, char *prefix )
+{
+    // Check params...
+    NULL_PRT_MSG_RET_VAL(cb, "[COMM] NULL cb", -1) ;
+
+    // Print stats...
+    printf("%s: Comm:\n",              prefix) ;
+    printf("%s: + # servers=%d\n",     prefix, cb->n_servers) ;
+    printf("%s: + # send=%d\n",        prefix, cb->n_send_req) ;
+    printf("%s: + # recv=%d\n",        prefix, cb->n_recv_req) ;
 
     // Return OK
     return 1 ;

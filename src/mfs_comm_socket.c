@@ -129,10 +129,26 @@ int mfs_comm_socket_init ( comm_t *cb, conf_part_t *partition, int server_port, 
 {
 	int ret;
 
-	// initialize fields
-	cb->rank       = 0 ;
-	cb->size       = partition->n_nodes ;
-	cb->ns_backend = ns_backend ;
+        // Check params...
+        NULL_PRT_MSG_RET_VAL(cb,        "[COMM]: NULL cb        :-(\n", -1) ;
+        NULL_PRT_MSG_RET_VAL(partition, "[COMM]: NULL partition :-(\n", -1) ;
+
+	// Initialize fields
+        cb->comm_protocol = COMM_USE_SOCKET ;
+        cb->comm_protocol_name = "SOCKET" ;
+	cb->rank          = 0 ;
+	cb->size          = partition->n_nodes ;
+	cb->ns_backend    = ns_backend ;
+        cb->is_connected  = 0 ;
+        cb->n_send_req    = 0 ;
+        cb->n_recv_req    = 0 ;
+
+        // number of servers
+        cb->n_servers = partition->n_nodes ;
+        if (cb->n_servers < 0) {
+            mfs_print(DBG_ERROR, "[COMM]: set n_servers fails :-(\n") ;
+            return -1 ;
+        }
 
 	// new server socket
         if (server_port != -1)
@@ -184,43 +200,6 @@ int mfs_comm_socket_finalize ( comm_t *cb )
 //
 // Register, unregister, connect, disconnect
 //
-
-int mfs_comm_socket_register ( comm_t *cb )
-{
-	int ret ;
-
-	// get port_name
-	ret = mfs_ns_get_portname(cb->port_name, cb->sd) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "[COMM]: mfs_ns_get_portname fails :-(\n") ;
-            return -1 ;
-        }
-
-	// register service into ns
-	ret = mfs_ns_insert(cb, cb->ns_backend, cb->srv_name, cb->port_name) ;
-	if (ret < 0) {
-	    mfs_print(DBG_ERROR, "[COMM]: registration fails :-(\n") ;
-	    return -1 ;
-	}
-
-        // Return OK
-        return 1 ;
-}
-
-int mfs_comm_socket_unregister ( comm_t *cb )
-{
-	int ret ;
-
-	// unregister service from ns
-	ret = mfs_ns_remove(cb, cb->ns_backend, cb->srv_name) ;
-	if (ret < 0) {
-	    mfs_print(DBG_ERROR, "[COMM]: unregistration fails :-(\n") ;
-	    return -1 ;
-	}
-
-        // Return OK
-        return 1 ;
-}
 
 int mfs_comm_socket_accept ( comm_t *ab, int remote_rank )
 {
@@ -339,43 +318,6 @@ int mfs_comm_socket_disconnect ( comm_t *cb, int remote_rank )
         return 1 ;
 }
 
-int mfs_comm_socket_interconnect_all ( comm_t *cb, conf_t *conf )
-{
-	int   ret ;
-        char *srv_uri ;
-
-        // Connect to all servers...
-	for (int i=0; i<conf->active->n_nodes; i++)
-	{
-             srv_uri = mfs_conf_get_active_node(conf, i) ;
-           //strcpy(cb->srv_name, srv_uri) ;
-             ret = mfs_comm_socket_connect(cb, srv_uri, i) ;
-	}
-
-        // Return OK/KO
-        return ret ;
-}
-
-int mfs_comm_socket_disconnect_all ( comm_t *cb )
-{
-	int ret ;
-
-	// Close sockets...
-	for (int i=0; i<cb->size; i++)
-	{
-	     if (cb->dd[i] != -1)
-	     {
-		ret = mfs_comm_socket_close(&(cb->dd[i])) ;
-		if (ret < 0) {
-		    mfs_print(DBG_ERROR, "[COMM]: close socket %d fails :-(\n", i) ;
-		}
-	     }
-	}
-
-        // Return OK
-        return 1 ;
-}
-
 
 //
 // Send/Receive buffer of data
@@ -467,6 +409,9 @@ int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size,
 	    }
 	}
 
+	// Stats
+	cb->n_recv_req++ ;
+
         // Return OK/KO
         return ret ;
 }
@@ -485,7 +430,42 @@ int mfs_comm_socket_send_data_to  ( comm_t *cb, int rank, void *buff, int size, 
         mpi_type_size(datatype, &data_size) ;
         ret = mfs_file_posix_write(cb->dd[rank], buff, size * data_size) ;
 
+        // Stats
+        cb->n_send_req++ ;
+
         // Return OK/KO
         return ret ;
+}
+
+//
+// Stats
+//
+
+int mfs_comm_socket_stats_reset ( comm_t *cb )
+{
+    // Check params...
+    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(\n", -1) ;
+
+    // cb->... (stats)
+    cb->n_send_req = 0 ;
+    cb->n_recv_req = 0 ;
+
+    // Return OK
+    return 0 ;
+}
+
+int mfs_comm_socket_stats_show  ( comm_t *cb, char *prefix )
+{
+    // Check params...
+    NULL_PRT_MSG_RET_VAL(cb, "[COMM] NULL cb", -1) ;
+
+    // Print stats...
+    printf("%s: Comm:\n",              prefix) ;
+    printf("%s: + # servers=%d\n",     prefix, cb->n_servers) ;
+    printf("%s: + # send=%d\n",        prefix, cb->n_send_req) ;
+    printf("%s: + # recv=%d\n",        prefix, cb->n_recv_req) ;
+
+    // Return OK
+    return 1 ;
 }
 

@@ -1,4 +1,4 @@
-# MFS (v0.95)
+# MFS (v0.98)
 Prototype of MFS
 
 ## Getting started
