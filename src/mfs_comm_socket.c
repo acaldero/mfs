@@ -323,64 +323,13 @@ int mfs_comm_socket_disconnect ( comm_t *cb, int remote_rank )
 // Send/Receive buffer of data
 //
 
-int mpi_type_size ( MPI_Datatype datatype, int *size )
-{
-        switch (datatype)
-	{
-	   case MPI_BYTE:
-	   case MPI_CHAR:
-	   case MPI_SIGNED_CHAR:
-	   case MPI_UNSIGNED_CHAR:
-		*size = sizeof(char) ;
-		break;
-
-	   case MPI_SHORT:
-	   case MPI_UNSIGNED_SHORT:
-		*size = sizeof(short) ;
-		break;
-
-	   case MPI_INT:
-	   case MPI_UNSIGNED:
-		*size = sizeof(int) ;
-		break;
-
-	   case MPI_LONG:
-	   case MPI_UNSIGNED_LONG:
-		*size = sizeof(long) ;
-		break;
-
-	   case MPI_FLOAT:
-		*size = sizeof(float) ;
-		break;
-
-	   case MPI_DOUBLE:
-		*size = sizeof(double) ;
-		break;
-
-	   default:
-		*size = 0 ;
-		return -1 ;
-		break;
-	}
-
-        // Return OK
-        return 1 ;
-}
-
-int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype )
+int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size )
 {
         int ret ;
-        int data_size ;
 
         // Check arguments
 	NULL_PRT_MSG_RET_VAL(cb,     "[COMM]: NULL cb     :-(\n", -1) ;
 	NULL_PRT_MSG_RET_VAL(cb->dd, "[COMM]: NULL cb->dd :-(\n", -1) ;
-
-	// Get datatype size in bytes...
-        ret = mpi_type_size(datatype, &data_size) ;
-	if (ret < 0) {
-	    mfs_print(DBG_ERROR, "[COMM]: mpi_type_size find an unknown datatype %d :-(\n", datatype) ;
-	}
 
         // Try to receive data from...
 	ret = -1 ;
@@ -396,7 +345,7 @@ int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size,
 
 	    if (rank != -1)
 	    {
-	        ret = mfs_file_posix_read(cb->dd[rank], buff, size * data_size) ;
+	        ret = mfs_file_posix_read(cb->dd[rank], buff, size) ;
 	        if (ret < 0) {
 	    	    mfs_print(DBG_ERROR, "[COMM]: read from socket %d fails :-(\n", cb->dd[rank]) ;
 	        }
@@ -405,7 +354,7 @@ int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size,
 	else
 	{
 	    if (cb->dd[rank] != -1) {
-                ret = mfs_file_posix_read(cb->dd[rank], buff, size * data_size) ;
+                ret = mfs_file_posix_read(cb->dd[rank], buff, size) ;
 	    }
 	}
 
@@ -416,10 +365,9 @@ int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size,
         return ret ;
 }
 
-int mfs_comm_socket_send_data_to  ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype )
+int mfs_comm_socket_send_data_to  ( comm_t *cb, int rank, void *buff, int size )
 {
         int ret ;
-        int data_size ;
 
         // Check arguments
 	NULL_PRT_MSG_RET_VAL(cb,     "[COMM]: NULL cb     :-(\n", -1) ;
@@ -427,8 +375,7 @@ int mfs_comm_socket_send_data_to  ( comm_t *cb, int rank, void *buff, int size, 
         if (-1 == cb->dd[rank]) { return -1; }
 
         // Send data to...
-        mpi_type_size(datatype, &data_size) ;
-        ret = mfs_file_posix_write(cb->dd[rank], buff, size * data_size) ;
+        ret = mfs_file_posix_write(cb->dd[rank], buff, size) ;
 
         // Stats
         cb->n_send_req++ ;

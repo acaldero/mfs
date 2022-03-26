@@ -23,7 +23,7 @@
 
    #include "mfs_lib.h"
    #include "mfs_params.h"
-   #include "mfs_protocol.h"
+   #include "stub_msg.h"
 
    #include <pthread.h>
 

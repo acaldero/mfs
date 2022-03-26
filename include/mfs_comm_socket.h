@@ -44,8 +44,8 @@
     int mfs_comm_socket_connect    ( comm_t *cb, char *srv_uri, int remote_rank ) ;
     int mfs_comm_socket_close      ( int *sd ) ;
 
-    int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size, int datatype_size ) ;
-    int mfs_comm_socket_send_data_to   ( comm_t *cb, int rank, void *buff, int size, int datatype_size ) ;
+    int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size ) ;
+    int mfs_comm_socket_send_data_to   ( comm_t *cb, int rank, void *buff, int size ) ;
 
     int mfs_comm_socket_stats_reset    ( comm_t *cb ) ;
     int mfs_comm_socket_stats_show     ( comm_t *cb, char *prefix ) ;

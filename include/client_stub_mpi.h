@@ -25,11 +25,13 @@
     // Includes
     #include "mfs_lib.h"
     #include "mfs_conf.h"
-    #include "mfs_protocol.h"
+    #include "mfs_comm_common.h"
+    #include "mfs_comm_mpi.h"
+    #include "stub_msg.h"
 
 
     // File System API
-    int clientstub_mpi_init     ( comm_t *wb, params_t *params ) ;
+    int clientstub_mpi_init     ( comm_t *wb, params_t *params, conf_t *conf ) ;
     int clientstub_mpi_finalize ( comm_t *wb, params_t *params ) ;
 
     // File API

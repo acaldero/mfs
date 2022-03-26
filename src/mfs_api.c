@@ -30,20 +30,36 @@
 int mfs_api_init ( comm_t *wb, params_t *params )
 {
     int ret ;
+    conf_t conf ;
 
     // Check params...
     NULL_PRT_MSG_RET_VAL(wb, "[MFS_API]: NULL wb :-(\n", -1) ;
+
+    // Get valid configuration..
+    ret = mfs_conf_get(&conf, params->conf_fname) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Client[%d]: mfs_conf_get fails to read file '%s' :-(\n", -1, params->conf_fname) ;
+    }
+
+    if (ret >= 0)
+    {
+        mfs_conf_show(&conf) ;
+        if (conf.n_partitions < 1) {
+            mfs_print(DBG_ERROR, "Client[%d]: mfs_conf_get fails to read at least one partition in file '%s' :-(\n", -1, params->conf_fname) ;
+	    return -1 ;
+        }
+    }
 
     // Open server port...
     wb->comm_protocol = params->comm_backend ;
     switch (wb->comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = clientstub_socket_init(wb, params) ;
+	     ret = clientstub_socket_init(wb, params, &conf) ;
              break ;
 
         case COMM_USE_MPI:
-	     ret = clientstub_mpi_init(wb, params) ;
+	     ret = clientstub_mpi_init(wb, params, &conf) ;
              break ;
 
         case COMM_USE_LOCAL:
@@ -63,6 +79,12 @@ int mfs_api_init ( comm_t *wb, params_t *params )
 	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->comm_protocol) ;
 	     return -1 ;
              break ;
+    }
+
+    // Free configuration
+    if (ret >= 0)
+    {
+        mfs_conf_free(&conf) ;
     }
 
     // Return OK
