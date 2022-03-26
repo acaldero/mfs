@@ -24,12 +24,11 @@
 
     // Includes
     #include "mfs_lib.h"
-    #include "mfs_protocol.h"
+    #include "stub_msg.h"
     #include "mfs_files.h"
     #include "mfs_directories.h"
     #include "mfs_dbm.h"
-
-    #include <mpi.h>
+    #include "mfs_comm_socket.h"
 
 
     // Define

@@ -17,14 +17,13 @@ LIB_FILES=$(LIB_DIR)/mfs_client.a
 OBJ_FILES=src/mfs_api.o \
 	  src/client_stub_mpi.o     src/server_stub_mpi.o \
 	  src/client_stub_socket.o  src/server_stub_socket.o \
-	  src/mfs_protocol.o \
 	                            src/mfs_comm_mpi.o          src/mfs_comm_socket.o \
-	  src/mfs_workers.o         src/mfs_workers_pool.o      src/mfs_workers_onrequest.o \
 	  src/mfs_files.o           src/mfs_files_posix.o       src/mfs_files_mpi.o   \
 	  src/mfs_directories.o     src/mfs_directories_posix.o                       \
           src/mfs_dbm.o             src/mfs_dbm_gdbm.o          src/mfs_dbm_redis.o   \
-	  src/mfs_ns.o \
-	  src/mfs_params.o          src/mfs_conf.o              src/mfs_descriptors.o  src/mfs_lib.o
+	  src/mfs_workers.o         src/mfs_workers_pool.o      src/mfs_workers_onrequest.o \
+	  src/mfs_ns.o              src/mfs_params.o            src/mfs_conf.o \
+	  src/mfs_descriptors.o     src/mfs_lib.o
 
 
 #
@@ -46,10 +45,10 @@ end:
 lib/mfs_client.a: $(OBJ_FILES)
 	$(AR) rcs $@ $^
 
-bin/mfs_server_mpi:    src/mfs_server_mpi.o    $(OBJ_FILES)
+bin/mfs_server_mpi:    src/server_mpi.o    $(OBJ_FILES)
 	$(CC) $^  $(LDFLAGS)  -o $@
 
-bin/mfs_server_socket: src/mfs_server_socket.o $(OBJ_FILES)
+bin/mfs_server_socket: src/server_socket.o $(OBJ_FILES)
 	$(CC) $^  $(LDFLAGS)  -o $@
 
 $(OBJ_DIR)/%.o: %.c

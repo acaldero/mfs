@@ -31,19 +31,24 @@
 
 long clientstub_socket_action_over_named_resource ( comm_t *wb, const char *pathname, int pathname_size, int opt, int action )
 {
-    int  ret = 0 ;
-    long status ;
+    int   ret = 0 ;
+    long  status ;
+    msg_t msg ;
 
     // Send action msg
     if (ret >= 0)
     {
-        ret = mfs_protocol_request_send2(wb, 0, action, pathname_size, opt) ;
+         msg.req_action = action ;
+         msg.req_arg1   = pathname_size ;
+         msg.req_arg2   = opt ;
+
+         ret = mfs_comm_socket_send_data_to(wb, 0, (char *)&msg, sizeof(msg_t)) ;
     }
 
     // Send pathname
     if (ret >= 0)
     {
-        ret = mfs_comm_socket_send_data_to(wb, 0, (void *)pathname, pathname_size, sizeof(char)) ;
+        ret = mfs_comm_socket_send_data_to(wb, 0, (void *)pathname, pathname_size) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: pathname cannot be sent :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -52,7 +57,7 @@ long clientstub_socket_action_over_named_resource ( comm_t *wb, const char *path
     // Receive status
     if (ret >= 0)
     {
-        ret = mfs_comm_socket_recv_data_from(wb, 0, &status, 1, MPI_LONG) ;
+        ret = mfs_comm_socket_recv_data_from(wb, 0, &status, sizeof(long)) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -64,19 +69,24 @@ long clientstub_socket_action_over_named_resource ( comm_t *wb, const char *path
 
 int clientstub_socket_action_over_fd_resource ( comm_t *wb, long fd, int opt, int action )
 {
-    int ret = 0 ;
-    int status ;
+    int   ret = 0 ;
+    int   status ;
+    msg_t msg ;
 
     // Send action msg
     if (ret >= 0)
     {
-        ret = mfs_protocol_request_send2(wb, 0, action, fd, opt) ;
+         msg.req_action = action ;
+         msg.req_arg1   = fd ;
+         msg.req_arg2   = opt ;
+
+         ret = mfs_comm_socket_send_data_to(wb, 0, (char *)&msg, sizeof(msg_t)) ;
     }
 
     // Receive status
     if (ret >= 0)
     {
-        ret = mfs_comm_socket_recv_data_from(wb, 0, &status, 1, sizeof(int)) ;
+        ret = mfs_comm_socket_recv_data_from(wb, 0, &status, sizeof(int)) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -101,7 +111,7 @@ int clientstub_socket_action_send_buffer ( comm_t *wb, void *buff_char, int coun
         // Send data
         if (ret >= 0)
         {
-            ret = mfs_comm_socket_send_data_to(wb, 0, buff_char + current_size, buffer_size, sizeof(char)) ;
+            ret = mfs_comm_socket_send_data_to(wb, 0, buff_char + current_size, buffer_size) ;
             if (ret < 0) {
                 mfs_print(DBG_ERROR, "Client[%d]: data cannot be sent :-(\n", mfs_comm_get_rank(wb)) ;
             }
@@ -120,31 +130,15 @@ int clientstub_socket_action_send_buffer ( comm_t *wb, void *buff_char, int coun
  *  File System API
  */
 
-int clientstub_socket_init ( comm_t *wb, params_t *params )
+int clientstub_socket_init ( comm_t *wb, params_t *params, conf_t *conf )
 {
     int    ret = 0 ;
-    conf_t conf ;
     char  *srv_uri ;
-
-    // Get valid configuration..
-    ret = mfs_conf_get(&conf, params->conf_fname) ;
-    if (ret < 0) {
-        mfs_print(DBG_ERROR, "Client[%d]: mfs_conf_get fails to read file '%s' :-(\n", -1, params->conf_fname) ;
-    }
-
-    if (ret >= 0)
-    {
-        mfs_conf_show(&conf) ;
-        if (conf.n_partitions < 1) {
-            mfs_print(DBG_ERROR, "Client[%d]: mfs_conf_get fails to read at least one partition in file '%s' :-(\n", -1, params->conf_fname) ;
-	    ret = -1 ;
-        }
-    }
 
     // Initialize
     if (ret >= 0)
     {
-        ret = mfs_comm_socket_init(wb, conf.active, params->server_port, params->ns_backend) ;
+        ret = mfs_comm_socket_init(wb, conf->active, params->server_port, params->ns_backend) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: initialization fails :-(\n", -1) ;
         }
@@ -153,9 +147,9 @@ int clientstub_socket_init ( comm_t *wb, params_t *params )
     // Connect to service
     if (ret >= 0)
     {
-	for (int i=0; i<conf.active->n_nodes; i++)
+	for (int i=0; i<conf->active->n_nodes; i++)
 	{
-             srv_uri = mfs_conf_get_active_node(&conf, i) ;
+             srv_uri = mfs_conf_get_active_node(conf, i) ;
              ret = mfs_comm_socket_connect(wb, srv_uri, i) ;
              if (ret < 0) {
                  mfs_print(DBG_ERROR, "Client[%d]: connect to '%s' fails :-(\n", -1, srv_uri) ;
@@ -165,24 +159,23 @@ int clientstub_socket_init ( comm_t *wb, params_t *params )
         wb->is_connected = 1 ;
     }
 
-    // Free configuration
-    if (ret >= 0)
-    {
-        mfs_conf_free(&conf) ;
-    }
-
     // Return OK/KO
     return ret ;
 }
 
 int clientstub_socket_finalize ( comm_t *wb, params_t *params )
 {
-    int ret = 0 ;
+    int   ret = 0 ;
+    msg_t msg ;
 
     // Remote disconnect...
     if (ret >= 0)
     {
-        ret = mfs_protocol_request_send2(wb, 0, REQ_ACTION_DISCONNECT, 0, 0) ;
+         msg.req_action = REQ_ACTION_DISCONNECT ;
+         msg.req_arg1   = 0 ;
+         msg.req_arg2   = 0 ;
+
+         ret = mfs_comm_socket_send_data_to(wb, 0, (char *)&msg, sizeof(msg_t)) ;
     }
 
     // Disconnect...
@@ -247,6 +240,7 @@ int  clientstub_socket_read ( comm_t *wb, long fd, void *buff_char, int count )
      int  ret = 0 ;
      int  status ;
      long remaining_size, current_size ;
+    msg_t msg ;
 
      // Check arguments...
      NULL_PRT_MSG_RET_VAL(wb,        "[CLNT_STUB] NULL wb        :-/", -1) ;
@@ -256,7 +250,11 @@ int  clientstub_socket_read ( comm_t *wb, long fd, void *buff_char, int count )
      // Send read msg
      if (ret >= 0)
      {
-         ret = mfs_protocol_request_send2(wb, 0, REQ_ACTION_READ, fd, count) ;
+         msg.req_action = REQ_ACTION_READ ;
+         msg.req_arg1   = fd ;
+         msg.req_arg2   = count ;
+
+         ret = mfs_comm_socket_send_data_to(wb, 0, (char *)&msg, sizeof(msg_t)) ;
      }
 
      current_size   = 0 ;
@@ -266,7 +264,7 @@ int  clientstub_socket_read ( comm_t *wb, long fd, void *buff_char, int count )
           // Receive status
           if (ret >= 0)
           {
-              ret = mfs_comm_socket_recv_data_from(wb, 0, &status, 1, sizeof(int)) ;
+              ret = mfs_comm_socket_recv_data_from(wb, 0, &status, sizeof(int)) ;
               if (ret < 0) {
                   mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(\n", mfs_comm_get_rank(wb)) ;
               }
@@ -275,7 +273,7 @@ int  clientstub_socket_read ( comm_t *wb, long fd, void *buff_char, int count )
           // Receive data
           if ( (ret >= 0) && (status > 0) )
           {
-              ret = mfs_comm_socket_recv_data_from(wb, 0, buff_char + current_size, status, sizeof(char)) ;
+              ret = mfs_comm_socket_recv_data_from(wb, 0, buff_char + current_size, status) ;
               if (ret < 0) {
     	          mfs_print(DBG_ERROR, "Client[%d]: data not received :-(\n", mfs_comm_get_rank(wb)) ;
               }
@@ -299,6 +297,7 @@ int  clientstub_socket_write ( comm_t *wb, long fd, void *buff_char, int count )
      int  ret, status ;
      int  buffer_size ;
      long remaining_size, current_size ;
+    msg_t msg ;
 
      // Check arguments...
      NULL_PRT_MSG_RET_VAL(wb,        "[CLNT_STUB] NULL wb        :-/", -1) ;
@@ -311,13 +310,17 @@ int  clientstub_socket_write ( comm_t *wb, long fd, void *buff_char, int count )
      // Send write msg
      if (ret >= 0)
      {
-        ret = mfs_protocol_request_send2(wb, 0, REQ_ACTION_WRITE, fd, count) ;
+         msg.req_action = REQ_ACTION_WRITE ;
+         msg.req_arg1   = fd ;
+         msg.req_arg2   = count ;
+
+         ret = mfs_comm_socket_send_data_to(wb, 0, (char *)&msg, sizeof(msg_t)) ;
      }
 
      // Receive buffer_size
      if (ret >= 0)
      {
-        ret = mfs_comm_socket_recv_data_from(wb, 0, &buffer_size, 1, sizeof(int)) ;
+        ret = mfs_comm_socket_recv_data_from(wb, 0, &buffer_size, sizeof(int)) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: buffer_size not received :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -337,7 +340,7 @@ int  clientstub_socket_write ( comm_t *wb, long fd, void *buff_char, int count )
      // Receive status
      //if (ret >= 0)
      {
-        ret = mfs_comm_socket_recv_data_from(wb, 0, &status, 1, sizeof(int)) ;
+        ret = mfs_comm_socket_recv_data_from(wb, 0, &status, sizeof(int)) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -385,6 +388,7 @@ int  clientstub_socket_dbmstore ( comm_t *wb, long fd, void *buff_key, int count
 {
      int  ret, status  ;
      long remaining_size, current_size ;
+    msg_t msg ;
 
      // Check arguments...
      NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/", -1) ;
@@ -400,14 +404,19 @@ int  clientstub_socket_dbmstore ( comm_t *wb, long fd, void *buff_key, int count
      if (ret >= 0)
      {
     	mfs_print(DBG_INFO, "Client[%d]: dbmstore fd:%ld key_size:%d >> server\n", mfs_comm_get_rank(wb), fd, count_key) ;
-        ret = mfs_protocol_request_send2(wb, 0, REQ_ACTION_DBMSTORE, fd, count_key) ;
+
+         msg.req_action = REQ_ACTION_DBMSTORE ;
+         msg.req_arg1   = fd ;
+         msg.req_arg2   = count_key ;
+
+         ret = mfs_comm_socket_send_data_to(wb, 0, (char *)&msg, sizeof(msg_t)) ;
      }
 
      // Send value size (in bytes)
      if (ret >= 0)
      {
     	mfs_print(DBG_INFO, "Client[%d]: dbmstore val_size:%d >> server\n", mfs_comm_get_rank(wb), count_val) ;
-        ret = mfs_comm_socket_send_data_to(wb, 0, &count_val, 1, sizeof(int)) ;
+        ret = mfs_comm_socket_send_data_to(wb, 0, &count_val, sizeof(int)) ;
         if (ret < 0) {
     	    mfs_print(DBG_ERROR, "Client[%d]: value size cannot be sent :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -416,7 +425,7 @@ int  clientstub_socket_dbmstore ( comm_t *wb, long fd, void *buff_key, int count
      // Receive status
      if (ret >= 0)
      {
-        ret = mfs_comm_socket_recv_data_from(wb, 0, &status, 1, sizeof(int)) ;
+        ret = mfs_comm_socket_recv_data_from(wb, 0, &status, sizeof(int)) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: status not received :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -440,7 +449,7 @@ int  clientstub_socket_dbmstore ( comm_t *wb, long fd, void *buff_key, int count
      // Receive status
      //if (ret >= 0)
      {
-        ret = mfs_comm_socket_recv_data_from(wb, 0, &status, 1, sizeof(int)) ;
+        ret = mfs_comm_socket_recv_data_from(wb, 0, &status, sizeof(int)) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -455,6 +464,7 @@ int  clientstub_socket_dbmstore ( comm_t *wb, long fd, void *buff_key, int count
 int  clientstub_socket_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int *count_val )
 {
      int  ret, status  ;
+    msg_t msg ;
 
      // Check arguments...
      NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/", -1) ;
@@ -469,13 +479,17 @@ int  clientstub_socket_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count
      // Send write msg
      if (ret >= 0)
      {
-        ret = mfs_protocol_request_send2(wb, 0, REQ_ACTION_DBMFETCH, fd, count_key) ;
+         msg.req_action = REQ_ACTION_DBMFETCH ;
+         msg.req_arg1   = fd ;
+         msg.req_arg2   = count_key ;
+
+         ret = mfs_comm_socket_send_data_to(wb, 0, (char *)&msg, sizeof(msg_t)) ;
      }
 
      // Send value size (in bytes)
      if (ret >= 0)
      {
-        ret = mfs_comm_socket_send_data_to(wb, 0, count_val, 1, sizeof(int)) ;
+        ret = mfs_comm_socket_send_data_to(wb, 0, count_val, sizeof(int)) ;
         if (ret < 0) {
     	    mfs_print(DBG_ERROR, "Client[%d]: value size cannot be sent :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -484,7 +498,7 @@ int  clientstub_socket_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count
      // Receive status
      if (ret >= 0)
      {
-        ret = mfs_comm_socket_recv_data_from(wb, 0, &status, 1, sizeof(int)) ;
+        ret = mfs_comm_socket_recv_data_from(wb, 0, &status, sizeof(int)) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: status not received :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -504,7 +518,7 @@ int  clientstub_socket_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count
      // Receive status
      //if (ret >= 0)
      {
-        ret = mfs_comm_socket_recv_data_from(wb, 0, &status, 1, sizeof(int)) ;
+        ret = mfs_comm_socket_recv_data_from(wb, 0, &status, sizeof(int)) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -513,7 +527,7 @@ int  clientstub_socket_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count
      // Receive val
      if (status > 0)
      {
-        ret = mfs_comm_socket_recv_data_from(wb, 0, buff_val, *count_val, sizeof(char)) ;
+        ret = mfs_comm_socket_recv_data_from(wb, 0, buff_val, *count_val) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -526,6 +540,7 @@ int  clientstub_socket_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count
 int  clientstub_socket_dbmdelete ( comm_t *wb, long fd, void *buff_key, int count_key )
 {
      int  ret, status  ;
+    msg_t msg ;
 
      // Check arguments...
      NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/", -1) ;
@@ -539,7 +554,11 @@ int  clientstub_socket_dbmdelete ( comm_t *wb, long fd, void *buff_key, int coun
      // Send write msg
      if (ret >= 0)
      {
-        ret = mfs_protocol_request_send2(wb, 0, REQ_ACTION_DBMDELETE, fd, count_key) ;
+         msg.req_action = REQ_ACTION_DBMDELETE ;
+         msg.req_arg1   = fd ;
+         msg.req_arg2   = count_key ;
+
+         ret = mfs_comm_socket_send_data_to(wb, 0, (char *)&msg, sizeof(msg_t)) ;
      }
 
      // Send key
@@ -551,7 +570,7 @@ int  clientstub_socket_dbmdelete ( comm_t *wb, long fd, void *buff_key, int coun
      // Receive status
      //if (ret >= 0)
      {
-        ret = mfs_comm_socket_recv_data_from(wb, 0, &status, 1, sizeof(int)) ;
+        ret = mfs_comm_socket_recv_data_from(wb, 0, &status, sizeof(int)) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(\n", mfs_comm_get_rank(wb)) ;
         }
