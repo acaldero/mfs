@@ -28,8 +28,9 @@
 
 
     // File protocol
-    #define COMM_USE_SOCKET  1
+    #define COMM_USE_LOCAL   1
     #define COMM_USE_MPI     2
+    #define COMM_USE_SOCKET  3
 
 
     // Datatypes
@@ -57,7 +58,7 @@
         MPI_Comm local_comm ;
         int      local_rank ;
 
-        // remote identification
+        // MPI remote identification
         int   status_rank ;
         int   status_tag ;
         int   status_count ;
