@@ -25,7 +25,7 @@
     // Includes
     #include "base_lib.h"
     #include "info_fsconf.h"
-    #include "mfs_comm_common.h"
+    #include "mfs_comm.h"
     #include "mfs_comm_socket.h"
     #include "stub_msg.h"
 

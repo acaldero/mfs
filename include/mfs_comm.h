@@ -80,5 +80,9 @@
     #define mfs_comm_get_status_tag(pcb)   ((pcb != NULL) ? pcb->status_tag : -1)
     #define mfs_comm_get_status_count(pcb) ((pcb != NULL) ? pcb->status_count : -1)
 
+    int mfs_comm_reset       ( comm_t *cb ) ;
+    int mfs_comm_stats_reset ( comm_t *cb ) ;
+    int mfs_comm_stats_show  ( comm_t *cb, char *prefix ) ;
+
 #endif
 

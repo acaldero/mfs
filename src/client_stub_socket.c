@@ -170,7 +170,7 @@ int clientstub_socket_finalize ( comm_t *wb, params_t *params )
 	{
 	     if (wb->dd[i] != -1)
 	     {
-		ret = mfs_comm_socket_close(&(wb->dd[i])) ;
+		ret = base_socket_close(&(wb->dd[i])) ;
 		if (ret < 0) {
                     mfs_print(DBG_ERROR, "Client[%d]: disconnect %d fails :-(\n", mfs_comm_get_rank(wb), i) ;
 		}

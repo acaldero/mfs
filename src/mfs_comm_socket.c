@@ -23,105 +23,6 @@
 
 
 //
-// Auxiliar: sockets
-//
-
-int mfs_comm_socket_set_default_options ( int ab, int buf_size )
-{
-	int    ret, val ;
-	struct sockaddr_in client_addr ;
-
-	// set tcp_nodelay
-	val = 1 ;
-	ret = setsockopt(ab, IPPROTO_TCP, TCP_NODELAY, &val, sizeof(int)) ;
-	if (ret < 0) {
-	    mfs_print(DBG_ERROR, "[COMM]: setsockopt fails :-(\n") ;
-	    perror("setsockopt: ") ;
-	    return -1 ;
-	}
-
-        // set sndbuf + rcvbuf
-        val = buf_size ;
-	if (setsockopt(ab, SOL_SOCKET, SO_SNDBUF, (char *) &val, sizeof(int)) == -1) {
-	    mfs_print(DBG_ERROR, "[COMM]: setsockopt fails :-(\n") ;
-	    perror("setsockopt: ") ;
-	    return -1 ;
-	}
-
-        val = buf_size ;
-	if (setsockopt(ab, SOL_SOCKET, SO_RCVBUF, (char *) &val, sizeof(int)) == -1) {
-	    mfs_print(DBG_ERROR, "[COMM]: setsockopt fails :-(\n") ;
-	    perror("setsockopt: ") ;
-	    return -1 ;
-	}
-
-        // Return OK
-        return 1 ;
-}
-
-int mfs_comm_socket_serversocket ( int *sd, int port )
-{
-	int val, ret;
-	struct sockaddr_in server_addr;
-
-	// new socket
-	(*sd) = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP) ;
-	if ((*sd) < 0) {
-	    mfs_print(DBG_ERROR, "[COMM]: socket fails :-(\n") ;
-	    perror("socket: ") ;
-	    return -1 ;
-	}
-
-	// set default options (tcp_nodelay, sndbuff, ...)
-        ret = mfs_comm_socket_set_default_options((*sd), ONE_MB) ;
-	if (ret < 0) {
-            return -1 ;
-        }
-
-	// sock_reuseaddr
-	val = 1;
-	ret = setsockopt((*sd), SOL_SOCKET, SO_REUSEADDR, (char *) &val, sizeof(int));
-	if (ret < 0) {
-	    mfs_print(DBG_ERROR, "[COMM]: setsockopt fails :-(\n") ;
-	    perror("setsockopt: ") ;
-	    return -1 ;
-	}
-
-	// bind
-	bzero((char *)&server_addr, sizeof(server_addr)) ;
-	server_addr.sin_family      = AF_INET ;
-	server_addr.sin_addr.s_addr = INADDR_ANY ;
-	server_addr.sin_port        = htons(port) ;
-
-	ret = bind((*sd), (struct sockaddr *)&server_addr, sizeof(server_addr));
-	if (ret < 0) {
-	    mfs_print(DBG_ERROR, "[COMM]: setsockopt fails :-(\n") ;
-	    perror("bind: ") ;
-	    return -1 ;
-	}
-
-	// listen
-	listen((*sd), 20);
-
-        // Return OK
-        return 1 ;
-}
-
-int mfs_comm_socket_close ( int *sd )
-{
-	// Try to close (if it is not already closed)
-	if ((*sd) != -1)
-	{
-            close((*sd)) ;
-            (*sd) = -1 ;
-	}
-
-        // Return OK
-        return 1 ;
-}
-
-
-//
 // Init, Finalize
 //
 
@@ -134,14 +35,11 @@ int mfs_comm_socket_init ( comm_t *cb, conf_part_t *partition, int server_port, 
         NULL_PRT_MSG_RET_VAL(partition, "[COMM]: NULL partition :-(\n", -1) ;
 
 	// Initialize fields
-        cb->comm_protocol = COMM_USE_SOCKET ;
+        mfs_comm_reset(cb) ;
+        cb->comm_protocol      = COMM_USE_SOCKET ;
         cb->comm_protocol_name = "SOCKET" ;
-	cb->rank          = 0 ;
-	cb->size          = partition->n_nodes ;
-	cb->ns_backend    = ns_backend ;
-        cb->is_connected  = 0 ;
-        cb->n_send_req    = 0 ;
-        cb->n_recv_req    = 0 ;
+	cb->size               = partition->n_nodes ;
+	cb->ns_backend         = ns_backend ;
 
         // number of servers
         cb->n_servers = partition->n_nodes ;
@@ -153,7 +51,7 @@ int mfs_comm_socket_init ( comm_t *cb, conf_part_t *partition, int server_port, 
 	// new server socket
         if (server_port != -1)
 	{
-            ret = mfs_comm_socket_serversocket(&(cb->sd), server_port) ;
+            ret = base_socket_serversocket(&(cb->sd), server_port) ;
 	    if (ret < 0) {
 	        mfs_print(DBG_ERROR, "[COMM]: socket fails :-(\n") ;
 	        perror("socket: ") ;
@@ -182,7 +80,7 @@ int mfs_comm_socket_finalize ( comm_t *cb )
 	int ret ;
 
 	// Close socket
-        ret = mfs_comm_socket_close(&(cb->sd)) ;
+        ret = base_socket_close(&(cb->sd)) ;
 	if (ret < 0) {
 	    mfs_print(DBG_ERROR, "[COMM]: close socket fails :-(\n") ;
 	    return -1 ;
@@ -203,24 +101,15 @@ int mfs_comm_socket_finalize ( comm_t *cb )
 
 int mfs_comm_socket_accept ( comm_t *ab, int remote_rank )
 {
-	int    ret ;
-	int    sd, size, val ;
-	struct sockaddr_in client_addr ;
+	int  ret ;
+	int  sd, size, val ;
 
 	// accept connection...
-	size = sizeof(struct sockaddr_in) ;
-	sd = accept(ab->sd, (struct sockaddr *)&(client_addr), (socklen_t *)&(size)) ;
+        sd = base_socket_accept(ab->sd) ;
 	if (sd < 0) {
 	    mfs_print(DBG_ERROR, "[COMM]: accept fails :-(\n") ;
-	    perror("accept: ") ;
 	    return -1 ;
 	}
-
-	// set default options (tcp_nodelay, sndbuff, ...)
-        ret = mfs_comm_socket_set_default_options(sd, ONE_MB) ;
-	if (ret < 0) {
-            return -1 ;
-        }
 
 	// set associated socket to rank
 	if (remote_rank < 0)
@@ -244,10 +133,9 @@ int mfs_comm_socket_accept ( comm_t *ab, int remote_rank )
 
 int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri, int remote_rank )
 {
-	int    ret, sd ;
+	int    ret, sd, port_name_size ;
 	struct hostent *hp ;
-	int    srv_port, port_name_size ;
-	struct sockaddr_in server_addr ;
+	int    srv_port ;
 
 	// translate srv_uri -> host + port
 	port_name_size = MPI_MAX_PORT_NAME ;
@@ -266,30 +154,11 @@ int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri, int remote_rank )
         }
 
 	// socket
-	sd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP) ;
-	if (sd < 0) {
-	    perror("socket: ") ;
-	    return -1 ;
-	}
-
-	// set default options (tcp_nodelay, sndbuff, ...)
-        ret = mfs_comm_socket_set_default_options(sd, ONE_MB) ;
-	if (ret < 0) {
+        sd = base_socket_connect(hp, srv_port) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "[COMM]: base_socket_connect fails :-(\n") ;
             return -1 ;
         }
-
-	// connect
-	bzero((char *)&server_addr, sizeof(server_addr)) ;
-	server_addr.sin_family = AF_INET ;
-  	server_addr.sin_port   = htons(srv_port) ;
-	memcpy (&(server_addr.sin_addr), hp->h_addr, hp->h_length) ;
-
-	ret = connect(sd, (struct sockaddr *) &server_addr, sizeof(server_addr)) ;
-	if (ret == -1) {
-	    mfs_print(DBG_ERROR, "[COMM]: connect(%p, %d) fails :-(\n", server_addr.sin_addr, server_addr.sin_port) ;
-	    perror("connect: ") ;
-	    return -1 ;
-	}
 
 	// set associated socket to rank
 	cb->dd[remote_rank] = sd ;
@@ -308,7 +177,7 @@ int mfs_comm_socket_disconnect ( comm_t *cb, int remote_rank )
 	}
 
 	// Close socket
-        ret = mfs_comm_socket_close(&(cb->dd[remote_rank])) ;
+        ret = base_socket_close(&(cb->dd[remote_rank])) ;
 	if (ret < 0) {
 	    mfs_print(DBG_ERROR, "[COMM]: close socket fails :-(\n") ;
 	    return -1 ;
@@ -404,38 +273,5 @@ int mfs_comm_socket_send_request ( comm_t *wb, int rank, long action, long arg1,
 int mfs_comm_socket_receive_request ( comm_t *wb, int rank, msg_t *msg )
 {
     return mfs_comm_socket_recv_data_from(wb, rank, msg, sizeof(msg_t)) ;
-}
-
-
-//
-// Stats
-//
-
-int mfs_comm_socket_stats_reset ( comm_t *cb )
-{
-    // Check params...
-    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(\n", -1) ;
-
-    // cb->... (stats)
-    cb->n_send_req = 0 ;
-    cb->n_recv_req = 0 ;
-
-    // Return OK
-    return 0 ;
-}
-
-int mfs_comm_socket_stats_show  ( comm_t *cb, char *prefix )
-{
-    // Check params...
-    NULL_PRT_MSG_RET_VAL(cb, "[COMM] NULL cb", -1) ;
-
-    // Print stats...
-    printf("%s: Comm:\n",              prefix) ;
-    printf("%s: + # servers=%d\n",     prefix, cb->n_servers) ;
-    printf("%s: + # send=%d\n",        prefix, cb->n_send_req) ;
-    printf("%s: + # recv=%d\n",        prefix, cb->n_recv_req) ;
-
-    // Return OK
-    return 1 ;
 }
 

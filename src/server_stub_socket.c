@@ -264,7 +264,7 @@ int serverstub_socket_disconnect_all ( comm_t *ab, params_t *params )
     {
          if (ab->dd[i] != -1)
          {
-             ret = mfs_comm_socket_close(&(ab->dd[i])) ;
+             ret = base_socket_close(&(ab->dd[i])) ;
              if (ret < 0) {
                  mfs_print(DBG_ERROR, "Server[%d]: disconnect %d fails :-(\n", mfs_comm_get_rank(ab), i) ;
              }

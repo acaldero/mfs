@@ -19,19 +19,18 @@
  *
  */
 
-#ifndef __MFS_COMM_SOCKET_H__
-#define __MFS_COMM_SOCKET_H__
+#ifndef __BASE_SOCKET_H__
+#define __BASE_SOCKET_H__
 
     // Includes
     #include "base_lib.h"
-    #include "base_socket.h"
-    #include "mfs_comm.h"
-    #include "info_ns.h"
-    #include "stub_msg.h"
 
     #include <sys/types.h>
     #include <sys/socket.h>
+    #include <netinet/in.h>
     #include <netinet/tcp.h>
+    #include <arpa/inet.h>
+    #include <netdb.h>
 
 
     // Consts
@@ -39,20 +38,13 @@
 
 
     // API
-    int mfs_comm_socket_init       ( comm_t *cb, conf_part_t *partition, int server_port, int ns_backend ) ;
-    int mfs_comm_socket_finalize   ( comm_t *cb ) ;
+    int base_socket_set_default_options ( int  ab, int buf_size ) ;
 
-    int mfs_comm_socket_accept     ( comm_t *ab, int remote_rank ) ;
-    int mfs_comm_socket_connect    ( comm_t *cb, char *srv_uri, int remote_rank ) ;
+    int base_socket_serversocket        ( int *sd, int port ) ;
+    int base_socket_close               ( int *sd ) ;
 
-    int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size ) ;
-    int mfs_comm_socket_send_data_to   ( comm_t *cb, int rank, void *buff, int size ) ;
-
-    int mfs_comm_socket_send_request    ( comm_t *wb, int rank, long action, long arg1, long arg2, long arg3 ) ;
-    int mfs_comm_socket_receive_request ( comm_t *wb, int rank, msg_t *msg ) ;
-
-    int mfs_comm_socket_stats_reset    ( comm_t *cb ) ;
-    int mfs_comm_socket_stats_show     ( comm_t *cb, char *prefix ) ;
+    int base_socket_accept              ( int  sd ) ;
+    int base_socket_connect             ( struct hostent *hp, int srv_port ) ;
 
 #endif
 

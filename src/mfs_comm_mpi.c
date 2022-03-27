@@ -36,13 +36,9 @@ int mfs_comm_mpi_init ( comm_t *cb, conf_part_t *partition, int *main_argc, char
     NULL_PRT_MSG_RET_VAL(partition, "[COMM]: NULL partition :-(\n", -1) ;
 
     // Initialization
+    mfs_comm_reset(cb) ;
     cb->comm_protocol = COMM_USE_MPI ;
     cb->comm_protocol_name = "MPI" ;
-    cb->n_send_req    = 0 ;
-    cb->n_recv_req    = 0 ;
-    cb->status_rank   = -1 ;
-    cb->status_tag    = -1 ;
-    cb->status_count  = -1 ;
 
     // number of servers
     cb->n_servers = partition->n_nodes ;
@@ -198,38 +194,5 @@ int mfs_comm_mpi_send_request ( comm_t *wb, int rank, long action, long arg1, lo
 int mfs_comm_mpi_receive_request ( comm_t *wb, int rank, msg_t *msg )
 {
     return mfs_comm_mpi_recv_data_from(wb, rank, msg, 4, MPI_LONG) ;
-}
-
-
-//
-// Stats
-//
-
-int mfs_comm_mpi_stats_reset ( comm_t *cb )
-{
-    // Check params...
-    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(\n", -1) ;
-
-    // cb->... (stats)
-    cb->n_send_req = 0 ;
-    cb->n_recv_req = 0 ;
-
-    // Return OK
-    return 0 ;
-}
-
-int mfs_comm_mpi_stats_show  ( comm_t *cb, char *prefix )
-{
-    // Check params...
-    NULL_PRT_MSG_RET_VAL(cb, "[COMM] NULL cb", -1) ;
-
-    // Print stats...
-    printf("%s: Comm:\n",              prefix) ;
-    printf("%s: + # servers=%d\n",     prefix, cb->n_servers) ;
-    printf("%s: + # send=%d\n",        prefix, cb->n_send_req) ;
-    printf("%s: + # recv=%d\n",        prefix, cb->n_recv_req) ;
-
-    // Return OK
-    return 1 ;
 }
 

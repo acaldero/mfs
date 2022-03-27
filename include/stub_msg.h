@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef __MFS_PROTOCOL_H__
-#define __MFS_PROTOCOL_H__
+#ifndef __STUB_MSG_H__
+#define __STUB_MSG_H__
 
     /*
      * Messages

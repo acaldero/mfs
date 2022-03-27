@@ -25,7 +25,7 @@
    #include "mfs_files.h"
    #include "mfs_dbm.h"
    #include "mfs_directories.h"
-   #include "mfs_comm_common.h"
+   #include "mfs_comm.h"
    #include "info_ns_common.h"
 
    #include <getopt.h>
