@@ -23,7 +23,7 @@
 #define __MFS_DIRECTORIES_POSIX_H__
 
     // Includes
-    #include "mfs_lib.h"
+    #include "base_lib.h"
 
     #include <dirent.h>
     #include <sys/stat.h>

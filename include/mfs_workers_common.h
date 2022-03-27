@@ -21,8 +21,8 @@
 #ifndef __MFS_WORKERS_COMMON_H__
 #define __MFS_WORKERS_COMMON_H__
 
-   #include "mfs_lib.h"
-   #include "mfs_params.h"
+   #include "base_lib.h"
+   #include "info_params.h"
    #include "stub_msg.h"
 
    #include <pthread.h>

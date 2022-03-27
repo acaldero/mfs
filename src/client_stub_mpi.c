@@ -34,17 +34,11 @@ long clientstub_mpi_action_over_named_resource ( comm_t *wb, const char *pathnam
 {
     int   ret = 0 ;
     long  status ;
-    msg_t msg ;
 
     // Send action msg
     if (ret >= 0)
     {
-        // pack msg fields
-        msg.req_action = action ;
-        msg.req_arg1   = pathname_size ;
-        msg.req_arg2   = opt ;
-
-        ret = mfs_comm_mpi_send_data_to(wb, 0, (char *)&msg, 3, MPI_LONG) ;
+        ret = mfs_comm_mpi_send_request(wb, 0, action, pathname_size, opt, 0) ;
     }
 
     // Send pathname
@@ -73,16 +67,11 @@ int clientstub_mpi_action_over_fd_resource ( comm_t *wb, long fd, int opt, int a
 {
     int   ret = 0 ;
     int   status ;
-    msg_t msg ;
 
     // Send action msg
     if (ret >= 0)
     {
-        msg.req_action = action ;
-        msg.req_arg1   = fd ;
-        msg.req_arg2   = opt ;
-
-        ret = mfs_comm_mpi_send_data_to(wb, 0, (char *)&msg, 3, MPI_LONG) ;
+        ret = mfs_comm_mpi_send_request(wb, 0, action, fd, opt, 0) ;
     }
 
     // Receive status
@@ -123,7 +112,7 @@ int clientstub_mpi_init ( comm_t *wb, params_t *params, conf_t *conf )
     {
         // Get service name
         remote_rank = mfs_comm_get_rank(wb) % conf->active->n_nodes ;
-        srv_uri     = mfs_conf_get_active_node(conf, remote_rank) ;
+        srv_uri     = info_fsconf_get_active_node(conf, remote_rank) ;
         strcpy(wb->srv_name, srv_uri) ;
 
         // Lookup...
@@ -148,16 +137,11 @@ int clientstub_mpi_init ( comm_t *wb, params_t *params, conf_t *conf )
 int clientstub_mpi_finalize ( comm_t *wb, params_t *params )
 {
     int   ret = 0 ;
-    msg_t msg ;
 
     // Remote disconnect...
     if (ret >= 0)
     {
-        msg.req_action = REQ_ACTION_DISCONNECT ;
-        msg.req_arg1   = 0 ;
-        msg.req_arg2   = 0 ;
-
-        ret = mfs_comm_mpi_send_data_to(wb, 0, (char *)&msg, 3, MPI_LONG) ;
+        ret = mfs_comm_mpi_send_request(wb, 0, REQ_ACTION_DISCONNECT, 0, 0, 0) ;
     }
 
     // Disconnect...
@@ -184,7 +168,7 @@ int clientstub_mpi_finalize ( comm_t *wb, params_t *params )
     // Finalize params
     if (ret >= 0)
     {
-         mfs_params_free(params) ;
+         info_params_free(params) ;
     }
 
     // Return OK/KO
@@ -215,7 +199,6 @@ int  clientstub_mpi_read ( comm_t *wb, long fd, void *buff_char, int count )
      int  ret = 0 ;
      int  status ;
      long remaining_size, current_size ;
-    msg_t msg ;
 
      // Check arguments...
      NULL_PRT_MSG_RET_VAL(wb,        "[CLNT_STUB] NULL wb        :-/", -1) ;
@@ -225,11 +208,7 @@ int  clientstub_mpi_read ( comm_t *wb, long fd, void *buff_char, int count )
      // Send read msg
      if (ret >= 0)
      {
-         msg.req_action = REQ_ACTION_READ ;
-         msg.req_arg1   = fd ;
-         msg.req_arg2   = count ;
-
-         ret = mfs_comm_mpi_send_data_to(wb, 0, (char *)&msg, 3, MPI_LONG) ;
+         ret = mfs_comm_mpi_send_request(wb, 0, REQ_ACTION_READ, fd, count, 0) ;
      }
 
      current_size   = 0 ;
@@ -272,7 +251,6 @@ int  clientstub_mpi_write ( comm_t *wb, long fd, void *buff_char, int count )
      int  ret, status ;
      int  buffer_size ;
      long remaining_size, current_size ;
-    msg_t msg ;
 
      // Check arguments...
      NULL_PRT_MSG_RET_VAL(wb,        "[CLNT_STUB] NULL wb        :-/", -1) ;
@@ -285,11 +263,7 @@ int  clientstub_mpi_write ( comm_t *wb, long fd, void *buff_char, int count )
      // Send write msg
      if (ret >= 0)
      {
-         msg.req_action = REQ_ACTION_WRITE ;
-         msg.req_arg1   = fd ;
-         msg.req_arg2   = count ;
-
-         ret = mfs_comm_mpi_send_data_to(wb, 0, (char *)&msg, 3, MPI_LONG) ;
+         ret = mfs_comm_mpi_send_request(wb, 0, REQ_ACTION_WRITE, fd, count, 0) ;
      }
 
      // Receive buffer_size
@@ -363,7 +337,6 @@ int  clientstub_mpi_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_ke
 {
      int  ret, status  ;
      long remaining_size, current_size ;
-    msg_t msg ;
 
      // Check arguments...
      NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/", -1) ;
@@ -379,12 +352,7 @@ int  clientstub_mpi_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_ke
      if (ret >= 0)
      {
     	 mfs_print(DBG_INFO, "Client[%d]: dbmstore fd:%ld key_size:%d >> server\n", mfs_comm_get_rank(wb), fd, count_key) ;
-
-         msg.req_action = REQ_ACTION_DBMSTORE ;
-         msg.req_arg1   = fd ;
-         msg.req_arg2   = count_key ;
-
-         ret = mfs_comm_mpi_send_data_to(wb, 0, (char *)&msg, 3, MPI_LONG) ;
+         ret = mfs_comm_mpi_send_request(wb, 0, REQ_ACTION_DBMSTORE, fd, count_key, 0) ;
      }
 
      // Send value size (in bytes)
@@ -439,7 +407,6 @@ int  clientstub_mpi_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_ke
 int  clientstub_mpi_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int *count_val )
 {
      int  ret, status  ;
-    msg_t msg ;
 
      // Check arguments...
      NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/", -1) ;
@@ -454,11 +421,7 @@ int  clientstub_mpi_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_ke
      // (1) Send write msg
      if (ret >= 0)
      {
-         msg.req_action = REQ_ACTION_DBMFETCH ;
-         msg.req_arg1   = fd ;
-         msg.req_arg2   = count_key ;
-
-         ret = mfs_comm_mpi_send_data_to(wb, 0, (char *)&msg, 3, MPI_LONG) ;
+         ret = mfs_comm_mpi_send_request(wb, 0, REQ_ACTION_DBMFETCH, fd, count_key, 0) ;
      }
 
      // (2) Send value size (in bytes)
@@ -518,7 +481,6 @@ int  clientstub_mpi_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_ke
 int  clientstub_mpi_dbmdelete ( comm_t *wb, long fd, void *buff_key, int count_key )
 {
      int  ret, status  ;
-    msg_t msg ;
 
      // Check arguments...
      NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/", -1) ;
@@ -532,11 +494,7 @@ int  clientstub_mpi_dbmdelete ( comm_t *wb, long fd, void *buff_key, int count_k
      // Send write msg
      if (ret >= 0)
      {
-         msg.req_action = REQ_ACTION_DBMDELETE ;
-         msg.req_arg1   = fd ;
-         msg.req_arg2   = count_key ;
-
-         ret = mfs_comm_mpi_send_data_to(wb, 0, (char *)&msg, 3, MPI_LONG) ;
+         ret = mfs_comm_mpi_send_request(wb, 0, REQ_ACTION_DBMDELETE, fd, count_key, 0) ;
      }
 
      // Send key

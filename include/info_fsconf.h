@@ -21,7 +21,7 @@
 #ifndef _MFS_CONF_H_
 #define _MFS_CONF_H_
 
-   #include "mfs_lib.h"
+   #include "base_lib.h"
 
    #include <yaml.h>
 
@@ -47,11 +47,11 @@
     * API
     */
 
-   int   mfs_conf_get  ( conf_t *conf, char *conf_file_name ) ;
-   int   mfs_conf_free ( conf_t *conf ) ;
+   int   info_fsconf_get  ( conf_t *conf, char *conf_file_name ) ;
+   int   info_fsconf_free ( conf_t *conf ) ;
 
-   int   mfs_conf_show ( conf_t *conf ) ;
-   char *mfs_conf_get_active_node ( conf_t *conf, int rank ) ;
+   int   info_fsconf_show ( conf_t *conf ) ;
+   char *info_fsconf_get_active_node ( conf_t *conf, int rank ) ;
 
 #endif
 

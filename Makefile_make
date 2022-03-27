@@ -22,8 +22,8 @@ OBJ_FILES=src/mfs_api.o \
 	  src/mfs_directories.o     src/mfs_directories_posix.o                       \
           src/mfs_dbm.o             src/mfs_dbm_gdbm.o          src/mfs_dbm_redis.o   \
 	  src/mfs_workers.o         src/mfs_workers_pool.o      src/mfs_workers_onrequest.o \
-	  src/mfs_ns.o              src/mfs_params.o            src/mfs_conf.o \
-	  src/mfs_descriptors.o     src/mfs_lib.o
+	  src/info_ns.o             src/info_params.o           src/info_fsconf.o \
+	  src/mfs_descriptors.o     src/base_lib.o
 
 
 #

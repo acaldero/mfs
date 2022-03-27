@@ -23,7 +23,7 @@
 #define __SERVER_STUB_SOCKET_H__
 
     // Includes
-    #include "mfs_lib.h"
+    #include "base_lib.h"
     #include "stub_msg.h"
     #include "mfs_files.h"
     #include "mfs_directories.h"

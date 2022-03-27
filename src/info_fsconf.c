@@ -20,9 +20,9 @@
  *
  */
 
- #include "mfs_conf.h"
+ #include "info_fsconf.h"
 
- int mfs_conf_add_partition ( conf_t *conf )
+ int info_fsconf_add_partition ( conf_t *conf )
  {
 	int ret, part_in_bytes ;
 
@@ -38,7 +38,7 @@
       	return 1 ;
  }
 
- int mfs_conf_add_node ( conf_t *conf, int id_part )
+ int info_fsconf_add_node ( conf_t *conf, int id_part )
  {
 	int ret, nodes_in_bytes ;
 
@@ -59,7 +59,7 @@
  // API
  //
 
- int mfs_conf_show ( conf_t *conf )
+ int info_fsconf_show ( conf_t *conf )
  {
  	printf(" Current configuration:\n");
 	for (int i=0; i<conf->n_partitions; i++)
@@ -77,7 +77,7 @@
       	return 1 ;
  }
 
- int mfs_conf_get ( conf_t *conf, char *yaml_file_name )
+ int info_fsconf_get ( conf_t *conf, char *yaml_file_name )
  {
 	int ret ;
         FILE *fh ;
@@ -150,7 +150,7 @@
 	                 if (1 == kv_type)
 			 {
 			     if (!strcmp("partition", token_val)) {
-                                 ret = mfs_conf_add_partition(conf) ;
+                                 ret = info_fsconf_add_partition(conf) ;
 				 if (ret < 0) return -1 ;
 			     }
 			     if (!strcmp("name",   token_val))  k_type = 1 ;
@@ -167,7 +167,7 @@
                                  conf->partitions[id_last_part].type = strdup(token_val) ;
 			     }
 			     if (4 == k_type) {
-				 ret = mfs_conf_add_node(conf, id_last_part) ;
+				 ret = info_fsconf_add_node(conf, id_last_part) ;
 				 if (ret < 0) return -1 ;
 				 int id_last_node = conf->partitions[id_last_part].n_nodes - 1 ;
 				 conf->partitions[id_last_part].nodes[id_last_node] = strdup(token_val) ;
@@ -199,7 +199,7 @@
       	return 1 ;
  }
 
- int mfs_conf_free ( conf_t *conf )
+ int info_fsconf_free ( conf_t *conf )
  {
 	// Free each partition...
 	for (int i=0; i<conf->n_partitions; i++)
@@ -227,7 +227,7 @@
       	return 1 ;
  }
 
- char *mfs_conf_get_active_node ( conf_t *conf, int rank )
+ char *info_fsconf_get_active_node ( conf_t *conf, int rank )
  {
 	if (NULL == conf) {
 	    return NULL ;

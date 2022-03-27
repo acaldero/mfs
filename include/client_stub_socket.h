@@ -23,8 +23,8 @@
 #define __CLIENT_STUB_SOCKET_H__
 
     // Includes
-    #include "mfs_lib.h"
-    #include "mfs_conf.h"
+    #include "base_lib.h"
+    #include "info_fsconf.h"
     #include "mfs_comm_common.h"
     #include "mfs_comm_socket.h"
     #include "stub_msg.h"

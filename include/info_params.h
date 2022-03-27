@@ -21,12 +21,12 @@
 #ifndef _MFS_PARAMS_H_
 #define _MFS_PARAMS_H_
 
-   #include "mfs_lib.h"
+   #include "base_lib.h"
    #include "mfs_files.h"
    #include "mfs_dbm.h"
    #include "mfs_directories.h"
    #include "mfs_comm_common.h"
-   #include "mfs_ns_common.h"
+   #include "info_ns_common.h"
 
    #include <getopt.h>
 
@@ -85,10 +85,10 @@
     * API
     */
 
-   void mfs_params_show_usage ( void ) ;
-   int  mfs_params_get        ( params_t *params, int *argc, char ***argv ) ;
-   int  mfs_params_show       ( params_t *params ) ;
-   int  mfs_params_free       ( params_t *params ) ;
+   void info_params_show_usage ( void ) ;
+   int  info_params_get        ( params_t *params, int *argc, char ***argv ) ;
+   int  info_params_show       ( params_t *params ) ;
+   int  info_params_free       ( params_t *params ) ;
 
 #endif
 

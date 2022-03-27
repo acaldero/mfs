@@ -23,7 +23,7 @@
 #define __MFS_API_H__
 
     // Includes
-    #include "mfs_lib.h"
+    #include "base_lib.h"
     #include "mfs_dbm.h"
     #include "client_stub_mpi.h"
     #include "client_stub_socket.h"

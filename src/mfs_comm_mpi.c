@@ -180,6 +180,28 @@ int mfs_comm_mpi_send_buffer_in_chunks ( comm_t *wb, void *buff_char, int count,
 
 
 //
+// Requests
+//
+
+int mfs_comm_mpi_send_request ( comm_t *wb, int rank, long action, long arg1, long arg2, long arg3 )
+{
+    msg_t msg ;
+
+    msg.req_action = action ;
+    msg.req_arg1 = arg1 ;
+    msg.req_arg2 = arg2 ;
+    msg.req_arg3 = arg3 ;
+
+    return mfs_comm_mpi_send_data_to(wb, rank, (char *)&(msg), 4, MPI_LONG) ;
+}
+
+int mfs_comm_mpi_receive_request ( comm_t *wb, int rank, msg_t *msg )
+{
+    return mfs_comm_mpi_recv_data_from(wb, rank, msg, 4, MPI_LONG) ;
+}
+
+
+//
 // Stats
 //
 

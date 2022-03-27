@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef __MFS_LIB_H__
-#define __MFS_LIB_H__
+#ifndef __BASE_LIB_H__
+#define __BASE_LIB_H__
 
     // Includes
     #include <stdio.h>

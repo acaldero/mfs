@@ -21,7 +21,7 @@
 #ifndef __MFS_WORKERS_POOL_H__
 #define __MFS_WORKERS_POOL_H__
 
-   #include "mfs_lib.h"
+   #include "base_lib.h"
    #include "mfs_workers_common.h"
 
 

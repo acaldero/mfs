@@ -21,7 +21,7 @@
 
 
    #include <signal.h>
-   #include "mfs_params.h"
+   #include "info_params.h"
    #include "stub_msg.h"
    #include "mfs_workers.h"
    #include "server_stub_socket.h"
@@ -58,7 +58,7 @@
        while (again)
        {
           mfs_print(DBG_INFO, "Server[%d]: waiting for request...\n", th.ab.rank) ;
-          ret = mfs_comm_socket_recv_data_from(&th.ab, MPI_ANY_SOURCE, (char *)&msg, sizeof(msg_t)) ;
+          ret = mfs_comm_socket_receive_request(&th.ab, MPI_ANY_SOURCE, &msg) ;
 	  if (ret < 0)
 	  {
 	      mfs_print(DBG_ERROR, "Server[%d]: stub_msg_socket_request_receive with no more request\n", th.ab.rank) ;
@@ -163,14 +163,14 @@ int main ( int argc, char **argv )
 	   " -----------------\n") ;
 
     // Get parameters..
-    ret = mfs_params_get(&params, &argc, &argv) ;
+    ret = info_params_get(&params, &argc, &argv) ;
     if (ret < 0) {
-        mfs_params_show_usage() ;
+        info_params_show_usage() ;
         exit(-1) ;
     }
 
     if (params.verbose > 0) {
-        mfs_params_show(&params) ;
+        info_params_show(&params) ;
         mfs_print(DBG_INFO, "Server[%d]: initializing...\n", -1) ;
     }
 

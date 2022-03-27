@@ -55,6 +55,7 @@
         long  req_action ;
         long  req_arg1 ;
         long  req_arg2 ;
+        long  req_arg3 ;
     } msg_t ;
 
 #endif

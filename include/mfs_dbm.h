@@ -23,7 +23,7 @@
 #define __MFS_DBM_H__
 
     // Includes
-    #include "mfs_lib.h"
+    #include "base_lib.h"
     #include "mfs_descriptors.h"
     #include "mfs_dbm_gdbm.h"
     #include "mfs_dbm_redis.h"

@@ -8,55 +8,81 @@ HOSTNAME=$(hostname)
 SERVER_NP=2
 CLIENT_NP=4
 N_TESTS=1
-F_PROTO=POSIX
+F_BACKEND=POSIX
+V_LEVEL=1
 
+
+#
+# Start BENCHMARK
+#
+echo ""
+echo " BENCHMARK"
+echo " ~~~~~~~~~"
 # just in case, create data directory
 mkdir -p ./data
-
 # https://stackoverflow.com/questions/360201/how-do-i-kill-background-processes-jobs-when-my-shell-script-exits
 trap "trap - TERM && kill -- -$$" INT TERM EXIT
 
-#
-# start namespace server...
-#
-echo "............................."
-echo "hydra_nameserver &"
-echo "sleep 1"
-echo "............................."
-hydra_nameserver &
-sleep 1
 
 #
-# start server...
+# MPI tests...
 #
-echo "............................."
-echo "../bin/mfs_server &"
-echo "sleep 3"
-echo "............................."
- mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server_mpi    -f ${F_PROTO} &
-#mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server_socket -f ${F_PROTO} -c SOCKET &
-sleep 3
+if true; then
+   echo ""
+   echo " # comm_backend=MPI ##################################### "
+   echo ""
+   # start namespace server...
+   echo "   + hydra_nameserver &"
+   echo "   + sleep 1"
+     hydra_nameserver &
+     sleep 1
+   # start server...
+   echo "   + ../bin/mfs_server &"
+   echo "   + sleep 3"
+     mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server_mpi    -f ${F_BACKEND} -c MPI -v ${V_LEVEL} &
+     sleep 3
+   # run client...
+   for i in $(seq 1 1 $N_TESTS)
+   do
+      echo "   + ./test_benchmark ...(test $i)"
+      echo "   + sleep 2"
+        mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_benchmark -n conf.yaml -f ${F_BACKEND} -c MPI -v ${V_LEVEL}
+        sleep 2
+   done
+fi
+
 
 #
-# run client...
+# Sockets tests...
 #
-for i in $(seq 1 1 $N_TESTS)
-do
-   echo "............................."
-   echo "./test_benchmark ...(test $i)"
-   echo "sleep 2"
-   echo "............................."
-   mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_benchmark -n conf.yaml -f ${F_PROTO}
-  #mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_benchmark -n conf.yaml -f ${F_PROTO} -c SOCKET -p 0
-   echo "............................."
-   sleep 2
-done
+if false; then
+   echo ""
+   echo " # comm_backend=SOCKET ################################## "
+   echo ""
+   # start server...
+   echo "   + ../bin/mfs_server &"
+   echo "   + sleep 3"
+    mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server_socket -f ${F_BACKEND} -c SOCKET -v ${V_LEVEL} &
+    sleep 3
+   # run client...
+   for i in $(seq 1 1 $N_TESTS)
+   do
+      echo "   + ./test_benchmark ...(test $i)"
+      echo "   + sleep 2"
+       mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_benchmark -n conf.yaml -f ${F_BACKEND} -c SOCKET -p 0 -v ${V_LEVEL}
+       sleep 2
+   done
+fi
+
 
 #
-# stop server...
+# Stop SIMPLE
 #
-echo "sleep 1"
-echo "kill <mfs_server>"
-sleep 1
-kill -- -$$
+echo ""
+echo " ######################################################## "
+echo ""
+echo "   + sleep 1"
+echo "   + kill <mfs_server>"
+  sleep 1
+  kill -- -$$
 

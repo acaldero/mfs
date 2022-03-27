@@ -36,17 +36,17 @@ int mfs_api_init ( comm_t *wb, params_t *params )
     NULL_PRT_MSG_RET_VAL(wb, "[MFS_API]: NULL wb :-(\n", -1) ;
 
     // Get valid configuration..
-    ret = mfs_conf_get(&conf, params->conf_fname) ;
+    ret = info_fsconf_get(&conf, params->conf_fname) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Client[%d]: mfs_conf_get fails to read file '%s' :-(\n", -1, params->conf_fname) ;
+        mfs_print(DBG_ERROR, "Client[%d]: info_fsconf_get fails to read file '%s' :-(\n", -1, params->conf_fname) ;
 	return -1 ;
     }
 
     if (params->verbose > 0) {
-        mfs_conf_show(&conf) ;
+        info_fsconf_show(&conf) ;
     }
     if (conf.n_partitions < 1) {
-        mfs_print(DBG_ERROR, "Client[%d]: mfs_conf_get fails to read at least one partition in file '%s' :-(\n", -1, params->conf_fname) ;
+        mfs_print(DBG_ERROR, "Client[%d]: info_fsconf_get fails to read at least one partition in file '%s' :-(\n", -1, params->conf_fname) ;
 	return -1 ;
     }
 
@@ -75,7 +75,7 @@ int mfs_api_init ( comm_t *wb, params_t *params )
     // Free configuration
     if (ret >= 0)
     {
-        mfs_conf_free(&conf) ;
+        info_fsconf_free(&conf) ;
     }
 
     // Return OK

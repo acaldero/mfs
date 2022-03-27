@@ -23,7 +23,7 @@
 #define __MFS_DBM_REDIS_H__
 
     // Includes
-    #include "mfs_lib.h"
+    #include "base_lib.h"
 
 #ifdef HAVE_HIREDIS_H
     #include <hiredis/hiredis.h>

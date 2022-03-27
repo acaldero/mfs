@@ -4,6 +4,7 @@
          type: "NORMAL"
          nodes:
                  - uri: "mfs.0"
+                 - uri: "mfs.1"
  partition:
          name: "P2"
          type: "NORMAL"

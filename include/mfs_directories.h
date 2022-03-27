@@ -23,7 +23,7 @@
 #define __MFS_DIRECTORIES_H__
 
     // Includes
-    #include "mfs_lib.h"
+    #include "base_lib.h"
     #include "mfs_descriptors.h"
     #include "mfs_directories_posix.h"
 
