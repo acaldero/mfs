@@ -27,6 +27,7 @@
     #include "mfs_dbm.h"
     #include "client_stub_mpi.h"
     #include "client_stub_socket.h"
+    #include "client_stub_local.h"
 
 
     // File System API

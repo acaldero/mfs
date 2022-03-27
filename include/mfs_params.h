@@ -34,10 +34,11 @@
    // Const
    #define MAX_NAME_LEN   1024
 
-   #define DEFAULT_DATA_PREFIX  "./data"
-   #define DEFAULT_CONF_FILE    "conf.yaml"
-   #define DEFAULT_STUB_PNAME   "mfs"
-   #define DEFAULT_PORT         12345
+   #define DEFAULT_VERBOSE_LEVEL   0
+   #define DEFAULT_DATA_PREFIX     "./data"
+   #define DEFAULT_CONF_FILE       "conf.yaml"
+   #define DEFAULT_STUB_PNAME      "mfs"
+   #define DEFAULT_PORT            12345
 
    #define THREAD_USE_ONDEMAND  1
    #define THREAD_USE_POOL      2
@@ -46,6 +47,8 @@
    // Datatype
    typedef struct
    {
+        int    verbose ;
+
         // associated client
         char  *mfs_server_stub_pname ; // e.g.: "mfs"
         char            *data_prefix ; // e.g.: "/mnt/mfs"

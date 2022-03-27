@@ -77,6 +77,7 @@ int clientstub_local_finalize ( comm_t *wb, params_t *params )
 long clientstub_local_open ( comm_t *wb, const char *pathname, int flags )
 {
     int ret = 0 ;
+    int fd ;
 
     ret = mfs_file_open(&fd, FILE_USE_POSIX, pathname, flags) ;
     if (ret < 0) {
@@ -124,6 +125,7 @@ long clientstub_local_rmdir ( comm_t *wb, const char *pathname )
 
 long clientstub_local_dbmopen ( comm_t *wb, const char *pathname, int flags )
 {
+     int ret ;
      int fd ;
 
      ret = mfs_dbm_open(&fd, DBM_USE_GDBM, pathname, flags) ;
