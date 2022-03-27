@@ -72,9 +72,9 @@
     //  DBM File API
     int serverstub_mpi_dbmopen    ( comm_t *ab, params_t *params, int *fd, int pathname_length, int flags ) ;
     int serverstub_mpi_dbmclose   ( comm_t *ab, params_t *params, int  fd ) ;
-    int serverstub_mpi_dbmstore   ( comm_t *ab, params_t *params, int  fd, int count ) ;
-    int serverstub_mpi_dbmfetch   ( comm_t *ab, params_t *params, int  fd, int count ) ;
-    int serverstub_mpi_dbmdelete  ( comm_t *ab, params_t *params, int  fd, int count ) ;
+    int serverstub_mpi_dbmstore   ( comm_t *ab, params_t *params, int  fd, int key_size, int val_size ) ;
+    int serverstub_mpi_dbmfetch   ( comm_t *ab, params_t *params, int  fd, int key_size, int val_size ) ;
+    int serverstub_mpi_dbmdelete  ( comm_t *ab, params_t *params, int  fd, int key_size ) ;
 
 #endif
 

@@ -351,18 +351,11 @@ int  clientstub_mpi_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_ke
      // Send write msg
      if (ret >= 0)
      {
-    	 mfs_print(DBG_INFO, "Client[%d]: dbmstore fd:%ld key_size:%d >> server\n", mfs_comm_get_rank(wb), fd, count_key) ;
-         ret = mfs_comm_mpi_send_request(wb, 0, REQ_ACTION_DBMSTORE, fd, count_key, 0) ;
-     }
+    	 mfs_print(DBG_INFO,
+		   "Client[%d]: dbmstore fd:%ld k_size:%d v_size:%d >> server\n", 
+		    mfs_comm_get_rank(wb), fd, count_key, count_val) ;
 
-     // Send value size (in bytes)
-     if (ret >= 0)
-     {
-    	mfs_print(DBG_INFO, "Client[%d]: dbmstore val_size:%d >> server\n", mfs_comm_get_rank(wb), count_val) ;
-        ret = mfs_comm_mpi_send_data_to(wb, 0, &count_val, 1, MPI_INT) ;
-        if (ret < 0) {
-    	    mfs_print(DBG_ERROR, "Client[%d]: value size cannot be sent :-(\n", mfs_comm_get_rank(wb)) ;
-        }
+         ret = mfs_comm_mpi_send_request(wb, 0, REQ_ACTION_DBMSTORE, fd, count_key, count_val) ;
      }
 
      // Receive status
@@ -421,19 +414,10 @@ int  clientstub_mpi_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_ke
      // (1) Send write msg
      if (ret >= 0)
      {
-         ret = mfs_comm_mpi_send_request(wb, 0, REQ_ACTION_DBMFETCH, fd, count_key, 0) ;
+         ret = mfs_comm_mpi_send_request(wb, 0, REQ_ACTION_DBMFETCH, fd, count_key, *count_val) ;
      }
 
-     // (2) Send value size (in bytes)
-     if (ret >= 0)
-     {
-        ret = mfs_comm_mpi_send_data_to(wb, 0, count_val, 1, MPI_INT) ;
-        if (ret < 0) {
-    	    mfs_print(DBG_ERROR, "Client[%d]: value size cannot be sent :-(\n", mfs_comm_get_rank(wb)) ;
-        }
-     }
-
-     // (3) Receive status
+     // (2) Receive status
      if (ret >= 0)
      {
         ret = mfs_comm_mpi_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
@@ -447,13 +431,13 @@ int  clientstub_mpi_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_ke
 	}
      }
 
-     // (4) Send key
+     // (3) Send key
      if (ret >= 0)
      {
         mfs_comm_mpi_send_buffer_in_chunks(wb, buff_key, count_key, count_key) ;
      }
 
-     // (5) Receive status
+     // (4) Receive status
      //if (ret >= 0)
      {
         ret = mfs_comm_mpi_recv_data_from(wb, 0, &status, 1, MPI_INT) ;
@@ -467,7 +451,7 @@ int  clientstub_mpi_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_ke
 	}
      }
 
-     // (6) Receive val
+     // (5) Receive val
      *count_val = status ;
      ret = mfs_comm_mpi_recv_data_from(wb, 0, buff_val, *count_val, MPI_CHAR) ;
      if (ret < 0) {

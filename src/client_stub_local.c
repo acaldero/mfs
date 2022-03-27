@@ -76,30 +76,38 @@ int clientstub_local_finalize ( comm_t *wb, params_t *params )
 
 long clientstub_local_open ( comm_t *wb, const char *pathname, int flags )
 {
-    int ret = 0 ;
-    int fd ;
+     int ret = 0 ;
+     int fd ;
 
-    ret = mfs_file_open(&fd, FILE_USE_POSIX, pathname, flags) ;
-    if (ret < 0) {
-	mfs_print(DBG_WARNING, "[CLIENTSTUB_LOCAL]: file '%s' not opened :-(\n", pathname) ;
-	return -1 ;
-    }
+     mfs_print(DBG_INFO, "Client[%d]: open('%s', %d)\n", mfs_comm_get_rank(wb), pathname, flags) ;
 
-    return fd ;
+     ret = mfs_file_open(&fd, FILE_USE_POSIX, pathname, flags) ;
+     if (ret < 0) {
+	 mfs_print(DBG_WARNING, "[CLIENTSTUB_LOCAL]: file '%s' not opened :-(\n", pathname) ;
+	 return -1 ;
+     }
+
+     return fd ;
 }
 
 int  clientstub_local_close ( comm_t *wb, long fd )
 {
+     mfs_print(DBG_INFO, "Client[%d]: close(%d)\n", mfs_comm_get_rank(wb), fd) ;
+
      return mfs_file_close(fd) ;
 }
 
 int  clientstub_local_read ( comm_t *wb, long fd, void *buff_char, int count )
 {
+     mfs_print(DBG_INFO, "Client[%d]: read(%d, %p, %d)\n", mfs_comm_get_rank(wb), fd, buff_char, count) ;
+
      return mfs_file_read(fd, buff_char, count) ;
 }
 
 int  clientstub_local_write ( comm_t *wb, long fd, void *buff_char, int count )
 {
+     mfs_print(DBG_INFO, "Client[%d]: write(%d, %p, %d)\n", mfs_comm_get_rank(wb), fd, buff_char, count) ;
+
      return mfs_file_write(fd, buff_char, count) ;
 }
 
@@ -110,11 +118,15 @@ int  clientstub_local_write ( comm_t *wb, long fd, void *buff_char, int count )
 
 long clientstub_local_mkdir ( comm_t *wb, const char *pathname, int mode )
 {
+     mfs_print(DBG_INFO, "Client[%d]: mkdir('%s', %d)\n", mfs_comm_get_rank(wb), pathname, mode) ;
+
      return mfs_directory_mkdir(DIRECTORY_USE_POSIX, (char *)pathname, mode) ;
 }
 
 long clientstub_local_rmdir ( comm_t *wb, const char *pathname )
 {
+     mfs_print(DBG_INFO, "Client[%d]: rmdir('%s')\n", mfs_comm_get_rank(wb), pathname) ;
+
      return mfs_directory_rmdir(DIRECTORY_USE_POSIX, (char *)pathname) ;
 }
 
@@ -128,6 +140,8 @@ long clientstub_local_dbmopen ( comm_t *wb, const char *pathname, int flags )
      int ret ;
      int fd ;
 
+     mfs_print(DBG_INFO, "Client[%d]: dbmopen('%s', %d)\n", mfs_comm_get_rank(wb), pathname, flags) ;
+
      ret = mfs_dbm_open(&fd, DBM_USE_GDBM, pathname, flags) ;
      if (ret < 0) {
 	 mfs_print(DBG_WARNING, "[CLIENTSTUB_LOCAL]: file '%s' not opened :-(\n", pathname) ;
@@ -139,21 +153,29 @@ long clientstub_local_dbmopen ( comm_t *wb, const char *pathname, int flags )
 
 int  clientstub_local_dbmclose ( comm_t *wb, long fd )
 {
+     mfs_print(DBG_INFO, "Client[%d]: dbmclose(%d)\n", mfs_comm_get_rank(wb), fd) ;
+
      return mfs_dbm_close(fd) ;
 }
 
 int  clientstub_local_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int count_val )
 {
+     mfs_print(DBG_INFO, "Client[%d]: dbmstore(%d, %d, %d)\n", mfs_comm_get_rank(wb), fd, count_key, count_val) ;
+
      return mfs_dbm_store(fd, buff_key, count_key, buff_val, count_val) ;
 }
 
 int  clientstub_local_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int *count_val )
 {
+     mfs_print(DBG_INFO, "Client[%d]: dbmfetch(%d, %d, %d)\n", mfs_comm_get_rank(wb), fd, count_key, *count_val) ;
+
      return mfs_dbm_fetch(fd, buff_key, count_key, &buff_val, count_val) ;
 }
 
 int  clientstub_local_dbmdelete ( comm_t *wb, long fd, void *buff_key, int count_key )
 {
+     mfs_print(DBG_INFO, "Client[%d]: dbmdelete(%d, %d)\n", mfs_comm_get_rank(wb), fd, count_key) ;
+
      return mfs_dbm_delete(fd, buff_key, count_key) ;
 }
 
