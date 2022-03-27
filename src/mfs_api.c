@@ -39,15 +39,15 @@ int mfs_api_init ( comm_t *wb, params_t *params )
     ret = mfs_conf_get(&conf, params->conf_fname) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Client[%d]: mfs_conf_get fails to read file '%s' :-(\n", -1, params->conf_fname) ;
+	return -1 ;
     }
 
-    if (ret >= 0)
-    {
+    if (params->verbose > 0) {
         mfs_conf_show(&conf) ;
-        if (conf.n_partitions < 1) {
-            mfs_print(DBG_ERROR, "Client[%d]: mfs_conf_get fails to read at least one partition in file '%s' :-(\n", -1, params->conf_fname) ;
-	    return -1 ;
-        }
+    }
+    if (conf.n_partitions < 1) {
+        mfs_print(DBG_ERROR, "Client[%d]: mfs_conf_get fails to read at least one partition in file '%s' :-(\n", -1, params->conf_fname) ;
+	return -1 ;
     }
 
     // Open server port...

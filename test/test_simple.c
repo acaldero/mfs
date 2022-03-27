@@ -122,8 +122,7 @@ int main ( int argc, char **argv )
     // Welcome...
     printf("\n"
  	   " mfs_client\n"
-	   " ----------\n"
-	   "\n") ;
+	   " ----------\n") ;
 
     // Get parameters..
     ret = mfs_params_get(&params, &argc, &argv) ;
@@ -132,8 +131,10 @@ int main ( int argc, char **argv )
         exit(-1) ;
     }
 
-    printf("Client[%d]: initializing...\n", -1) ;
-    mfs_params_show(&params) ;
+    if (params.verbose > 0) {
+        mfs_params_show(&params) ;
+        mfs_print(DBG_INFO, "Client[%d]: initializing...\n", -1) ;
+    }
 
     // Initialize...
     if (ret >= 0)

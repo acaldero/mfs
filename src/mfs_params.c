@@ -24,6 +24,7 @@
  int  mfs_params_show ( params_t *params )
  {
  	printf(" Current parameters:\n");
+      	printf(" | -v '%d' \t\t <level>\n",                 params->verbose) ;
       	printf(" | -d '%s' \t\t <base directory>\n",        params->data_prefix) ;
       	printf(" | -c  %s  \t\t (SOCKET) | MPI | LOCAL\n",  params->comm_backend_name) ;
       	printf(" | -f  %s  \t\t POSIX | (MPI-IO)\n",        params->file_backend_name) ;
@@ -40,6 +41,7 @@
  void mfs_params_show_usage ( void )
  {
       	printf("Usage:\n");
+      	printf("\t-v <number>:  verbose level              (default: %d)\n",   DEFAULT_VERBOSE_LEVEL) ;
       	printf("\t-d <string>:  name of the base directory (default: '%s')\n", DEFAULT_DATA_PREFIX) ;
       	printf("\t-c <string>:  SOCKET | MPI | LOCAL       (default: %s)\n",   "MPI") ;
       	printf("\t-f <string>:  POSIX | MPI-IO             (default: %s)\n",   "POSIX") ;
@@ -52,7 +54,7 @@
 
  struct option long_options[] =
         {
-          { "verbose",            no_argument,       NULL, 'v' },
+          { "verbose",            required_argument, NULL, 'v' },
           { "base_directory",     required_argument, NULL, 'd' },
           { "comm_backend",       required_argument, NULL, 'c' },
           { "file_backend",       required_argument, NULL, 'f' },
@@ -75,10 +77,11 @@
       	params->argc = argc ;
       	params->argv = argv ;
 
-        params->mfs_server_stub_pname = strdup(DEFAULT_STUB_PNAME) ;
-        params->data_prefix = strdup(DEFAULT_DATA_PREFIX) ;
-        params->conf_fname  = strdup(DEFAULT_CONF_FILE) ;
-	params->server_port = DEFAULT_PORT ;
+      	params->verbose                = 0 ;
+        params->mfs_server_stub_pname  = strdup(DEFAULT_STUB_PNAME) ;
+        params->data_prefix            = strdup(DEFAULT_DATA_PREFIX) ;
+        params->conf_fname             = strdup(DEFAULT_CONF_FILE) ;
+	params->server_port            = DEFAULT_PORT ;
 
         params->file_backend           = FILE_USE_POSIX ;
         params->file_backend_name      = strdup("POSIX") ;
@@ -94,14 +97,14 @@
         params->ns_backend_name        = strdup("DBM") ;
 
 	// getopt_long...
-	short_opt = "vb:c:d:f:i:n:p:t:" ;
+	short_opt = "v:b:c:d:f:i:n:p:t:" ;
         c = getopt_long(*argc, *argv, short_opt, long_options, &option_index) ;
 	while (c != -1)
 	{
            switch (c)
            {
              case 'v':
-		  // verbose
+		  params->verbose = atoi(optarg) ;
                   break ;
 
 	     case 'd':

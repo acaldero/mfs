@@ -161,9 +161,8 @@ int main ( int argc, char **argv )
 
     // Welcome...
     printf("\n"
- 	   " mfs_server\n"
-	   " ----------\n"
-	   "\n") ;
+ 	   " mfs_server_mpi\n"
+	   " --------------\n") ;
 
     // Get parameters..
     ret = mfs_params_get(&params, &argc, &argv) ;
@@ -172,8 +171,10 @@ int main ( int argc, char **argv )
         exit(-1) ;
     }
 
-    mfs_print(DBG_INFO, "Server[%d]: initializing...\n", -1) ;
-    mfs_params_show(&params) ;
+    if (params.verbose > 0) {
+        mfs_params_show(&params) ;
+        mfs_print(DBG_INFO, "Server[%d]: initializing...\n", -1) ;
+    }
 
     // Initialize workers
     ret = mfs_workers_init(&params) ;
