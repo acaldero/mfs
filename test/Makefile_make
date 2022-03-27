@@ -48,6 +48,6 @@ clean: begin
 	rm -f  test_simple
 	rm -f  test_benchmark
 	@echo " Remove data files..."
-	rm -fr ns.data `find ./data -name "test*.txt"`
+	rm -fr ns.data test*.txt `find ./data -name "test*.txt"`
 	@echo " Done"
 

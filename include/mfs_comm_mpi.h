@@ -23,10 +23,11 @@
 #define __MFS_COMM_MPI_H__
 
     // Includes
-    #include "mfs_lib.h"
-    #include "mfs_params.h"
-    #include "mfs_conf.h"
+    #include "base_lib.h"
+    #include "info_params.h"
+    #include "info_fsconf.h"
     #include "mfs_comm_common.h"
+    #include "stub_msg.h"
 
     #include <mpi.h>
 
@@ -37,7 +38,10 @@
     int mfs_comm_mpi_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
     int mfs_comm_mpi_send_data_to   ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
 
-    int mfs_comm_mpi_send_buffer_in_chunks ( comm_t *wb, void *buff_char, int count, int buffer_size ) ;
+    int mfs_comm_mpi_send_request          ( comm_t *wb, int   rank,      long action, long arg1, long arg2, long arg3 ) ;
+    int mfs_comm_mpi_receive_request       ( comm_t *wb, int   rank,      msg_t *msg ) ;
+
+    int mfs_comm_mpi_send_buffer_in_chunks ( comm_t *wb, void *buff_char, int  count,  int  buffer_size ) ;
 
     int mfs_comm_mpi_stats_reset    ( comm_t *cb ) ;
     int mfs_comm_mpi_stats_show     ( comm_t *cb, char *prefix ) ;

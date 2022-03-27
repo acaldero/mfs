@@ -251,7 +251,7 @@ int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri, int remote_rank )
 
 	// translate srv_uri -> host + port
 	port_name_size = MPI_MAX_PORT_NAME ;
-	ret = mfs_ns_lookup(cb, cb->ns_backend, srv_uri, cb->port_name, &port_name_size) ;
+	ret = info_ns_lookup(cb, cb->ns_backend, srv_uri, cb->port_name, &port_name_size) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR,
 	              "[COMM]: mfs_comm_socket_lookup fails for '%s' with backend %d :-(\n",
@@ -259,7 +259,7 @@ int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri, int remote_rank )
             return -1 ;
         }
 
-	ret = mfs_ns_split_portname(cb->port_name, &hp, &srv_port) ;
+	ret = info_ns_split_portname(cb->port_name, &hp, &srv_port) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "[COMM]: mfs_comm_socket_splithp fails :-(\n") ;
             return -1 ;
@@ -383,6 +383,29 @@ int mfs_comm_socket_send_data_to  ( comm_t *cb, int rank, void *buff, int size )
         // Return OK/KO
         return ret ;
 }
+
+
+//
+// Requests
+//
+
+int mfs_comm_socket_send_request ( comm_t *wb, int rank, long action, long arg1, long arg2, long arg3 )
+{
+    msg_t msg ;
+
+    msg.req_action = action ;
+    msg.req_arg1 = arg1 ;
+    msg.req_arg2 = arg2 ;
+    msg.req_arg3 = arg3 ;
+
+    return mfs_comm_socket_send_data_to(wb, rank, (char *)&(msg), sizeof(msg_t)) ;
+}
+
+int mfs_comm_socket_receive_request ( comm_t *wb, int rank, msg_t *msg )
+{
+    return mfs_comm_socket_recv_data_from(wb, rank, msg, sizeof(msg_t)) ;
+}
+
 
 //
 // Stats

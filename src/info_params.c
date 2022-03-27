@@ -19,12 +19,12 @@
  *
  */
 
- #include "mfs_params.h"
+ #include "info_params.h"
 
- int  mfs_params_show ( params_t *params )
+ int  info_params_show ( params_t *params )
  {
  	printf(" Current parameters:\n");
-      	printf(" | -v '%d' \t\t <level>\n",                 params->verbose) ;
+      	printf(" | -v  %d \t\t <level>\n",                  params->verbose) ;
       	printf(" | -d '%s' \t\t <base directory>\n",        params->data_prefix) ;
       	printf(" | -c  %s  \t\t (SOCKET) | MPI | LOCAL\n",  params->comm_backend_name) ;
       	printf(" | -f  %s  \t\t POSIX | (MPI-IO)\n",        params->file_backend_name) ;
@@ -38,7 +38,7 @@
       	return 1;
  }
 
- void mfs_params_show_usage ( void )
+ void info_params_show_usage ( void )
  {
       	printf("Usage:\n");
       	printf("\t-v <number>:  verbose level              (default: %d)\n",   DEFAULT_VERBOSE_LEVEL) ;
@@ -67,7 +67,7 @@
         } ;
 
 
- int mfs_params_get ( params_t *params, int *argc, char ***argv )
+ int info_params_get ( params_t *params, int *argc, char ***argv )
  {
         int   c = -1 ;
 	int   option_index = 0;
@@ -128,6 +128,10 @@
 		      params->comm_backend = COMM_USE_MPI ;
 		      mfs_free_and_strdup(&(params->comm_backend_name), "MPI") ;
 		  }
+		  if (!strcmp("LOCAL", optarg)) {
+		      params->comm_backend = COMM_USE_LOCAL ;
+		      mfs_free_and_strdup(&(params->comm_backend_name), "LOCAL") ;
+		  }
                   break ;
 
 	     case 'f':
@@ -171,7 +175,7 @@
                   break ;
 
              case '?':
-                  mfs_params_show_usage() ;
+                  info_params_show_usage() ;
                   exit(-1) ;
                   break ;
 
@@ -186,7 +190,7 @@
       	return 1;
 }
 
-int  mfs_params_free       ( params_t *params )
+int  info_params_free       ( params_t *params )
 {
         // Free dynamic memory
         free(params->data_prefix) ;

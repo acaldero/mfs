@@ -9,7 +9,7 @@ SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "bin")
 
 # Executable 
 ADD_LIBRARY (mfs_client.a STATIC
-             src/mfs_server_stub.c src/mfs_client_stub.c src/mfs_workers.c src/stub_msg.c src/mfs_comm.c src/mfs_files.c src/mfs_params.c src/mfs_directories.c src/mfs_lib.c)
+             src/mfs_server_stub.c src/mfs_client_stub.c src/mfs_workers.c src/stub_msg.c src/mfs_comm.c src/mfs_files.c src/info_params.c src/mfs_directories.c src/base_lib.c)
 add_executable (mfs_server src/mfs_server.c)
 
 # Link the executable 

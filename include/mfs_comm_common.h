@@ -23,8 +23,8 @@
 #define __MFS_COMM_COMMON_H__
 
     // Includes
-    #include "mfs_lib.h"
-    #include "mfs_params.h"
+    #include "base_lib.h"
+    #include "info_params.h"
 
 
     // File protocol

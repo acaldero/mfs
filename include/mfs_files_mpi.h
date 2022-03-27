@@ -23,7 +23,7 @@
 #define __MFS_FILES_MPI_H__
 
     // Includes
-    #include "mfs_lib.h"
+    #include "base_lib.h"
 
     #include <mpi.h>
     #include <fcntl.h>

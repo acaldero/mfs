@@ -31,7 +31,6 @@ int main_test_file ( params_t *params, comm_t *wb )
     long   fd ;
     char   str[STR_SIZE] ;
 
-   MPI_Barrier(MPI_COMM_WORLD) ;
 
     // write("hello world")
     strcpy(str, "hello world") ;
@@ -41,16 +40,11 @@ int main_test_file ( params_t *params, comm_t *wb )
     mfs_api_write(wb, fd, str, strlen(str)) ;
     mfs_api_close(wb, fd) ;
 
-
-   MPI_Barrier(MPI_COMM_WORLD) ;
-
     // read("...")
     printf("Client[%d]: open(...) + read(...) + close(...)\n", wb->rank) ;
     fd = mfs_api_open(wb, "test1.txt", O_RDONLY) ;
      mfs_api_read(wb, fd, str, STR_SIZE) ;
     mfs_api_close(wb, fd) ;
-
-   MPI_Barrier(MPI_COMM_WORLD) ;
 
     return 0;
 }
@@ -64,7 +58,6 @@ int main_test_dbm ( params_t *params, comm_t *wb )
     int    str1_len ;
     int    str2_len ;
 
-   MPI_Barrier(MPI_COMM_WORLD) ;
 
     // dbmstore("m1", "hello world")
     if (wb->rank < wb->n_servers)
@@ -81,8 +74,6 @@ int main_test_dbm ( params_t *params, comm_t *wb )
         mfs_api_dbmclose(wb, fd) ;
     }
 
-   MPI_Barrier(MPI_COMM_WORLD) ;
-
     // dbmfetch("m1")
     strcpy(str1, "m1") ;
     strcpy(str2, "") ;
@@ -94,8 +85,6 @@ int main_test_dbm ( params_t *params, comm_t *wb )
     if (fd < 0) return -1 ;
     mfs_api_dbmfetch(wb, fd, str1, str1_len, &str2, &str2_len) ;
     mfs_api_dbmclose(wb, fd) ;
-
-   MPI_Barrier(MPI_COMM_WORLD) ;
 
     // dbmdelete("m1")
     if (wb->rank < wb->n_servers)
@@ -125,14 +114,14 @@ int main ( int argc, char **argv )
 	   " ----------\n") ;
 
     // Get parameters..
-    ret = mfs_params_get(&params, &argc, &argv) ;
+    ret = info_params_get(&params, &argc, &argv) ;
     if (ret < 0) {
-        mfs_params_show_usage() ;
+        info_params_show_usage() ;
         exit(-1) ;
     }
 
     if (params.verbose > 0) {
-        mfs_params_show(&params) ;
+        info_params_show(&params) ;
         mfs_print(DBG_INFO, "Client[%d]: initializing...\n", -1) ;
     }
 
@@ -145,6 +134,10 @@ int main ( int argc, char **argv )
         }
     }
 
+ if (!strcmp(params.comm_backend_name, "MPI")) {
+      MPI_Barrier(MPI_COMM_WORLD) ;
+ }
+
     // simple main 1...
     if (ret >= 0)
     {
@@ -153,6 +146,10 @@ int main ( int argc, char **argv )
             mfs_print(DBG_ERROR, "Client[%d]: main_test_file fails :-(", -1) ;
         }
     }
+
+ if (!strcmp(params.comm_backend_name, "MPI")) {
+      MPI_Barrier(MPI_COMM_WORLD) ;
+ }
 
     // simple main 2...
     if (ret >= 0)

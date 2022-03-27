@@ -114,14 +114,14 @@ int main ( int argc, char **argv )
 	   "\n") ;
 
     // Get parameters..
-    ret = mfs_params_get(&params, &argc, &argv) ;
+    ret = info_params_get(&params, &argc, &argv) ;
     if (ret < 0) {
-        mfs_params_show_usage() ;
+        info_params_show_usage() ;
         exit(-1) ;
     }
 
     mfs_print(DBG_INFO, "Client[%d]: initializing...\n", -1) ;
-    mfs_params_show(&params) ;
+    info_params_show(&params) ;
 
     // simple main...
     ret = main_simple2(&params) ;

@@ -138,13 +138,13 @@ int serverstub_socket_init ( comm_t *wb, params_t *params )
     }
 
     // Get valid configuration..
-    ret = mfs_conf_get(&conf, params->conf_fname) ;
+    ret = info_fsconf_get(&conf, params->conf_fname) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Server[%d]: mfs_conf_get('%s') fails :-(\n", -1, params->conf_fname) ;
+        mfs_print(DBG_ERROR, "Server[%d]: info_fsconf_get('%s') fails :-(\n", -1, params->conf_fname) ;
         return -1 ;
     }
     if (conf.n_partitions < 1) {
-        mfs_print(DBG_ERROR, "Server[%d]: mfs_conf_get fails to read at least one partition in file '%s' :-(\n", -1, params->conf_fname) ;
+        mfs_print(DBG_ERROR, "Server[%d]: info_fsconf_get fails to read at least one partition in file '%s' :-(\n", -1, params->conf_fname) ;
         return -1 ;
     }
 
@@ -161,23 +161,23 @@ int serverstub_socket_init ( comm_t *wb, params_t *params )
 
     // Register service
     local_rank = mfs_comm_get_rank(wb) ;
-    local_node = mfs_conf_get_active_node(&conf, local_rank) ;
+    local_node = info_fsconf_get_active_node(&conf, local_rank) ;
     strcpy(wb->srv_name, local_node) ;
 
-    ret = mfs_ns_get_portname(wb->port_name, wb->sd) ;
+    ret = info_ns_get_portname(wb->port_name, wb->sd) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Server[%d]: mfs_ns_get_portname fails :-(\n", mfs_comm_get_rank(wb)) ;
+        mfs_print(DBG_ERROR, "Server[%d]: info_ns_get_portname fails :-(\n", mfs_comm_get_rank(wb)) ;
         return -1 ;
     }
 
-    ret = mfs_ns_insert(wb, wb->ns_backend, wb->srv_name, wb->port_name) ;
+    ret = info_ns_insert(wb, wb->ns_backend, wb->srv_name, wb->port_name) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: port registration fails :-(\n", mfs_comm_get_rank(wb)) ;
         return -1 ;
     }
 
     // Free configuration
-    mfs_conf_free(&conf) ;
+    info_fsconf_free(&conf) ;
 
     // Return OK
     return 0 ;
@@ -188,7 +188,7 @@ int serverstub_socket_finalize ( comm_t *wb, params_t *params )
     int ret ;
 
     // UnRegister
-    ret = mfs_ns_remove(wb, wb->ns_backend, wb->srv_name) ;
+    ret = info_ns_remove(wb, wb->ns_backend, wb->srv_name) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: port unregistration fails :-(\n", mfs_comm_get_rank(wb)) ;
         return -1 ;
@@ -225,7 +225,7 @@ int serverstub_socket_finalize ( comm_t *wb, params_t *params )
     }
 
     // Finalize params
-    ret = mfs_params_free(params) ;
+    ret = info_params_free(params) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: finalization fails for params_free :-(\n", -1) ;
         return -1 ;

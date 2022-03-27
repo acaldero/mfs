@@ -23,9 +23,10 @@
 #define __MFS_COMM_SOCKET_H__
 
     // Includes
-    #include "mfs_lib.h"
+    #include "base_lib.h"
+    #include "info_ns.h"
     #include "mfs_comm_common.h"
-    #include "mfs_ns.h"
+    #include "stub_msg.h"
 
     #include <sys/types.h>
     #include <sys/socket.h>
@@ -46,6 +47,9 @@
 
     int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size ) ;
     int mfs_comm_socket_send_data_to   ( comm_t *cb, int rank, void *buff, int size ) ;
+
+    int mfs_comm_socket_send_request    ( comm_t *wb, int rank, long action, long arg1, long arg2, long arg3 ) ;
+    int mfs_comm_socket_receive_request ( comm_t *wb, int rank, msg_t *msg ) ;
 
     int mfs_comm_socket_stats_reset    ( comm_t *cb ) ;
     int mfs_comm_socket_stats_show     ( comm_t *cb, char *prefix ) ;

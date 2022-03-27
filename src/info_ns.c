@@ -20,26 +20,26 @@
  */
 
 
-#include "mfs_ns.h"
+#include "info_ns.h"
 
 
 /*
  *  Name server API
  */
 
-int  mfs_ns_init ( void )
+int  info_ns_init ( void )
 {
     // Return OK/KO
     return 1 ;
 }
 
-int  mfs_ns_finalize ( void )
+int  info_ns_finalize ( void )
 {
     // Return OK/KO
     return 1 ;
 }
 
-int mfs_ns_insert ( comm_t *wb, int ns_backend, char *srv_name, char *port_name )
+int info_ns_insert ( comm_t *wb, int ns_backend, char *srv_name, char *port_name )
 {
     int ret ;
     int fd ;
@@ -95,7 +95,7 @@ int mfs_ns_insert ( comm_t *wb, int ns_backend, char *srv_name, char *port_name 
     return ret ;
 }
 
-int mfs_ns_lookup ( comm_t *wb, int ns_backend, char *srv_name, char *port_name, int *port_name_size )
+int info_ns_lookup ( comm_t *wb, int ns_backend, char *srv_name, char *port_name, int *port_name_size )
 {
     int ret ;
     int fd ;
@@ -162,7 +162,7 @@ int mfs_ns_lookup ( comm_t *wb, int ns_backend, char *srv_name, char *port_name,
     return ret ;
 }
 
-int mfs_ns_remove ( comm_t *wb, int ns_backend, char *srv_name )
+int info_ns_remove ( comm_t *wb, int ns_backend, char *srv_name )
 {
     int ret ;
     int fd ;
@@ -218,7 +218,7 @@ int mfs_ns_remove ( comm_t *wb, int ns_backend, char *srv_name )
     return ret ;
 }
 
-int mfs_ns_get_portname ( char *port_name, int sd )
+int info_ns_get_portname ( char *port_name, int sd )
 {
 	char               my_ip[16] ;
         unsigned int       my_port ;
@@ -252,7 +252,7 @@ int mfs_ns_get_portname ( char *port_name, int sd )
         return 1 ;
 }
 
-int mfs_ns_split_portname ( char *port_name, struct hostent **host, int *port )
+int info_ns_split_portname ( char *port_name, struct hostent **host, int *port )
 {
 	char *pch ;
 	char  srv_host[MAXPATHLEN] ;
