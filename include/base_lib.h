@@ -66,5 +66,10 @@
     int mfs_realloc ( char **ptr, long new_size ) ;
     int mfs_free_and_strdup ( char **ptr, char *str ) ;
 
+    // Strings
+    int base_strlen    ( char *str1 ) ;
+    int base_str_equal ( char *str1, char *str2 ) ;
+    int base_str_prepare_pathname ( char **buff_data_sys, char *base_dirname, int local_rank, int pathname_length ) ;
+
 #endif
 

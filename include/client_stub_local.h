@@ -29,7 +29,7 @@
 
 
     // File System API
-    int clientstub_local_init     ( comm_t *wb, params_t *params, conf_t *conf ) ;
+    int clientstub_local_init     ( comm_t *wb, params_t *params ) ;
     int clientstub_local_finalize ( comm_t *wb, params_t *params ) ;
 
     // File API

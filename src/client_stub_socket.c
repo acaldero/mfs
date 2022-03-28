@@ -120,7 +120,7 @@ int clientstub_socket_action_send_buffer ( comm_t *wb, void *buff_char, int coun
  *  File System API
  */
 
-int clientstub_socket_init ( comm_t *wb, params_t *params, conf_t *conf )
+int clientstub_socket_init ( comm_t *wb, params_t *params )
 {
     int    ret = 0 ;
     char  *srv_uri ;
@@ -128,7 +128,7 @@ int clientstub_socket_init ( comm_t *wb, params_t *params, conf_t *conf )
     // Initialize
     if (ret >= 0)
     {
-        ret = mfs_comm_socket_init(wb, conf->active, params->server_port, params->ns_backend) ;
+        ret = mfs_comm_socket_init(wb, wb->conf.active, params->server_port, params->ns_backend) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: initialization fails :-(\n", -1) ;
         }
@@ -137,9 +137,9 @@ int clientstub_socket_init ( comm_t *wb, params_t *params, conf_t *conf )
     // Connect to service
     if (ret >= 0)
     {
-	for (int i=0; i<conf->active->n_nodes; i++)
+	for (int i=0; i<wb->conf.active->n_nodes; i++)
 	{
-             srv_uri = info_fsconf_get_active_node(conf, i) ;
+             srv_uri = info_fsconf_get_active_node(&(wb->conf), i) ;
              ret = mfs_comm_socket_connect(wb, srv_uri, i) ;
              if (ret < 0) {
                  mfs_print(DBG_ERROR, "Client[%d]: connect to '%s' fails :-(\n", -1, srv_uri) ;

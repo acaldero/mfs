@@ -50,6 +50,12 @@
 	    return -1 ;
 	}
 
+	nodes_in_bytes = (conf->partitions[id_part].n_nodes) * sizeof(base_url_t) ;
+	ret = mfs_realloc((char **)&(conf->partitions[id_part].url), nodes_in_bytes) ;
+	if (ret < 0) {
+	    return -1 ;
+	}
+
       	// return OK
       	return 1 ;
  }
@@ -85,7 +91,7 @@
         yaml_parser_t parser ;
 	yaml_token_t  token ;
 	char *token_val ;
-	int   id_last_part ;
+	int   id_last_part, id_last_node ;
 
         /* Initialize conf */
 	conf->n_partitions = 0 ;
@@ -166,11 +172,16 @@
 			     if (2 == k_type) {
                                  conf->partitions[id_last_part].type = strdup(token_val) ;
 			     }
-			     if (4 == k_type) {
+			     if (4 == k_type)
+			     {
 				 ret = info_fsconf_add_node(conf, id_last_part) ;
 				 if (ret < 0) return -1 ;
-				 int id_last_node = conf->partitions[id_last_part].n_nodes - 1 ;
+
+				 id_last_node = conf->partitions[id_last_part].n_nodes - 1 ;
 				 conf->partitions[id_last_part].nodes[id_last_node] = strdup(token_val) ;
+
+				 ret = base_url_parseURL(&(conf->partitions[id_last_part].url[id_last_node]), token_val) ;
+				 if (ret < 0) return -1 ;
 			     }
 			 }
 			 break ;
@@ -201,6 +212,14 @@
 
  int info_fsconf_free ( conf_t *conf )
  {
+	// Check arguments...
+	if (NULL == conf) {
+	    return -1 ;
+	}
+	if (0 == conf->n_partitions) {
+      	    return 1 ;
+	}
+
 	// Free each partition...
 	for (int i=0; i<conf->n_partitions; i++)
 	{
@@ -209,11 +228,15 @@
              free(conf->partitions[i].type) ;
 
 	     // free each node...
-	     for (int j=0; j<conf->partitions[i].n_nodes; j++) {
+	     for (int j=0; j<conf->partitions[i].n_nodes; j++)
+	     {
                   free(conf->partitions[i].nodes[j]) ;
+                  base_url_freeURL(&(conf->partitions[i].url[j])) ;
 	     }
-	     // ...and node table
+
+	     // ...and node tables
              free(conf->partitions[i].nodes) ;
+             free(conf->partitions[i].url) ;
 	}
 	// ...and partition table
         free(conf->partitions) ;
@@ -225,6 +248,24 @@
 
       	// return OK
       	return 1 ;
+ }
+
+
+ //
+ // Getters
+ //
+
+ int   info_fsconf_get_active_nnodes ( conf_t *conf )
+ {
+	if (NULL == conf) {
+	    return -1 ;
+	}
+	if (NULL == conf->active) {
+	    return -1 ;
+	}
+
+      	// return number of nodes
+	return (conf->active->n_nodes) ;
  }
 
  char *info_fsconf_get_active_node ( conf_t *conf, int rank )
@@ -239,5 +280,19 @@
 
       	// return node (char *)
         return conf->active->nodes[rank]  ;
+ }
+
+ base_url_t *info_fsconf_get_active_url ( conf_t *conf, int rank )
+ {
+	if (NULL == conf) {
+	    return NULL ;
+	}
+
+        if (rank >= conf->active->n_nodes) {
+	    return NULL ;
+	}
+
+      	// return node (char *)
+        return &(conf->active->url[rank])  ;
  }
 

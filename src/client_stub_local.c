@@ -27,22 +27,26 @@
  *  File System API
  */
 
-int clientstub_local_init ( comm_t *wb, params_t *params, conf_t *conf )
+int clientstub_local_init ( comm_t *wb, params_t *params )
 {
     int ret = 0 ;
 
+    // Initialization
+    mfs_comm_reset(wb) ;
+    wb->comm_protocol = COMM_USE_LOCAL ;
+    wb->comm_protocol_name = "LOCAL" ;
+
     // Initialize files, dbm and directories
-    if (ret >= 0) {
-	ret = mfs_file_init() ;
-    }
+    ret = mfs_file_init() ;
+    if (ret < 0) { return -1 ; }
 
-    if (ret >= 0) {
-	ret = mfs_dbm_init() ;
-    }
+    ret = mfs_dbm_init() ;
+    if (ret < 0) { return -1 ; }
 
-    if (ret >= 0) {
-	ret = mfs_directory_init() ;
-    }
+    ret = mfs_directory_init() ;
+    if (ret < 0) { return -1 ; }
+
+    wb->is_connected = 1 ;
 
     // Return OK/KO
     return ret ;
@@ -53,17 +57,16 @@ int clientstub_local_finalize ( comm_t *wb, params_t *params )
     int ret = 0 ;
 
     // Finalize files, dbm and directories
-    if (ret >= 0) {
-	ret = mfs_directory_finalize() ;
-    }
+    ret = mfs_directory_finalize() ;
+    if (ret < 0) { return -1 ; }
 
-    if (ret >= 0) {
-	ret = mfs_file_finalize() ;
-    }
+    ret = mfs_file_finalize() ;
+    if (ret < 0) { return -1 ; }
 
-    if (ret >= 0) {
-	ret = mfs_dbm_finalize() ;
-    }
+    ret = mfs_dbm_finalize() ;
+    if (ret < 0) { return -1 ; }
+
+    wb->is_connected = 0 ;
 
     // Return OK/KO
     return ret ;
@@ -76,15 +79,41 @@ int clientstub_local_finalize ( comm_t *wb, params_t *params )
 
 long clientstub_local_open ( comm_t *wb, const char *pathname, int flags )
 {
-     int ret = 0 ;
-     int fd ;
+     int         ret, fd ;
+     char       *buff_data_sys ;
+     int         local_rank ;
+     base_url_t *local_url ;
 
      mfs_print(DBG_INFO, "Client[%d]: open('%s', %d)\n", mfs_comm_get_rank(wb), pathname, flags) ;
 
-     ret = mfs_file_open(&fd, FILE_USE_POSIX, pathname, flags) ;
+     // Initialize...
+     ret = 0 ;
+     buff_data_sys = NULL ;
+
+     // Register service
+     local_rank = mfs_comm_get_rank(wb) ;
+     local_url  = info_fsconf_get_active_url(&(wb->conf), local_rank) ;
+
+     // Get filename
+     ret = base_str_prepare_pathname(&buff_data_sys, local_url->file, local_rank, strlen(pathname)) ;
      if (ret < 0) {
-	 mfs_print(DBG_WARNING, "[CLIENTSTUB_LOCAL]: file '%s' not opened :-(\n", pathname) ;
+         mfs_print(DBG_ERROR, "Client[%d]: base_str_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(wb), strlen(pathname)) ;
+     }
+     strcat(buff_data_sys, pathname) ;
+
+     // Open file
+     mfs_print(DBG_INFO, "Client[%d]: open('%s', %d)\n", mfs_comm_get_rank(wb), buff_data_sys, flags) ;
+
+     ret = mfs_file_open(&fd, FILE_USE_POSIX, buff_data_sys, flags) ;
+     if (ret < 0) {
+	 mfs_print(DBG_WARNING, "Client[%d]: file '%s' not opened :-(\n", mfs_comm_get_rank(wb), pathname) ;
 	 return -1 ;
+     }
+
+     // free filename buffer
+     ret = mfs_free(&buff_data_sys) ;
+     if (ret < 0) {
+         mfs_print(DBG_WARNING, "Client[%d]: problem on free :-(\n", mfs_comm_get_rank(wb)) ;
      }
 
      return fd ;
@@ -137,15 +166,41 @@ long clientstub_local_rmdir ( comm_t *wb, const char *pathname )
 
 long clientstub_local_dbmopen ( comm_t *wb, const char *pathname, int flags )
 {
-     int ret ;
-     int fd ;
+     int         ret, fd ;
+     char       *buff_data_sys ;
+     int         local_rank ;
+     base_url_t *local_url ;
 
      mfs_print(DBG_INFO, "Client[%d]: dbmopen('%s', %d)\n", mfs_comm_get_rank(wb), pathname, flags) ;
 
-     ret = mfs_dbm_open(&fd, DBM_USE_GDBM, pathname, flags) ;
+     // Initialize...
+     ret = 0 ;
+     buff_data_sys = NULL ;
+
+     // Register service
+     local_rank = mfs_comm_get_rank(wb) ;
+     local_url  = info_fsconf_get_active_url(&(wb->conf), local_rank) ;
+
+     // Get filename
+     ret = base_str_prepare_pathname(&buff_data_sys, local_url->file, local_rank, strlen(pathname)) ;
      if (ret < 0) {
-	 mfs_print(DBG_WARNING, "[CLIENTSTUB_LOCAL]: file '%s' not opened :-(\n", pathname) ;
+         mfs_print(DBG_ERROR, "Client[%d]: base_str_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(wb), strlen(pathname)) ;
+     }
+     strcat(buff_data_sys, pathname) ;
+
+     // Open file
+     mfs_print(DBG_INFO, "Client[%d]: dbmopen('%s', %d)\n", mfs_comm_get_rank(wb), buff_data_sys, flags) ;
+
+     ret = mfs_dbm_open(&fd, DBM_USE_GDBM, buff_data_sys, flags) ;
+     if (ret < 0) {
+	 mfs_print(DBG_WARNING, "Client[%d]: file '%s' not opened :-(\n", mfs_comm_get_rank(wb), pathname) ;
 	 return -1 ;
+     }
+
+     // free filename buffer
+     ret = mfs_free(&buff_data_sys) ;
+     if (ret < 0) {
+         mfs_print(DBG_WARNING, "Client[%d]: problem on free :-(\n", mfs_comm_get_rank(wb)) ;
      }
 
      return fd ;

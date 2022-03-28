@@ -92,7 +92,7 @@ int clientstub_mpi_action_over_fd_resource ( comm_t *wb, long fd, int opt, int a
  *  File System API
  */
 
-int clientstub_mpi_init ( comm_t *wb, params_t *params, conf_t *conf )
+int clientstub_mpi_init ( comm_t *wb, params_t *params )
 {
     int    ret = 0 ;
     int    remote_rank ;
@@ -101,7 +101,7 @@ int clientstub_mpi_init ( comm_t *wb, params_t *params, conf_t *conf )
     // Initialize
     if (ret >= 0)
     {
-        ret = mfs_comm_mpi_init(wb, conf->active, params->argc, params->argv) ;
+        ret = mfs_comm_mpi_init(wb, wb->conf.active, params->argc, params->argv) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: initialization fails :-(\n", -1) ;
         }
@@ -111,9 +111,8 @@ int clientstub_mpi_init ( comm_t *wb, params_t *params, conf_t *conf )
     if (ret >= 0)
     {
         // Get service name
-        remote_rank = mfs_comm_get_rank(wb) % conf->active->n_nodes ;
-        srv_uri     = info_fsconf_get_active_node(conf, remote_rank) ;
-        strcpy(wb->srv_name, srv_uri) ;
+        remote_rank = mfs_comm_get_rank(wb) % wb->conf.active->n_nodes ;
+        srv_uri     = info_fsconf_get_active_node(&(wb->conf), remote_rank) ;
 
         // Lookup...
         ret = MPI_Lookup_name(srv_uri, MPI_INFO_NULL, wb->port_name) ;

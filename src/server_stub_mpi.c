@@ -27,31 +27,6 @@
  *  Auxiliar (internal) functions
  */
 
-int stubmpi_prepare_pathname ( comm_t *ab, char **buff_data_sys, char *base_dirname, int local_rank, int pathname_length )
-{
-    int ret, buff_data_len ;
-
-    // Check arguments...
-    NULL_PRT_MSG_RET_VAL(ab,            "[SERV_STUB] NULL ab             :-/", -1) ;
-    NULL_PRT_MSG_RET_VAL(buff_data_sys, "[SERV_STUB] NULL buff_data_sys  :-/", -1) ;
-
-    // Malloc for pathname...
-    buff_data_len = strlen(base_dirname) + 20 + pathname_length ;  // base_dirname_value + '.' + local_rank + '/' + pathname
-
-    (*buff_data_sys) = NULL ;
-    ret = mfs_malloc(buff_data_sys, buff_data_len) ;
-    if (ret < 0) {
-        mfs_print(DBG_ERROR, "Server[%d]: malloc(%d) fails :-(\n", mfs_comm_get_rank(ab), buff_data_len) ;
-	return -1 ;
-    }
-
-    // Print pathname...
-    sprintf((*buff_data_sys), "%s/%d/", base_dirname, local_rank) ;
-
-    // Return OK
-    return 1 ;
-}
-
 int stubmpi_read_name ( comm_t *ab, char **buff_data_sys, int pathname_length )
 {
     int ret ;
@@ -112,7 +87,6 @@ int stubmpi_read_name ( comm_t *ab, char **buff_data_sys, int pathname_length )
 int serverstub_mpi_init ( comm_t *wb, params_t *params )
 {
     int     ret ;
-    conf_t  conf ;
     int     local_rank ;
     char   *local_node ;
 
@@ -138,31 +112,30 @@ int serverstub_mpi_init ( comm_t *wb, params_t *params )
     }
 
     // Get valid configuration..
-    ret = info_fsconf_get(&conf, params->conf_fname) ;
+    ret = info_fsconf_get(&(wb->conf), params->conf_fname) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: info_fsconf_get('%s') fails :-(\n", -1, params->conf_fname) ;
         return -1 ;
     }
-    if (conf.n_partitions < 1) {
+    if (wb->conf.n_partitions < 1) {
         mfs_print(DBG_ERROR, "Server[%d]: info_fsconf_get fails to read at least one partition in file '%s' :-(\n", -1, params->conf_fname) ;
         return -1 ;
     }
 
     // Initialize
-    ret = mfs_comm_mpi_init(wb, conf.active, params->argc, params->argv) ;
+    ret = mfs_comm_mpi_init(wb, wb->conf.active, params->argc, params->argv) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: initialization fails for comm :-(\n", -1) ;
         return -1 ;
     }
-    if (conf.active->n_nodes != mfs_comm_get_size(wb)) {
+    if (info_fsconf_get_active_nnodes(&(wb->conf)) != mfs_comm_get_size(wb)) {
         mfs_print(DBG_ERROR, "Server[%d]: partition in '%s' with different nodes than processes :-(\n", -1, params->conf_fname) ;
         return -1 ;
     }
 
     // Register service
     local_rank = mfs_comm_get_rank(wb) ;
-    local_node = info_fsconf_get_active_node(&conf, local_rank) ;
-    strcpy(wb->srv_name, local_node) ;
+    local_node = info_fsconf_get_active_node(&(wb->conf), local_rank) ;
 
     // Open server port...
     ret = MPI_Open_port(MPI_INFO_NULL, wb->port_name);
@@ -176,14 +149,11 @@ int serverstub_mpi_init ( comm_t *wb, params_t *params )
     MPI_Info_set(info, "ompi_global_scope", "true") ;
 
     // Publish port name
-    ret = MPI_Publish_name(wb->srv_name, info, wb->port_name) ;
+    ret = MPI_Publish_name(local_node, info, wb->port_name) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "Server[%d]: port registration fails :-(\n", mfs_comm_get_rank(wb)) ;
         return -1 ;
     }
-
-    // Free configuration
-    info_fsconf_free(&conf) ;
 
     // Return OK
     return 0 ;
@@ -191,10 +161,16 @@ int serverstub_mpi_init ( comm_t *wb, params_t *params )
 
 int serverstub_mpi_finalize ( comm_t *wb, params_t *params )
 {
-    int ret ;
+    int     ret ;
+    int     local_rank ;
+    char   *local_node ;
+
+    // Register service
+    local_rank = mfs_comm_get_rank(wb) ;
+    local_node = info_fsconf_get_active_node(&(wb->conf), local_rank) ;
 
     // Unpublish port name
-    ret = MPI_Unpublish_name(wb->srv_name, MPI_INFO_NULL, wb->port_name) ;
+    ret = MPI_Unpublish_name(local_node, MPI_INFO_NULL, wb->port_name) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "Server[%d]: port unregistration fails :-(\n", mfs_comm_get_rank(wb)) ;
         return -1 ;
@@ -237,6 +213,13 @@ int serverstub_mpi_finalize ( comm_t *wb, params_t *params )
     ret = info_params_free(params) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: finalization fails for params_free :-(\n", -1) ;
+        return -1 ;
+    }
+
+    // Free configuration
+    ret = info_fsconf_free(&(wb->conf)) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: finalization fails for info_fsconf_free :-(\n", -1) ;
         return -1 ;
     }
 
@@ -302,9 +285,9 @@ int serverstub_mpi_open ( comm_t *ab, params_t *params, int *fd, int pathname_le
     // read filename
     if (ret >= 0)
     {
-        ret = stubmpi_prepare_pathname(ab, &buff_data_sys, params->data_prefix, ab->local_rank, pathname_length) ;
+        ret = base_str_prepare_pathname(&buff_data_sys, params->data_prefix, ab->local_rank, pathname_length) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Server[%d]: stubmpi_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(ab), pathname_length) ;
+            mfs_print(DBG_ERROR, "Server[%d]: base_str_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(ab), pathname_length) ;
         }
 
         ret = stubmpi_read_name(ab, &buff_data_sys, pathname_length) ;
@@ -587,9 +570,9 @@ int serverstub_mpi_mkdir ( comm_t *ab, params_t *params, int pathname_length, in
     // read dirname
     if (ret >= 0)
     {
-        ret = stubmpi_prepare_pathname(ab, &buff_data_sys, params->data_prefix, ab->local_rank, pathname_length) ;
+        ret = base_str_prepare_pathname(&buff_data_sys, params->data_prefix, ab->local_rank, pathname_length) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Server[%d]: stubmpi_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(ab), pathname_length) ;
+            mfs_print(DBG_ERROR, "Server[%d]: base_str_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(ab), pathname_length) ;
         }
 
         ret = stubmpi_read_name(ab, &buff_data_sys, pathname_length) ;
@@ -647,9 +630,9 @@ int serverstub_mpi_rmdir ( comm_t *ab, params_t *params, int pathname_length )
     // read dirname
     //if (ret >= 0)
     {
-        ret = stubmpi_prepare_pathname(ab, &buff_data_sys, params->data_prefix, ab->local_rank, pathname_length) ;
+        ret = base_str_prepare_pathname(&buff_data_sys, params->data_prefix, ab->local_rank, pathname_length) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Server[%d]: stubmpi_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(ab), pathname_length) ;
+            mfs_print(DBG_ERROR, "Server[%d]: base_str_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(ab), pathname_length) ;
         }
 
         ret = stubmpi_read_name(ab, &buff_data_sys, pathname_length) ;
@@ -712,9 +695,9 @@ int serverstub_mpi_dbmopen ( comm_t *ab, params_t *params, int *fd, int pathname
     // read filename
     if (ret >= 0)
     {
-        ret = stubmpi_prepare_pathname(ab, &buff_data_sys, params->data_prefix, ab->local_rank, pathname_length) ;
+        ret = base_str_prepare_pathname(&buff_data_sys, params->data_prefix, ab->local_rank, pathname_length) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Server[%d]: stubmpi_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(ab), pathname_length) ;
+            mfs_print(DBG_ERROR, "Server[%d]: base_str_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(ab), pathname_length) ;
         }
 
         ret = stubmpi_read_name(ab, &buff_data_sys, pathname_length) ;

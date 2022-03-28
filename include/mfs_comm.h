@@ -25,6 +25,7 @@
     // Includes
     #include "base_lib.h"
     #include "info_params.h"
+    #include "info_fsconf.h"
 
 
     // File protocol
@@ -44,6 +45,9 @@
         // server port and name
         char port_name[MPI_MAX_PORT_NAME] ;
         char  srv_name[MPI_MAX_PORT_NAME] ;
+
+	// srv_name
+	conf_t  conf ;
 
         // destination
         MPI_Comm endpoint ;

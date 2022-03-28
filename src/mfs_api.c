@@ -30,24 +30,22 @@
 int mfs_api_init ( comm_t *wb, params_t *params )
 {
     int ret ;
-    conf_t conf ;
 
     // Check params...
     NULL_PRT_MSG_RET_VAL(wb, "[MFS_API]: NULL wb :-(\n", -1) ;
 
     // Get valid configuration..
-    ret = info_fsconf_get(&conf, params->conf_fname) ;
+    ret = info_fsconf_get(&(wb->conf), params->conf_fname) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "[MFS_API]: info_fsconf_get fails to read file '%s' :-(\n", params->conf_fname) ;
-	return -1 ;
+        return -1 ;
     }
-
     if (params->verbose > 0) {
-        info_fsconf_show(&conf) ;
+        info_fsconf_show(&(wb->conf)) ;
     }
-    if (conf.n_partitions < 1) {
+    if (wb->conf.n_partitions < 1) {
         mfs_print(DBG_ERROR, "[MFS_API]: info_fsconf_get fails to read at least one partition in file '%s' :-(\n", params->conf_fname) ;
-	return -1 ;
+        return -1 ;
     }
 
     // Open server port...
@@ -55,27 +53,21 @@ int mfs_api_init ( comm_t *wb, params_t *params )
     switch (wb->comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = clientstub_socket_init(wb, params, &conf) ;
+	     ret = clientstub_socket_init(wb, params) ;
              break ;
 
         case COMM_USE_MPI:
-	     ret = clientstub_mpi_init(wb, params, &conf) ;
+	     ret = clientstub_mpi_init(wb, params) ;
              break ;
 
         case COMM_USE_LOCAL:
-             ret = clientstub_local_init(wb, params, &conf) ;
+             ret = clientstub_local_init(wb, params) ;
              break ;
 
         default:
 	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->comm_protocol) ;
 	     return -1 ;
              break ;
-    }
-
-    // Free configuration
-    if (ret >= 0)
-    {
-        info_fsconf_free(&conf) ;
     }
 
     // Return OK
@@ -108,6 +100,12 @@ int mfs_api_finalize ( comm_t *wb, params_t *params )
 	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->comm_protocol) ;
 	     return -1 ;
              break ;
+    }
+
+    // Free configuration
+    if (ret >= 0)
+    {
+        info_fsconf_free(&(wb->conf)) ;
     }
 
     // Return OK

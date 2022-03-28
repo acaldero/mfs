@@ -1,0 +1,12 @@
+---
+ partition:
+         name: "P1"
+         type: "NORMAL"
+         nodes:
+                 - uri: "tcpServer://localhost/data/"
+                 - uri: "tcpServer://localhost/data/"
+ partition:
+         name: "P2"
+         type: "NORMAL"
+         nodes:
+                 - uri: "file:///tmp/1/"

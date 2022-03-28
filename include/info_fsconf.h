@@ -22,6 +22,7 @@
 #define _MFS_CONF_H_
 
    #include "base_lib.h"
+   #include "base_url.h"
 
    #include <yaml.h>
 
@@ -29,10 +30,11 @@
    // Datatype
    typedef struct
    {
-	 char   *name ;
-	 char   *type ;
-	 int     n_nodes ;
-	 char  **nodes ;
+	char        *name ;
+	char        *type ;
+	int          n_nodes ;
+	char       **nodes ;
+        base_url_t  *url ;
    } conf_part_t ;
 
    typedef struct
@@ -51,7 +53,10 @@
    int   info_fsconf_free ( conf_t *conf ) ;
 
    int   info_fsconf_show ( conf_t *conf ) ;
-   char *info_fsconf_get_active_node ( conf_t *conf, int rank ) ;
+
+   int         info_fsconf_get_active_nnodes ( conf_t *conf ) ;
+   char       *info_fsconf_get_active_node   ( conf_t *conf, int rank ) ;
+   base_url_t *info_fsconf_get_active_url    ( conf_t *conf, int rank ) ;
 
 #endif
 
