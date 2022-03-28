@@ -133,7 +133,7 @@ int serverstub_mpi_init ( comm_t *wb, params_t *params )
         return -1 ;
     }
 
-    // Register service
+    // Get working node
     local_rank = mfs_comm_get_rank(wb) ;
     local_node = info_fsconf_get_active_node(&(wb->conf), local_rank) ;
 
@@ -165,7 +165,7 @@ int serverstub_mpi_finalize ( comm_t *wb, params_t *params )
     int     local_rank ;
     char   *local_node ;
 
-    // Register service
+    // Get working node
     local_rank = mfs_comm_get_rank(wb) ;
     local_node = info_fsconf_get_active_node(&(wb->conf), local_rank) ;
 
@@ -271,8 +271,10 @@ int serverstub_mpi_disconnect_all ( comm_t *ab, params_t *params )
 
 int serverstub_mpi_open ( comm_t *ab, params_t *params, int *fd, int pathname_length, int flags )
 {
-    int   ret ;
-    char *buff_data_sys ;
+    int         ret ;
+    char       *buff_data_sys ;
+    int         local_rank ;
+    base_url_t *local_url ;
 
     // Check arguments...
     NULL_PRT_MSG_RET_VAL(ab,     "[SERV_STUB] NULL ab      :-/", -1) ;
@@ -282,10 +284,17 @@ int serverstub_mpi_open ( comm_t *ab, params_t *params, int *fd, int pathname_le
     ret = 0 ;
     buff_data_sys  = NULL ;
 
+    // Get working node
+    if (ret >= 0)
+    {
+        local_rank = mfs_comm_get_rank(ab) ;
+	local_url  = info_fsconf_get_active_url(&(ab->conf), local_rank) ;
+    }
+
     // read filename
     if (ret >= 0)
     {
-        ret = base_str_prepare_pathname(&buff_data_sys, params->data_prefix, ab->local_rank, pathname_length) ;
+        ret = base_str_prepare_pathname(&buff_data_sys, local_url->file, ab->local_rank, pathname_length) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Server[%d]: base_str_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(ab), pathname_length) ;
         }
@@ -556,8 +565,10 @@ int serverstub_mpi_write ( comm_t *ab, params_t *params, int fd, int count )
 
 int serverstub_mpi_mkdir ( comm_t *ab, params_t *params, int pathname_length, int mode )
 {
-    long  ret ;
-    char *buff_data_sys ;
+    long        ret ;
+    char       *buff_data_sys ;
+    int         local_rank ;
+    base_url_t *local_url ;
 
     // Check arguments...
     NULL_PRT_MSG_RET_VAL(ab,     "[SERV_STUB] NULL ab      :-/", -1) ;
@@ -567,10 +578,17 @@ int serverstub_mpi_mkdir ( comm_t *ab, params_t *params, int pathname_length, in
     ret = 0 ;
     buff_data_sys = NULL ;
 
+    // Get working node
+    if (ret >= 0)
+    {
+        local_rank = mfs_comm_get_rank(ab) ;
+	local_url  = info_fsconf_get_active_url(&(ab->conf), local_rank) ;
+    }
+
     // read dirname
     if (ret >= 0)
     {
-        ret = base_str_prepare_pathname(&buff_data_sys, params->data_prefix, ab->local_rank, pathname_length) ;
+        ret = base_str_prepare_pathname(&buff_data_sys, local_url->file, ab->local_rank, pathname_length) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Server[%d]: base_str_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(ab), pathname_length) ;
         }
@@ -616,8 +634,10 @@ int serverstub_mpi_mkdir ( comm_t *ab, params_t *params, int pathname_length, in
 
 int serverstub_mpi_rmdir ( comm_t *ab, params_t *params, int pathname_length )
 {
-    long  ret ;
-    char *buff_data_sys ;
+    long        ret ;
+    char       *buff_data_sys ;
+    int         local_rank ;
+    base_url_t *local_url ;
 
     // Check arguments...
     NULL_PRT_MSG_RET_VAL(ab,     "[SERV_STUB] NULL ab      :-/", -1) ;
@@ -627,10 +647,17 @@ int serverstub_mpi_rmdir ( comm_t *ab, params_t *params, int pathname_length )
     ret = 0 ;
     buff_data_sys = NULL ;
 
+    // Get working node
+    if (ret >= 0)
+    {
+        local_rank = mfs_comm_get_rank(ab) ;
+	local_url  = info_fsconf_get_active_url(&(ab->conf), local_rank) ;
+    }
+
     // read dirname
     //if (ret >= 0)
     {
-        ret = base_str_prepare_pathname(&buff_data_sys, params->data_prefix, ab->local_rank, pathname_length) ;
+        ret = base_str_prepare_pathname(&buff_data_sys, local_url->file, ab->local_rank, pathname_length) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Server[%d]: base_str_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(ab), pathname_length) ;
         }
@@ -681,8 +708,10 @@ int serverstub_mpi_rmdir ( comm_t *ab, params_t *params, int pathname_length )
 
 int serverstub_mpi_dbmopen ( comm_t *ab, params_t *params, int *fd, int pathname_length, int flags )
 {
-    int   ret ;
-    char *buff_data_sys ;
+    int         ret ;
+    char       *buff_data_sys ;
+    int         local_rank ;
+    base_url_t *local_url ;
 
     // Check arguments...
     NULL_PRT_MSG_RET_VAL(ab, "[SERV_STUB] NULL ab  :-/", -1) ;
@@ -692,10 +721,17 @@ int serverstub_mpi_dbmopen ( comm_t *ab, params_t *params, int *fd, int pathname
     ret = 0 ;
     buff_data_sys  = NULL ;
 
+    // Get working node
+    if (ret >= 0)
+    {
+        local_rank = mfs_comm_get_rank(ab) ;
+	local_url  = info_fsconf_get_active_url(&(ab->conf), local_rank) ;
+    }
+
     // read filename
     if (ret >= 0)
     {
-        ret = base_str_prepare_pathname(&buff_data_sys, params->data_prefix, ab->local_rank, pathname_length) ;
+        ret = base_str_prepare_pathname(&buff_data_sys, local_url->file, ab->local_rank, pathname_length) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Server[%d]: base_str_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(ab), pathname_length) ;
         }

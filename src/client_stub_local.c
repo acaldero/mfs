@@ -90,7 +90,7 @@ long clientstub_local_open ( comm_t *wb, const char *pathname, int flags )
      ret = 0 ;
      buff_data_sys = NULL ;
 
-     // Register service
+     // Get working node
      local_rank = mfs_comm_get_rank(wb) ;
      local_url  = info_fsconf_get_active_url(&(wb->conf), local_rank) ;
 

@@ -31,6 +31,7 @@ if true; then
    echo ""
    echo " # comm_backend=MPI ##################################### "
    echo ""
+   cp conf-mpi.yaml conf.yaml
    # start namespace server...
    echo "   + hydra_nameserver &"
    echo "   + sleep 1"
@@ -59,6 +60,7 @@ if false; then
    echo ""
    echo " # comm_backend=SOCKET ################################## "
    echo ""
+   cp conf-socket.yaml conf.yaml
    # start server...
    echo "   + ../bin/mfs_server &"
    echo "   + sleep 3"

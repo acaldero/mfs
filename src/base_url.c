@@ -178,6 +178,11 @@ int    base_url_Match_file (  char **file, char **str )
 {
         char *pch1 ;
 
+	// if *str begins with "/." then skip leading /
+	if (!strncmp(*str, "/.", 2)) {
+	     (*str) ++ ;
+	}
+
         pch1 = strchr((*str),'#') ;
         if (pch1 != NULL)
         {

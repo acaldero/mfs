@@ -46,7 +46,6 @@
         file_t  fd ;
 
         // underlying file options
-        char   *data_prefix ;
         int     file_backend ;
 
     } srvstub_t ;

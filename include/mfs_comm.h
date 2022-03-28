@@ -38,27 +38,24 @@
     typedef struct
     {
 	// underlying backend
-        int   comm_protocol ;
-        char *comm_protocol_name ;
-        int   ns_backend ;
+        int    comm_protocol ;
+        char  *comm_protocol_name ;
+        int    ns_backend ;
 
-        // server port and name
-        char port_name[MPI_MAX_PORT_NAME] ;
-        char  srv_name[MPI_MAX_PORT_NAME] ;
-
-	// srv_name
-	conf_t  conf ;
+        // accept incomming requests
+        char   port_name[MPI_MAX_PORT_NAME] ;
+        int    sd ;
 
         // destination
-        MPI_Comm endpoint ;
-        int    sd ;
-        int   *dd ;
+        MPI_Comm  endpoint ;
+	conf_t    conf ;
+        int      *dd ;
 
-        // MPI identification
+        // MPI identification (MPI_COMM_WORLD)
         int   size ;
         int   rank ;
 
-        // MPI identification in node
+        // MPI identification (within node)
         MPI_Comm local_comm ;
         int      local_rank ;
 

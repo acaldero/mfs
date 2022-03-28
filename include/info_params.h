@@ -51,7 +51,6 @@
 
         // associated client
         char  *mfs_server_stub_pname ; // e.g.: "mfs"
-        char            *data_prefix ; // e.g.: "/mnt/mfs"
         char             *conf_fname ; // e.g.: "/etc/mfs/conf.yaml"
 	int              server_port ; // e.g.: 12345
 
