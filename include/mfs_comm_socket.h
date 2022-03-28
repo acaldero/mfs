@@ -34,12 +34,8 @@
     #include <netinet/tcp.h>
 
 
-    // Consts
-    #define ONE_MB     (1024 * 1024)
-
-
     // API
-    int mfs_comm_socket_init       ( comm_t *cb, conf_part_t *partition, int server_port, int ns_backend ) ;
+    int mfs_comm_socket_init       ( comm_t *cb, int server_port, int ns_backend ) ;
     int mfs_comm_socket_finalize   ( comm_t *cb ) ;
 
     int mfs_comm_socket_accept     ( comm_t *ab, int remote_rank ) ;

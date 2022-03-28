@@ -128,7 +128,7 @@ int clientstub_socket_init ( comm_t *wb, params_t *params )
     // Initialize
     if (ret >= 0)
     {
-        ret = mfs_comm_socket_init(wb, wb->conf.active, params->server_port, params->ns_backend) ;
+        ret = mfs_comm_socket_init(wb, params->server_port, params->ns_backend) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: initialization fails :-(\n", -1) ;
         }

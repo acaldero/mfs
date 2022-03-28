@@ -26,23 +26,22 @@
 // Init, Finalize
 //
 
-int mfs_comm_socket_init ( comm_t *cb, conf_part_t *partition, int server_port, int ns_backend )
+int mfs_comm_socket_init ( comm_t *cb, int server_port, int ns_backend )
 {
 	int ret;
 
         // Check params...
-        NULL_PRT_MSG_RET_VAL(cb,        "[COMM]: NULL cb        :-(\n", -1) ;
-        NULL_PRT_MSG_RET_VAL(partition, "[COMM]: NULL partition :-(\n", -1) ;
+        NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(\n", -1) ;
 
 	// Initialize fields
         mfs_comm_reset(cb) ;
         cb->comm_protocol      = COMM_USE_SOCKET ;
         cb->comm_protocol_name = "SOCKET" ;
-	cb->size               = partition->n_nodes ;
+	cb->size               = info_fsconf_get_active_nnodes(&(cb->conf)) ;
 	cb->ns_backend         = ns_backend ;
 
         // number of servers
-        cb->n_servers = partition->n_nodes ;
+        cb->n_servers = info_fsconf_get_active_nnodes(&(cb->conf)) ;
         if (cb->n_servers < 0) {
             mfs_print(DBG_ERROR, "[COMM]: set n_servers fails :-(\n") ;
             return -1 ;

@@ -33,7 +33,7 @@
 
 
     // API
-    int mfs_comm_mpi_init           ( comm_t *cb, conf_part_t *partition, int *main_argc, char ***main_argv ) ;
+    int mfs_comm_mpi_init           ( comm_t *cb, int *main_argc, char ***main_argv ) ;
 
     int mfs_comm_mpi_recv_data_from ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;
     int mfs_comm_mpi_send_data_to   ( comm_t *cb, int rank, void *buff, int size, MPI_Datatype datatype ) ;

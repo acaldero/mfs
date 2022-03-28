@@ -117,13 +117,16 @@ int serverstub_mpi_init ( comm_t *wb, params_t *params )
         mfs_print(DBG_ERROR, "Server[%d]: info_fsconf_get('%s') fails :-(\n", -1, params->conf_fname) ;
         return -1 ;
     }
+    if (params->verbose > 0) {
+        info_fsconf_show(&(wb->conf)) ;
+    }
     if (wb->conf.n_partitions < 1) {
         mfs_print(DBG_ERROR, "Server[%d]: info_fsconf_get fails to read at least one partition in file '%s' :-(\n", -1, params->conf_fname) ;
         return -1 ;
     }
 
     // Initialize
-    ret = mfs_comm_mpi_init(wb, wb->conf.active, params->argc, params->argv) ;
+    ret = mfs_comm_mpi_init(wb, params->argc, params->argv) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: initialization fails for comm :-(\n", -1) ;
         return -1 ;

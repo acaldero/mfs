@@ -123,7 +123,7 @@ int serverstub_socket_init ( comm_t *wb, params_t *params )
     }
 
     // Initialize
-    ret = mfs_comm_socket_init(wb, wb->conf.active, params->server_port, params->ns_backend) ;
+    ret = mfs_comm_socket_init(wb, params->server_port, params->ns_backend) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: initialization fails for socket_comm :-(\n", -1) ;
         return -1 ;

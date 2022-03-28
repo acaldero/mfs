@@ -25,11 +25,11 @@
  {
  	printf(" Current parameters:\n");
       	printf(" | -v  %d \t\t <level>\n",                  params->verbose) ;
-      	printf(" | -c  %s  \t\t (SOCKET) | MPI | LOCAL\n",  params->comm_backend_name) ;
-      	printf(" | -f  %s  \t\t POSIX | (MPI-IO)\n",        params->file_backend_name) ;
+      	printf(" | -c  %s  \t\t MPI   | SOCKET | LOCAL\n",  params->comm_backend_name) ;
+      	printf(" | -f  %s  \t\t POSIX | MPI-IO\n",          params->file_backend_name) ;
       	printf(" | -i  %s  \t\t POSIX\n",                   params->directory_backend_name) ;
       	printf(" | -b  %s  \t\t GDBM\n",                    params->dbm_backend_name) ;
-      	printf(" | -t '%s' \t ondemand | (pool)\n",         params->thread_launch_name) ;
+      	printf(" | -t '%s' \t ondemand | pool\n",           params->thread_launch_name) ;
       	printf(" | -n '%s' \t <partition file>\n",          params->conf_fname) ;
       	printf(" | -p  %d  \t\t <port number>\n",           params->server_port) ;
 
@@ -41,7 +41,7 @@
  {
       	printf("Usage:\n");
       	printf("\t-v <number>:  verbose level              (default: %d)\n",   DEFAULT_VERBOSE_LEVEL) ;
-      	printf("\t-c <string>:  SOCKET | MPI | LOCAL       (default: %s)\n",   "MPI") ;
+      	printf("\t-c <string>:  MPI   | SOCKET | LOCAL     (default: %s)\n",   "MPI") ;
       	printf("\t-f <string>:  POSIX | MPI-IO             (default: %s)\n",   "POSIX") ;
       	printf("\t-i <string>:  POSIX                      (default: %s)\n",   "POSIX") ;
       	printf("\t-b <string>:  GDBM                       (default: %s)\n",   "GDBM") ;

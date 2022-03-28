@@ -33,6 +33,10 @@
     #include <unistd.h>
     #include <pthread.h>
 
+    // Consts
+    #define ONE_KB                   (1024)
+    #define ONE_MB            (1024 * 1024)
+    #define ONE_GB     (1024 * 1024 * 1024)
 
     // debug: levels
     #define DBG_ERROR    1, __FILE__, __LINE__, stderr

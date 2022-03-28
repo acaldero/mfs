@@ -101,7 +101,7 @@ int clientstub_mpi_init ( comm_t *wb, params_t *params )
     // Initialize
     if (ret >= 0)
     {
-        ret = mfs_comm_mpi_init(wb, wb->conf.active, params->argc, params->argv) ;
+        ret = mfs_comm_mpi_init(wb, params->argc, params->argv) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: initialization fails :-(\n", -1) ;
         }
@@ -111,7 +111,7 @@ int clientstub_mpi_init ( comm_t *wb, params_t *params )
     if (ret >= 0)
     {
         // Get service name
-        remote_rank = mfs_comm_get_rank(wb) % wb->conf.active->n_nodes ;
+        remote_rank = mfs_comm_get_rank(wb) % info_fsconf_get_active_nnodes(&(wb->conf)) ;
         srv_uri     = info_fsconf_get_active_node(&(wb->conf), remote_rank) ;
 
         // Lookup...

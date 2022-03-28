@@ -26,14 +26,13 @@
 // Init, interconnect
 //
 
-int mfs_comm_mpi_init ( comm_t *cb, conf_part_t *partition, int *main_argc, char ***main_argv )
+int mfs_comm_mpi_init ( comm_t *cb, int *main_argc, char ***main_argv )
 {
     int ret ;
     int claimed, provided ;
 
     // Check params...
-    NULL_PRT_MSG_RET_VAL(cb,        "[COMM]: NULL cb        :-(\n", -1) ;
-    NULL_PRT_MSG_RET_VAL(partition, "[COMM]: NULL partition :-(\n", -1) ;
+    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(\n", -1) ;
 
     // Initialization
     mfs_comm_reset(cb) ;
@@ -41,7 +40,7 @@ int mfs_comm_mpi_init ( comm_t *cb, conf_part_t *partition, int *main_argc, char
     cb->comm_protocol_name = "MPI" ;
 
     // number of servers
-    cb->n_servers = partition->n_nodes ;
+    cb->n_servers = info_fsconf_get_active_nnodes(&(cb->conf)) ;
     if (cb->n_servers < 0) {
         mfs_print(DBG_ERROR, "[COMM]: set n_servers fails :-(\n") ;
         return -1 ;
