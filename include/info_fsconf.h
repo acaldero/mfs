@@ -49,14 +49,19 @@
     * API
     */
 
+   // read, show and free
    int   info_fsconf_get  ( conf_t *conf, char *conf_file_name ) ;
+   int   info_fsconf_show ( conf_t *conf ) ;
    int   info_fsconf_free ( conf_t *conf ) ;
 
-   int   info_fsconf_show ( conf_t *conf ) ;
-
+   // getters
    int         info_fsconf_get_active_nnodes ( conf_t *conf ) ;
    char       *info_fsconf_get_active_node   ( conf_t *conf, int rank ) ;
    base_url_t *info_fsconf_get_active_url    ( conf_t *conf, int rank ) ;
+
+   int         info_fsconf_get_partition_nnodes ( conf_part_t *partition ) ;
+   char       *info_fsconf_get_partition_node   ( conf_part_t *partition, int rank ) ;
+   base_url_t *info_fsconf_get_partition_url    ( conf_part_t *partition, int rank ) ;
 
 #endif
 

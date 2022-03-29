@@ -31,18 +31,20 @@
 
 
     // File System API
-    int mfs_api_init     ( comm_t *wb, params_t *params ) ;
-    int mfs_api_finalize ( comm_t *wb, params_t *params ) ;
+    int mfs_api_init            ( comm_t *wb, params_t *params, int *argc, char ***argv ) ;
+    int mfs_api_finalize        ( comm_t *wb, params_t *params ) ;
+    int mfs_api_open_partition  ( comm_t *wb, params_t *params, char *conf_fname ) ;
+    int mfs_api_close_partition ( comm_t *wb, params_t *params ) ;
 
     // File API
-    long mfs_api_open    ( comm_t *wb, const char *pathname, int flags ) ;
-    int  mfs_api_close   ( comm_t *wb, long fd ) ;
-    int  mfs_api_read    ( comm_t *wb, long fd, void *buf, int count ) ;
-    int  mfs_api_write   ( comm_t *wb, long fd, void *buf, int count ) ;
+    long mfs_api_open      ( comm_t *wb, const char *pathname, int flags ) ;
+    int  mfs_api_close     ( comm_t *wb, long fd ) ;
+    int  mfs_api_read      ( comm_t *wb, long fd, void *buf, int count ) ;
+    int  mfs_api_write     ( comm_t *wb, long fd, void *buf, int count ) ;
 
     // Directory API
-    long mfs_api_mkdir   ( comm_t *wb, const char *pathname, int mode ) ;
-    long mfs_api_rmdir   ( comm_t *wb, const char *pathname ) ;
+    long mfs_api_mkdir     ( comm_t *wb, const char *pathname, int mode ) ;
+    long mfs_api_rmdir     ( comm_t *wb, const char *pathname ) ;
 
     // DBM File API
     long mfs_api_dbmopen   ( comm_t *wb, const char *pathname, int flags ) ;

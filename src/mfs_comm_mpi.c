@@ -39,13 +39,6 @@ int mfs_comm_mpi_init ( comm_t *cb, int *main_argc, char ***main_argv )
     cb->comm_protocol = COMM_USE_MPI ;
     cb->comm_protocol_name = "MPI" ;
 
-    // number of servers
-    cb->n_servers = info_fsconf_get_active_nnodes(&(cb->conf)) ;
-    if (cb->n_servers < 0) {
-        mfs_print(DBG_ERROR, "[COMM]: set n_servers fails :-(\n") ;
-        return -1 ;
-    }
-
     // MPI_Init
     ret = MPI_Init_thread(main_argc, main_argv, MPI_THREAD_MULTIPLE, &provided) ;
     if (MPI_SUCCESS != ret) {

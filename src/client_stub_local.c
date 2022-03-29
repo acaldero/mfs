@@ -46,8 +46,6 @@ int clientstub_local_init ( comm_t *wb, params_t *params )
     ret = mfs_directory_init() ;
     if (ret < 0) { return -1 ; }
 
-    wb->is_connected = 1 ;
-
     // Return OK/KO
     return ret ;
 }
@@ -66,10 +64,24 @@ int clientstub_local_finalize ( comm_t *wb, params_t *params )
     ret = mfs_dbm_finalize() ;
     if (ret < 0) { return -1 ; }
 
-    wb->is_connected = 0 ;
-
     // Return OK/KO
     return ret ;
+}
+
+int clientstub_local_open_partition ( comm_t *wb, params_t *params, conf_part_t *partition )
+{
+    wb->is_connected = 1 ;
+
+    // Return OK
+    return 1 ;
+}
+
+int clientstub_local_close_partition ( comm_t *wb, params_t *params, conf_part_t *partition )
+{
+    wb->is_connected = 0 ;
+
+    // Return OK
+    return 1 ;
 }
 
 
@@ -92,7 +104,7 @@ long clientstub_local_open ( comm_t *wb, const char *pathname, int flags )
 
      // Get working node
      local_rank = mfs_comm_get_rank(wb) ;
-     local_url  = info_fsconf_get_active_url(&(wb->conf), local_rank) ;
+     local_url  = info_fsconf_get_active_url(&(wb->partitions), local_rank) ;
 
      // Get filename
      ret = base_str_prepare_pathname(&buff_data_sys, local_url->file, local_rank, strlen(pathname)) ;
@@ -179,7 +191,7 @@ long clientstub_local_dbmopen ( comm_t *wb, const char *pathname, int flags )
 
      // Register service
      local_rank = mfs_comm_get_rank(wb) ;
-     local_url  = info_fsconf_get_active_url(&(wb->conf), local_rank) ;
+     local_url  = info_fsconf_get_active_url(&(wb->partitions), local_rank) ;
 
      // Get filename
      ret = base_str_prepare_pathname(&buff_data_sys, local_url->file, local_rank, strlen(pathname)) ;

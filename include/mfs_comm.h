@@ -47,8 +47,8 @@
         int    sd ;
 
         // destination
+	conf_t    partitions ;
         MPI_Comm  endpoint ;
-	conf_t    conf ;
         int      *dd ;
 
         // MPI identification (MPI_COMM_WORLD)
@@ -65,8 +65,7 @@
         int   status_count ;
 
         // some stats
-        char  is_connected ;
-        long  n_servers ;
+        char  is_connected ; // TODO   char *is_connected ; // array of is_connected, one per server ... + char *is_com; // array of comm_use_local/mpi/socket per server in active partition
         long  n_send_req ;
         long  n_recv_req ;
 
@@ -80,6 +79,8 @@
     #define mfs_comm_get_status_rank(pcb)  ((pcb != NULL) ? pcb->status_rank : -1)
     #define mfs_comm_get_status_tag(pcb)   ((pcb != NULL) ? pcb->status_tag : -1)
     #define mfs_comm_get_status_count(pcb) ((pcb != NULL) ? pcb->status_count : -1)
+
+    #define mfs_comm_get_nservers(pcb)     (info_fsconf_get_active_nnodes(&((pcb)->partitions)))
 
     int mfs_comm_reset       ( comm_t *cb ) ;
     int mfs_comm_stats_reset ( comm_t *cb ) ;

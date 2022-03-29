@@ -112,12 +112,12 @@ int serverstub_socket_init ( comm_t *wb, params_t *params )
     }
 
     // Get valid configuration..
-    ret = info_fsconf_get(&(wb->conf), params->conf_fname) ;
+    ret = info_fsconf_get(&(wb->partitions), params->conf_fname) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: info_fsconf_get('%s') fails :-(\n", -1, params->conf_fname) ;
         return -1 ;
     }
-    if (wb->conf.n_partitions < 1) {
+    if (wb->partitions.n_partitions < 1) {
         mfs_print(DBG_ERROR, "Server[%d]: info_fsconf_get fails to read at least one partition in file '%s' :-(\n", -1, params->conf_fname) ;
         return -1 ;
     }
@@ -128,14 +128,14 @@ int serverstub_socket_init ( comm_t *wb, params_t *params )
         mfs_print(DBG_ERROR, "Server[%d]: initialization fails for socket_comm :-(\n", -1) ;
         return -1 ;
     }
-    if (info_fsconf_get_active_nnodes(&(wb->conf)) != mfs_comm_get_size(wb)) {
+    if (info_fsconf_get_active_nnodes(&(wb->partitions)) != mfs_comm_get_size(wb)) {
         mfs_print(DBG_ERROR, "Server[%d]: partition in '%s' with different nodes than processes :-(\n", -1, params->conf_fname) ;
         return -1 ;
     }
 
     // Register service
     local_rank = mfs_comm_get_rank(wb) ;
-    local_node = info_fsconf_get_active_node(&(wb->conf), local_rank) ;
+    local_node = info_fsconf_get_active_node(&(wb->partitions), local_rank) ;
 
     ret = info_ns_get_portname(wb->port_name, wb->sd) ;
     if (ret < 0) {
@@ -161,7 +161,7 @@ int serverstub_socket_finalize ( comm_t *wb, params_t *params )
 
     // UnRegister service
     local_rank = mfs_comm_get_rank(wb) ;
-    local_node = info_fsconf_get_active_node(&(wb->conf), local_rank) ;
+    local_node = info_fsconf_get_active_node(&(wb->partitions), local_rank) ;
 
     ret = info_ns_remove(wb, wb->ns_backend, local_node) ;
     if (ret < 0) {
@@ -207,7 +207,7 @@ int serverstub_socket_finalize ( comm_t *wb, params_t *params )
     }
 
     // Free configuration
-    ret = info_fsconf_free(&(wb->conf)) ;
+    ret = info_fsconf_free(&(wb->partitions)) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: finalization fails for info_fsconf_free :-(\n", -1) ;
         return -1 ;
@@ -283,7 +283,7 @@ int serverstub_socket_open ( comm_t *ab, params_t *params, int *fd, int pathname
     if (ret >= 0)
     {
         local_rank = mfs_comm_get_rank(ab) ;
-	local_url  = info_fsconf_get_active_url(&(ab->conf), local_rank) ;
+	local_url  = info_fsconf_get_active_url(&(ab->partitions), local_rank) ;
     }
 
     // read filename
@@ -577,7 +577,7 @@ int serverstub_socket_mkdir ( comm_t *ab, params_t *params, int pathname_length,
     if (ret >= 0)
     {
         local_rank = mfs_comm_get_rank(ab) ;
-	local_url  = info_fsconf_get_active_url(&(ab->conf), local_rank) ;
+	local_url  = info_fsconf_get_active_url(&(ab->partitions), local_rank) ;
     }
 
     // read dirname
@@ -646,7 +646,7 @@ int serverstub_socket_rmdir ( comm_t *ab, params_t *params, int pathname_length 
     if (ret >= 0)
     {
         local_rank = mfs_comm_get_rank(ab) ;
-	local_url  = info_fsconf_get_active_url(&(ab->conf), local_rank) ;
+	local_url  = info_fsconf_get_active_url(&(ab->partitions), local_rank) ;
     }
 
     // read dirname
@@ -720,7 +720,7 @@ int serverstub_socket_dbmopen ( comm_t *ab, params_t *params, int *fd, int pathn
     if (ret >= 0)
     {
         local_rank = mfs_comm_get_rank(ab) ;
-	local_url  = info_fsconf_get_active_url(&(ab->conf), local_rank) ;
+	local_url  = info_fsconf_get_active_url(&(ab->partitions), local_rank) ;
     }
 
     // read filename

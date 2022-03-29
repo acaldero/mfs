@@ -25,7 +25,7 @@
 
 #define STR_SIZE 1024
 
-int main_test_file ( params_t *params, comm_t *wb )
+int main_test_file ( comm_t *wb )
 {
     int    ret ;
     long   fd ;
@@ -49,10 +49,11 @@ int main_test_file ( params_t *params, comm_t *wb )
     return 0;
 }
 
-int main_test_dbm ( params_t *params, comm_t *wb )
+int main_test_dbm ( comm_t *wb )
 {
     int    ret ;
     long   fd ;
+    int    n_servers, rank ;
     char   str1[STR_SIZE] ;
     char   str2[STR_SIZE] ;
     int    str1_len ;
@@ -60,7 +61,9 @@ int main_test_dbm ( params_t *params, comm_t *wb )
 
 
     // dbmstore("m1", "hello world")
-    if (wb->rank < wb->n_servers)
+    n_servers = mfs_comm_get_nservers(wb) ;
+    rank      = mfs_comm_get_rank(wb) ;
+    if (rank < n_servers)
     {
         strcpy(str1, "m1") ;
         strcpy(str2, "hello world") ;
@@ -87,7 +90,7 @@ int main_test_dbm ( params_t *params, comm_t *wb )
     mfs_api_dbmclose(wb, fd) ;
 
     // dbmdelete("m1")
-    if (wb->rank < wb->n_servers)
+    if (rank < n_servers)
     {
         strcpy(str1, "m1") ;
         str1_len = strlen(str1) + 1 ;
@@ -113,51 +116,45 @@ int main ( int argc, char **argv )
  	   " mfs_client\n"
 	   " ----------\n") ;
 
-    // Get parameters..
-    ret = info_params_get(&params, &argc, &argv) ;
+    // Initialize...
+    mfs_print(DBG_INFO, "Client[%d]: initializing...\n", -1) ;
+    ret = mfs_api_init(&wb, &params, &argc, &argv) ;
     if (ret < 0) {
-        info_params_show_usage() ;
+        mfs_print(DBG_ERROR, "Client[%d]: mfs_api_init fails :-(\n", -1) ;
         exit(-1) ;
     }
 
-    if (params.verbose > 0) {
-        info_params_show(&params) ;
-        mfs_print(DBG_INFO, "Client[%d]: initializing...\n", -1) ;
-    }
-
-    // Initialize...
+    // Open partition...
     if (ret >= 0)
     {
-        ret = mfs_api_init(&wb, &params) ;
+        ret = mfs_api_open_partition(&wb, &params, params.conf_fname) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: mfs_api_init fails :-(", -1) ;
+            mfs_print(DBG_ERROR, "Client[%d]: mfs_api_open_partition fails :-(\n", -1) ;
         }
     }
-
- if (!strcmp(params.comm_backend_name, "MPI")) {
-      MPI_Barrier(MPI_COMM_WORLD) ;
- }
 
     // simple main 1...
     if (ret >= 0)
     {
-        ret = main_test_file(&params, &wb) ;
+        ret = main_test_file(&wb) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: main_test_file fails :-(", -1) ;
+            mfs_print(DBG_ERROR, "Client[%d]: main_test_file fails :-(\n", -1) ;
         }
     }
-
- if (!strcmp(params.comm_backend_name, "MPI")) {
-      MPI_Barrier(MPI_COMM_WORLD) ;
- }
 
     // simple main 2...
     if (ret >= 0)
     {
-        ret = main_test_dbm(&params, &wb) ;
+        ret = main_test_dbm(&wb) ;
         if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: main_test_dbm fails :-(", -1) ;
+            mfs_print(DBG_ERROR, "Client[%d]: main_test_dbm fails :-(\n", -1) ;
         }
+    }
+
+    // Close partition...
+    if (ret >= 0)
+    {
+        mfs_api_close_partition(&wb, &params) ;
     }
 
     // Finalize...

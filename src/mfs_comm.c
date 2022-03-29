@@ -72,7 +72,6 @@ int mfs_comm_stats_show  ( comm_t *cb, char *prefix )
 
     // Print stats...
     printf("%s: Comm:\n",              prefix) ;
-    printf("%s: + # servers=%d\n",     prefix, cb->n_servers) ;
     printf("%s: + # send=%d\n",        prefix, cb->n_send_req) ;
     printf("%s: + # recv=%d\n",        prefix, cb->n_recv_req) ;
 

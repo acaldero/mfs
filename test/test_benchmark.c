@@ -23,23 +23,23 @@
 #include <stdio.h>
 #include "mfs_api.h"
 
-#define N_TIMES_BENCHMARK 10
+#define N_TIMES_BENCHMARK     10
 #define N_SIZES_BENCHMARK 2*1024
-#define BUFFER_SIZE 1024
-char    buffer[BUFFER_SIZE] ;
+#define BUFFER_SIZE         1024
 
-int main_simple2 ( params_t *params )
+char buffer[BUFFER_SIZE] ;
+
+int main_benchmark1 ( comm_t *wb, params_t *params )
 {
     int    ret ;
-    comm_t wb ;
     long   fd ;
     long   kb, t1, t2 ;
     double mb, t ;
 
     // Initialize...
-    ret = mfs_api_init(&wb, params) ;
+    ret = mfs_api_open_partition(wb, params, params->conf_fname) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Client[%d]: mfs_api_init fails :-(", -1) ;
+        mfs_print(DBG_ERROR, "Client[%d]: mfs_api_open_partition fails :-(\n", -1) ;
         return -1 ;
     }
 
@@ -52,22 +52,19 @@ int main_simple2 ( params_t *params )
          t1 = mfs_get_time() ;
          for (int i=0; i<N_TIMES_BENCHMARK; i++)
          {
-              fd = mfs_api_open(&wb, "test1.txt", O_RDWR | O_CREAT) ;
-	      if (fd < 0) {
-                  mfs_api_finalize(&wb, params) ;
-		  exit(-1) ;
-	      }
+              fd = mfs_api_open(wb, "test1.txt", O_RDWR | O_CREAT) ;
+	      if (fd < 0) { return -1 ; }
 
               for (int k=0; k<j; k++) {
-                   mfs_api_write(&wb, fd, buffer, BUFFER_SIZE) ;
+                   mfs_api_write(wb, fd, buffer, BUFFER_SIZE) ;
 	      }
-              mfs_api_close(&wb, fd) ;
+              mfs_api_close(wb, fd) ;
          }
          t2 = mfs_get_time() ;
 	 t  = (double) ((t2-t1)/1000.0) / N_TIMES_BENCHMARK ;
 	 kb = (long)   (j*BUFFER_SIZE) / 1024 ;
 	 mb = (double) kb / 1024 ;
-         printf("%s\t\twrite;\t\t%d;\t\t%d;\t\t%lf;\n", params->file_backend_name, wb.rank, kb, mb/t) ;
+         printf("%s\t\twrite;\t\t%d;\t\t%d;\t\t%lf;\n", params->file_backend_name, wb->rank, kb, mb/t) ;
     }
 
     // Benchmark: read
@@ -77,34 +74,30 @@ int main_simple2 ( params_t *params )
          t1 = mfs_get_time() ;
          for (int i=0; i<N_TIMES_BENCHMARK; i++)
          {
-              fd = mfs_api_open(&wb, "test1.txt", O_RDONLY) ;
-	      if (fd < 0) {
-                  mfs_api_finalize(&wb, params) ;
-		  exit(-1) ;
-	      }
+              fd = mfs_api_open(wb, "test1.txt", O_RDONLY) ;
+	      if (fd < 0) { return -1 ; }
 
               for (int k=0; k<j; k++) {
-                   mfs_api_read( &wb, fd, buffer, BUFFER_SIZE) ;
+                   mfs_api_read(wb, fd, buffer, BUFFER_SIZE) ;
 	      }
-              mfs_api_close(&wb, fd) ;
+              mfs_api_close(wb, fd) ;
          }
          t2 = mfs_get_time() ;
 	 t  = (double) ((t2-t1)/1000.0) / N_TIMES_BENCHMARK ;
 	 kb = (long)   (j*BUFFER_SIZE) / 1024 ;
 	 mb = (double) kb / 1024 ;
-         printf("%s\t\tread;\t\t%d;\t\t%d;\t\t%lf;\n", params->file_backend_name, wb.rank, kb, mb/t) ;
+         printf("%s\t\tread;\t\t%d;\t\t%d;\t\t%lf;\n", params->file_backend_name, wb->rank, kb, mb/t) ;
     }
 
-    // Finalize...
-    mfs_print(DBG_INFO, "Client[%d]: finalize...\n", wb.rank) ;
-    mfs_api_finalize(&wb, params) ;
+    mfs_api_close_partition(wb, params) ;
 
     return 0;
 }
 
 int main ( int argc, char **argv )
 {
-    int  ret ;
+    int      ret ;
+    comm_t   wb ;
     params_t params ;
 
     // Welcome...
@@ -113,18 +106,20 @@ int main ( int argc, char **argv )
 	   " ----------\n"
 	   "\n") ;
 
-    // Get parameters..
-    ret = info_params_get(&params, &argc, &argv) ;
+    // Initialize...
+    mfs_print(DBG_INFO, "Client[%d]: initializing...\n", -1) ;
+    ret = mfs_api_init(&wb, &params, &argc, &argv) ;
     if (ret < 0) {
-        info_params_show_usage() ;
+        mfs_print(DBG_ERROR, "Client[%d]: mfs_api_init fails :-(\n", -1) ;
         exit(-1) ;
     }
 
-    mfs_print(DBG_INFO, "Client[%d]: initializing...\n", -1) ;
-    info_params_show(&params) ;
-
     // simple main...
-    ret = main_simple2(&params) ;
+    ret = main_benchmark1(&wb, &params) ;
+
+    // Finalize...
+    mfs_print(DBG_INFO, "Client[%d]: finalize...\n", wb.rank) ;
+    mfs_api_finalize(&wb, &params) ;
 
     // Return OK/KO
     return ret ;

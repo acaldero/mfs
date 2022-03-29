@@ -123,7 +123,6 @@ int clientstub_socket_action_send_buffer ( comm_t *wb, void *buff_char, int coun
 int clientstub_socket_init ( comm_t *wb, params_t *params )
 {
     int    ret = 0 ;
-    char  *srv_uri ;
 
     // Initialize
     if (ret >= 0)
@@ -134,26 +133,67 @@ int clientstub_socket_init ( comm_t *wb, params_t *params )
         }
     }
 
-    // Connect to service
+    // Return OK/KO
+    return ret ;
+}
+
+int clientstub_socket_finalize ( comm_t *wb, params_t *params )
+{
+    int   ret = 0 ;
+
+    // Finalize
     if (ret >= 0)
     {
-	for (int i=0; i<wb->conf.active->n_nodes; i++)
-	{
-             srv_uri = info_fsconf_get_active_node(&(wb->conf), i) ;
-             ret = mfs_comm_socket_connect(wb, srv_uri, i) ;
-             if (ret < 0) {
-                 mfs_print(DBG_ERROR, "Client[%d]: connect to '%s' fails :-(\n", -1, srv_uri) ;
-             }
-	}
-
-        wb->is_connected = 1 ;
+        ret = mfs_comm_socket_finalize(wb) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: finalization fails :-(\n", mfs_comm_get_rank(wb)) ;
+        }
     }
 
     // Return OK/KO
     return ret ;
 }
 
-int clientstub_socket_finalize ( comm_t *wb, params_t *params )
+int clientstub_socket_open_partition ( comm_t *wb, params_t *params, conf_part_t *partition )
+{
+    int    ret = 0 ;
+    char  *srv_uri ;
+
+    // get the number of servers to connect to
+    wb->size = info_fsconf_get_partition_nnodes(partition) ;
+
+    // initialize descriptors for connections
+    wb->dd = (int *)malloc((wb->size)*sizeof(int)) ;
+    if (NULL == wb->dd) {
+        mfs_print(DBG_ERROR, "[COMM]: malloc fails :-(\n") ;
+        perror("malloc: ") ;
+        return -1 ;
+    }
+
+    for (int i=0; i<wb->size; i++) {
+         wb->dd[i] = -1 ;
+    }
+
+    // Connect to servers
+    if (ret >= 0)
+    {
+	for (int i=0; i<partition->n_nodes; i++)
+	{
+             srv_uri = info_fsconf_get_partition_node(partition, i) ;
+             ret = mfs_comm_socket_connect(wb, srv_uri, i) ;
+             if (ret < 0) {
+                 mfs_print(DBG_ERROR, "Client[%d]: connect to '%s' fails :-(\n", -1, srv_uri) ;
+             }
+	}
+    }
+
+    wb->is_connected = 1 ;
+
+    // Return OK/KO
+    return ret ;
+}
+
+int clientstub_socket_close_partition ( comm_t *wb, params_t *params, conf_part_t *partition )
 {
     int   ret = 0 ;
 
@@ -176,26 +216,16 @@ int clientstub_socket_finalize ( comm_t *wb, params_t *params )
 		}
 	     }
 	}
-
-        wb->is_connected = 0 ;
     }
 
-    // Finalize comms...
+    // finalize fields
     if (ret >= 0)
     {
-        ret = mfs_comm_socket_finalize(wb) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: finalization fails :-(\n", mfs_comm_get_rank(wb)) ;
-        }
-
-        wb->is_connected = 0 ;
+        free(wb->dd) ;
+        wb->dd = NULL ;
     }
 
-    // Finalize params
-    if (ret >= 0)
-    {
-         info_params_free(params) ;
-    }
+    wb->is_connected = 0 ;
 
     // Return OK/KO
     return ret ;

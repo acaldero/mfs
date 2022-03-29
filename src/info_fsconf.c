@@ -24,8 +24,9 @@
 
  int info_fsconf_add_partition ( conf_t *conf )
  {
-	int ret, part_in_bytes ;
+	int ret, part_in_bytes, last_id ;
 
+	last_id = conf->n_partitions ;
 	(conf->n_partitions)++ ;
 
 	part_in_bytes = (conf->n_partitions) * sizeof(conf_part_t) ;
@@ -34,14 +35,21 @@
 	    return -1 ;
 	}
 
+	conf->partitions[last_id].name    = NULL ;
+        conf->partitions[last_id].type    = NULL ;
+        conf->partitions[last_id].n_nodes = 0 ;
+        conf->partitions[last_id].nodes   = NULL ;
+        conf->partitions[last_id].url     = NULL ;
+
       	// return OK
       	return 1 ;
  }
 
  int info_fsconf_add_node ( conf_t *conf, int id_part )
  {
-	int ret, nodes_in_bytes ;
+	int ret, nodes_in_bytes, last_id ;
 
+        last_id = conf->partitions[id_part].n_nodes ;
         (conf->partitions[id_part].n_nodes)++ ;
 
 	nodes_in_bytes = (conf->partitions[id_part].n_nodes) * sizeof(char *) ;
@@ -49,12 +57,14 @@
 	if (ret < 0) {
 	    return -1 ;
 	}
+	conf->partitions[id_part].nodes[last_id] = NULL ;
 
 	nodes_in_bytes = (conf->partitions[id_part].n_nodes) * sizeof(base_url_t) ;
 	ret = mfs_realloc((char **)&(conf->partitions[id_part].url), nodes_in_bytes) ;
 	if (ret < 0) {
 	    return -1 ;
 	}
+	memset(&(conf->partitions[id_part].url[last_id]), 0, sizeof(base_url_t)) ;
 
       	// return OK
       	return 1 ;
@@ -273,7 +283,6 @@
 	if (NULL == conf) {
 	    return NULL ;
 	}
-
         if (rank >= conf->active->n_nodes) {
 	    return NULL ;
 	}
@@ -287,12 +296,48 @@
 	if (NULL == conf) {
 	    return NULL ;
 	}
-
         if (rank >= conf->active->n_nodes) {
 	    return NULL ;
 	}
 
-      	// return node (char *)
+      	// return url (base_url *)
         return &(conf->active->url[rank])  ;
+ }
+
+
+ int   info_fsconf_get_partition_nnodes ( conf_part_t *partition )
+ {
+	if (NULL == partition) {
+	    return -1 ;
+	}
+
+      	// return number of nodes
+	return (partition->n_nodes) ;
+ }
+
+ char *info_fsconf_get_partition_node ( conf_part_t *partition, int rank )
+ {
+	if (NULL == partition) {
+	    return NULL ;
+	}
+        if (rank >= partition->n_nodes) {
+	    return NULL ;
+	}
+
+      	// return node (char *)
+        return partition->nodes[rank]  ;
+ }
+
+ base_url_t *info_fsconf_get_partition_url ( conf_part_t *partition, int rank )
+ {
+	if (NULL == partition) {
+	    return NULL ;
+	}
+        if (rank >= partition->n_nodes) {
+	    return NULL ;
+	}
+
+      	// return url (base_url *)
+        return &(partition->url[rank])  ;
  }
 

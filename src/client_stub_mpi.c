@@ -96,7 +96,6 @@ int clientstub_mpi_init ( comm_t *wb, params_t *params )
 {
     int    ret = 0 ;
     int    remote_rank ;
-    char  *srv_uri ;
 
     // Initialize
     if (ret >= 0)
@@ -107,23 +106,54 @@ int clientstub_mpi_init ( comm_t *wb, params_t *params )
         }
     }
 
+    // Return OK/KO
+    return ret ;
+}
+
+int clientstub_mpi_finalize ( comm_t *wb, params_t *params )
+{
+    int   ret = 0 ;
+
+    // Finalize comms...
+    if (ret >= 0)
+    {
+        // Finalize
+        ret = MPI_Finalize() ;
+        if (MPI_SUCCESS != ret) {
+            mfs_print(DBG_ERROR, "Client[%d]: finalization fails :-(\n", mfs_comm_get_rank(wb)) ;
+	    ret = -1 ;
+        }
+    }
+
+    // Return OK/KO
+    return ret ;
+}
+
+int clientstub_mpi_open_partition ( comm_t *wb, params_t *params, conf_part_t *partition )
+{
+    int    ret = 0 ;
+    int    remote_rank ;
+    char  *srv_uri ;
+
     // Connect to service
     if (ret >= 0)
     {
-        // Get service name
-        remote_rank = mfs_comm_get_rank(wb) % info_fsconf_get_active_nnodes(&(wb->conf)) ;
-        srv_uri     = info_fsconf_get_active_node(&(wb->conf), remote_rank) ;
+        // Get node from partition
+        remote_rank = mfs_comm_get_rank(wb) % info_fsconf_get_partition_nnodes(partition) ;
+        srv_uri     = info_fsconf_get_partition_node(partition, remote_rank) ;
 
         // Lookup...
         ret = MPI_Lookup_name(srv_uri, MPI_INFO_NULL, wb->port_name) ;
         if (MPI_SUCCESS != ret) {
             mfs_print(DBG_ERROR, "Client[%d]: MPI_Lookup_name for '%s' fails :-(\n", -1, srv_uri) ;
+	    ret = -1 ;
         }
 
         // Connect...
         ret = MPI_Comm_connect(wb->port_name, MPI_INFO_NULL, 0, MPI_COMM_SELF, &(wb->endpoint)) ;
         if (MPI_SUCCESS != ret) {
             mfs_print(DBG_ERROR, "Client[%d]: MPI_Comm_connect with '%s' fails :-(\n", -1, srv_uri) ;
+	    ret = -1 ;
         }
 
         wb->is_connected = 1 ;
@@ -133,7 +163,7 @@ int clientstub_mpi_init ( comm_t *wb, params_t *params )
     return ret ;
 }
 
-int clientstub_mpi_finalize ( comm_t *wb, params_t *params )
+int clientstub_mpi_close_partition ( comm_t *wb, params_t *params, conf_part_t *partition )
 {
     int   ret = 0 ;
 
@@ -149,25 +179,10 @@ int clientstub_mpi_finalize ( comm_t *wb, params_t *params )
         ret = MPI_Comm_disconnect(&(wb->endpoint)) ;
         if (MPI_SUCCESS != ret) {
             mfs_print(DBG_ERROR, "Client[%d]: disconnect fails :-(\n", mfs_comm_get_rank(wb)) ;
+	    ret = -1 ;
         }
 
         wb->is_connected = 0 ;
-    }
-
-    // Finalize comms...
-    if (ret >= 0)
-    {
-        // Finalize
-        ret = MPI_Finalize() ;
-        if (MPI_SUCCESS != ret) {
-            mfs_print(DBG_ERROR, "Client[%d]: finalization fails :-(\n", mfs_comm_get_rank(wb)) ;
-        }
-    }
-
-    // Finalize params
-    if (ret >= 0)
-    {
-         info_params_free(params) ;
     }
 
     // Return OK/KO

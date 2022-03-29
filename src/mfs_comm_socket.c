@@ -28,7 +28,7 @@
 
 int mfs_comm_socket_init ( comm_t *cb, int server_port, int ns_backend )
 {
-	int ret;
+	int ret ;
 
         // Check params...
         NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(\n", -1) ;
@@ -37,15 +37,7 @@ int mfs_comm_socket_init ( comm_t *cb, int server_port, int ns_backend )
         mfs_comm_reset(cb) ;
         cb->comm_protocol      = COMM_USE_SOCKET ;
         cb->comm_protocol_name = "SOCKET" ;
-	cb->size               = info_fsconf_get_active_nnodes(&(cb->conf)) ;
 	cb->ns_backend         = ns_backend ;
-
-        // number of servers
-        cb->n_servers = info_fsconf_get_active_nnodes(&(cb->conf)) ;
-        if (cb->n_servers < 0) {
-            mfs_print(DBG_ERROR, "[COMM]: set n_servers fails :-(\n") ;
-            return -1 ;
-        }
 
 	// new server socket
         if (server_port != -1)
@@ -56,18 +48,6 @@ int mfs_comm_socket_init ( comm_t *cb, int server_port, int ns_backend )
 	        perror("socket: ") ;
 	        return -1 ;
 	    }
-	}
-
-	// initialize descriptors for connections
-	cb->dd = (int *)malloc((cb->size)*sizeof(int)) ;
-	if (NULL == cb->dd) {
-	    mfs_print(DBG_ERROR, "[COMM]: malloc fails :-(\n") ;
-	    perror("malloc: ") ;
-	    return -1 ;
-	}
-
-	for (int i=0; i<cb->size; i++) {
-	     cb->dd[i] = -1 ;
 	}
 
         // Return OK
@@ -84,10 +64,6 @@ int mfs_comm_socket_finalize ( comm_t *cb )
 	    mfs_print(DBG_ERROR, "[COMM]: close socket fails :-(\n") ;
 	    return -1 ;
 	}
-
-	// finalize fields
-	free(cb->dd) ;
-	cb->dd = NULL ;
 
         // Return OK
         return 1 ;

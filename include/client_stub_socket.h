@@ -31,8 +31,10 @@
 
 
     // File System API
-    int clientstub_socket_init     ( comm_t *wb, params_t *params ) ;
-    int clientstub_socket_finalize ( comm_t *wb, params_t *params ) ;
+    int clientstub_socket_init            ( comm_t *wb, params_t *params ) ;
+    int clientstub_socket_finalize        ( comm_t *wb, params_t *params ) ;
+    int clientstub_socket_open_partition  ( comm_t *wb, params_t *params, conf_part_t *partition ) ;
+    int clientstub_socket_close_partition ( comm_t *wb, params_t *params, conf_part_t *partition ) ;
 
     // File API
     long clientstub_socket_open    ( comm_t *wb, const char *pathname, int flags ) ;
