@@ -169,18 +169,35 @@ int clientstub_socket_open_partition_element ( comm_t *wb, params_t *params, con
 {
     int    ret = 0 ;
     char  *srv_uri ;
+    int    sd, port_name_size ;
+    struct hostent *hp ;
+    int    srv_port ;
 
     // Initialize
-    wb->dd   = -1 ;
+    wb->dd = -1 ;
+    strcpy(wb->port_name, "") ;
 
-    // Connect to servers
-    if (ret >= 0)
-    {
-        srv_uri = info_fsconf_get_partition_node(partition, remote_rank) ;
-        ret = mfs_comm_socket_connect(wb, srv_uri) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: connect to '%s' fails :-(\n", -1, srv_uri) ;
-        }
+    // Get srv_uri and translate srv_uri into (host + port)
+    srv_uri = info_fsconf_get_partition_node(partition, remote_rank) ;
+
+    port_name_size = MPI_MAX_PORT_NAME ;
+    ret = info_ns_lookup(wb, wb->ns_backend, srv_uri, wb->port_name, &port_name_size) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Client[-1]: info_ns_lookup fails for '%s' with backend %d :-(\n", srv_uri, wb->ns_backend) ;
+        return -1 ;
+    }
+
+    ret = info_ns_split_portname(wb->port_name, &hp, &srv_port) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Client[-1]: mfs_comm_socket_splithp fails :-(\n") ;
+        return -1 ;
+    }
+
+    // socket
+    wb->dd = base_socket_connect(hp, srv_port) ;
+    if (wb->dd < 0) {
+        mfs_print(DBG_ERROR, "Client[-1]: base_socket_connect fails :-(\n") ;
+        return -1 ;
     }
 
     wb->is_connected = 1 ;

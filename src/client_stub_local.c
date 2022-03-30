@@ -105,11 +105,16 @@ long clientstub_local_open ( comm_t *wb, const char *pathname, int flags )
      // Get working node
      local_rank = mfs_comm_get_rank(wb) ;
      local_url  = info_fsconf_get_active_url(&(wb->partitions), local_rank) ;
+     if (NULL == local_url) {
+         mfs_print(DBG_ERROR, "Client[%d]: info_fsconf_get_active_url return NULL :-(\n", mfs_comm_get_rank(wb)) ;
+	 return -1 ;
+     }
 
      // Get filename
      ret = base_str_prepare_pathname(&buff_data_sys, local_url->file, local_rank, strlen(pathname)) ;
      if (ret < 0) {
          mfs_print(DBG_ERROR, "Client[%d]: base_str_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(wb), strlen(pathname)) ;
+	 return -1 ;
      }
      strcat(buff_data_sys, pathname) ;
 

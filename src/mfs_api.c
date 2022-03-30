@@ -46,11 +46,7 @@ int mfs_api_init ( mfs_t *wb, params_t *params, int *argc, char ***argv )
     }
 
     // Initialize values...
-    wb->wb = NULL ;
-    wb->n_eltos = 0 ;
-    wb->partitions.n_partitions = 0 ;
-    wb->partitions.partitions   = NULL ;
-    wb->partitions.active       = NULL ;
+    memset(wb, 0, sizeof(mfs_t)) ;
 
     // Initialize cb elements...
     ret = clientstub_mpi_init   (&(wb->cb[0]), params) ;
@@ -136,9 +132,10 @@ int mfs_api_open_partition ( mfs_t *wb, params_t *params, char *conf_fname )
 	     memcpy(&(wb->wb[i]), (void *)&(wb->cb[1]), sizeof(comm_t)) ;
              ret = clientstub_socket_open_partition_element(&(wb->wb[i]), params, wb->partitions.active, i) ;
         }
-        if (!strcmp("local",     elto_url->protocol))
+        if (!strcmp("file",      elto_url->protocol))
         {
 	     memcpy(&(wb->wb[i]), (void *)&(wb->cb[2]), sizeof(comm_t)) ;
+	     memcpy(&(wb->wb[i].partitions), &(wb->partitions), sizeof(conf_t)) ;
 	     ret = clientstub_local_open_partition_element(&(wb->wb[i]), params, wb->partitions.active, i) ;
         }
     }
@@ -168,7 +165,7 @@ int mfs_api_close_partition ( mfs_t *wb, params_t *params )
         {
              ret = clientstub_socket_close_partition_element(&(wb->wb[i]), params, wb->partitions.active) ;
         }
-        if (!strcmp("local",     elto_url->protocol))
+        if (!strcmp("file",      elto_url->protocol))
         {
 	     ret = clientstub_local_close_partition_element(&(wb->wb[i]), params, wb->partitions.active) ;
         }

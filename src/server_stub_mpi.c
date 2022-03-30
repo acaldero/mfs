@@ -117,6 +117,11 @@ int serverstub_mpi_init ( comm_t *wb, params_t *params )
         return -1 ;
     }
 
+    // Default values
+    mfs_comm_reset(wb) ;
+    wb->comm_protocol = COMM_USE_MPI ;
+    wb->comm_protocol_name = "MPI" ;
+
     // Get valid configuration..
     ret = info_fsconf_get(&(wb->partitions), params->conf_fname) ;
     if (ret < 0) {
@@ -132,10 +137,6 @@ int serverstub_mpi_init ( comm_t *wb, params_t *params )
     }
 
     // Initialize
-    mfs_comm_reset(wb) ;
-    wb->comm_protocol = COMM_USE_MPI ;
-    wb->comm_protocol_name = "MPI" ;
-
     ret = MPI_Init_thread(params->argc, params->argv, MPI_THREAD_MULTIPLE, &provided) ;
     if (MPI_SUCCESS != ret) {
         mfs_print(DBG_ERROR, "Server[%d]: MPI_Init_thread fails :-(\n", -1) ;

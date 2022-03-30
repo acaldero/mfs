@@ -28,20 +28,14 @@ int mfs_comm_reset ( comm_t *cb )
     NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(\n", -1) ;
 
     // Fill default values
+    memset(cb, 0, sizeof(comm_t)) ;
+
     cb->comm_protocol      = -1 ;
     cb->comm_protocol_name = NULL ;
-
-    cb->n_send_req    =  0 ;
-    cb->n_recv_req    =  0 ;
 
     cb->status_rank   = -1 ;
     cb->status_tag    = -1 ;
     cb->status_count  = -1 ;
-
-    cb->rank          = 0 ;
-    cb->size          = 0 ;
-    cb->ns_backend    = 0 ;
-    cb->is_connected  = 0 ;
 
     // Return OK
     return 0 ;

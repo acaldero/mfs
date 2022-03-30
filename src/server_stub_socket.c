@@ -121,16 +121,24 @@ int serverstub_socket_init ( comm_t *wb, params_t *params )
         mfs_print(DBG_ERROR, "Server[%d]: info_fsconf_get fails to read at least one partition in file '%s' :-(\n", -1, params->conf_fname) ;
         return -1 ;
     }
-
-    // Initialize
-    ret = mfs_comm_socket_init(wb, params->server_port, params->ns_backend) ;
-    if (ret < 0) {
-        mfs_print(DBG_ERROR, "Server[%d]: initialization fails for socket_comm :-(\n", -1) ;
-        return -1 ;
-    }
     if (info_fsconf_get_active_nnodes(&(wb->partitions)) != mfs_comm_get_size(wb)) {
         mfs_print(DBG_ERROR, "Server[%d]: partition in '%s' with different nodes than processes :-(\n", -1, params->conf_fname) ;
         return -1 ;
+    }
+
+    // Initialize (fields and server socket)
+    mfs_comm_reset(wb) ;
+    wb->comm_protocol      = COMM_USE_SOCKET ;
+    wb->comm_protocol_name = "SOCKET" ;
+    wb->ns_backend         = params->ns_backend ;
+
+    if (params->server_port != -1)
+    {
+        ret = base_socket_serversocket(&(wb->sd), params->server_port) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Server[%d]: initialization fails for base_socket_serversocket :-(\n", -1) ;
+            return -1 ;
+        }
     }
 
     // Register service
@@ -170,7 +178,7 @@ int serverstub_socket_finalize ( comm_t *wb, params_t *params )
     }
 
     // Finalize
-    ret = mfs_comm_socket_finalize(wb) ;
+    ret = base_socket_close(&(wb->sd)) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: finalization fails :-(\n", mfs_comm_get_rank(wb)) ;
         return -1 ;
@@ -225,8 +233,8 @@ int serverstub_socket_accept ( comm_t *ab, params_t *params, comm_t *wb )
     memmove(ab, wb, sizeof(comm_t)) ;
 
     // Accept connections...
-    ret = mfs_comm_socket_accept(ab) ;
-    if (ret < 0) {
+    ab->dd = base_socket_accept(ab->sd) ;
+    if (ab->dd < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: accept connections fails :-(\n", mfs_comm_get_rank(ab)) ;
         return -1 ;
     }

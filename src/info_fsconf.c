@@ -296,6 +296,12 @@
 	if (NULL == conf) {
 	    return NULL ;
 	}
+	if (NULL == conf->active) {
+	    return NULL ;
+	}
+	if (NULL == conf->active->url) {
+	    return NULL ;
+	}
         if (rank >= conf->active->n_nodes) {
 	    return NULL ;
 	}
