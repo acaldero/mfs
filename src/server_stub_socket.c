@@ -146,6 +146,8 @@ int serverstub_socket_init ( comm_t *wb, params_t *params )
     local_rank   = mfs_comm_get_rank(wb) ;
     wb->node_str = info_fsconf_get_active_node(&partitions, local_rank) ;
     wb->node_url = info_fsconf_get_active_url (&partitions, local_rank) ;
+    wb->node_str = strdup(wb->node_str) ;
+    wb->node_url = base_url_dup(wb->node_url) ;
 
     ret = info_ns_get_portname(wb->port_name, wb->sd) ;
     if (ret < 0) {
@@ -210,6 +212,10 @@ int serverstub_socket_finalize ( comm_t *wb, params_t *params )
         mfs_print(DBG_ERROR, "Server[%d]: finalization fails for dbm :-(\n", -1) ;
         return -1 ;
     }
+
+    // Free memory
+    ret = mfs_free(&(wb->node_str)) ;
+    ret = base_url_free(&(wb->node_url)) ;
 
     // Finalize params
     ret = info_params_free(params) ;

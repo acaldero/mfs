@@ -87,6 +87,9 @@ int clientstub_local_open_partition_element ( comm_t *wb, params_t *params, conf
 	return -1 ;
     }
 
+    wb->node_str = strdup(wb->node_str) ;
+    wb->node_url = base_url_dup(wb->node_url) ;
+
     wb->is_connected = 1 ;
 
     // Return OK
@@ -95,6 +98,12 @@ int clientstub_local_open_partition_element ( comm_t *wb, params_t *params, conf
 
 int clientstub_local_close_partition_element ( comm_t *wb, params_t *params, conf_part_t *partition )
 {
+    int ret ;
+
+    // Free memory
+    ret = mfs_free(&(wb->node_str)) ;
+    ret = base_url_free(&(wb->node_url)) ;
+
     wb->is_connected = 0 ;
 
     // Return OK
