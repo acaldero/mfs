@@ -45,12 +45,17 @@ int mfs_api_init ( mfs_t *wb, params_t *params, int *argc, char ***argv )
         info_params_show(params) ;
     }
 
-    // Initialize...
+    // Initialize values...
     wb->wb = NULL ;
     wb->n_eltos = 0 ;
     wb->partitions.n_partitions = 0 ;
     wb->partitions.partitions   = NULL ;
     wb->partitions.active       = NULL ;
+
+    // Initialize cb elements...
+    ret = clientstub_mpi_init   (&(wb->cb[0]), params) ;
+    ret = clientstub_socket_init(&(wb->cb[1]), params) ;
+    ret = clientstub_local_init (&(wb->cb[2]), params) ;
 
     // Return OK
     return ret ;
@@ -63,6 +68,11 @@ int mfs_api_finalize ( mfs_t *wb, params_t *params )
     // Check params...
     NULL_PRT_MSG_RET_VAL(wb,     "[MFS_API]: NULL wb     :-(\n", -1) ;
     NULL_PRT_MSG_RET_VAL(params, "[MFS_API]: NULL params :-(\n", -1) ;
+
+    // Finalize cb elements...
+    ret = clientstub_mpi_finalize   (&(wb->cb[0]), params) ;
+    ret = clientstub_socket_finalize(&(wb->cb[1]), params) ;
+    ret = clientstub_local_finalize (&(wb->cb[2]), params) ;
 
     // Finalize params
     if (ret >= 0)
@@ -78,7 +88,6 @@ int mfs_api_open_partition ( mfs_t *wb, params_t *params, char *conf_fname )
 {
     int         ret ;
     base_url_t *elto_url ; 
-    int         mpiserver_activated ;
 
     // Check params...
     NULL_PRT_MSG_RET_VAL(wb,     "[MFS_API]: NULL wb     :-(\n", -1) ;
@@ -114,31 +123,23 @@ int mfs_api_open_partition ( mfs_t *wb, params_t *params, char *conf_fname )
     }
 
     // Initialize elements...
-    mpiserver_activated = 0 ;
     for (int i=0; i<wb->n_eltos; i++)
     {
         elto_url = info_fsconf_get_active_url(&(wb->partitions), i) ;
         if (!strcmp("mpiServer", elto_url->protocol))
         {
-             if (1 == mpiserver_activated) {
-		 continue ;
-	     }
-             wb->wb[i].comm_protocol = COMM_USE_MPI ;
-    	     ret = clientstub_mpi_init(&(wb->wb[i]), params) ;
-             ret = clientstub_mpi_open_partition(&(wb->wb[i]), params, wb->partitions.active) ;
-             mpiserver_activated = 1 ;
+	     memcpy(&(wb->wb[i]), (void *)&(wb->cb[0]), sizeof(comm_t)) ;
+             ret = clientstub_mpi_open_partition_element(&(wb->wb[i]), params, wb->partitions.active, i) ;
         }
         if (!strcmp("tcpServer", elto_url->protocol))
         {
-             wb->wb[i].comm_protocol = COMM_USE_SOCKET ;
-    	     ret = clientstub_socket_init(&(wb->wb[i]), params) ;
-             ret = clientstub_socket_open_partition(&(wb->wb[i]), params, wb->partitions.active) ;
+	     memcpy(&(wb->wb[i]), (void *)&(wb->cb[1]), sizeof(comm_t)) ;
+             ret = clientstub_socket_open_partition_element(&(wb->wb[i]), params, wb->partitions.active, i) ;
         }
         if (!strcmp("local",     elto_url->protocol))
         {
-             wb->wb[i].comm_protocol = COMM_USE_LOCAL ;
-             ret = clientstub_local_init(&(wb->wb[i]), params) ;
-	     ret = clientstub_local_open_partition(&(wb->wb[i]), params, wb->partitions.active) ;
+	     memcpy(&(wb->wb[i]), (void *)&(wb->cb[2]), sizeof(comm_t)) ;
+	     ret = clientstub_local_open_partition_element(&(wb->wb[i]), params, wb->partitions.active, i) ;
         }
     }
 
@@ -150,34 +151,26 @@ int mfs_api_close_partition ( mfs_t *wb, params_t *params )
 {
     int ret ;
     base_url_t *elto_url ;
-    int mpiserver_activated ;
 
     // Check params...
     NULL_PRT_MSG_RET_VAL(wb,     "[MFS_API]: NULL wb     :-(\n", -1) ;
     NULL_PRT_MSG_RET_VAL(params, "[MFS_API]: NULL params :-(\n", -1) ;
 
     // Close elements...
-    mpiserver_activated = 0 ;
     for (int i=0; i<wb->n_eltos; i++)
     {
         elto_url = info_fsconf_get_active_url(&(wb->partitions), i) ;
         if (!strcmp("mpiServer", elto_url->protocol))
         {
-             if (1 == mpiserver_activated) {
-		 continue ;
-	     }
-             ret = clientstub_mpi_close_partition(&(wb->wb[i]), params, wb->partitions.active) ;
-	     ret = clientstub_mpi_finalize(&(wb->wb[i]), params) ;
+             ret = clientstub_mpi_close_partition_element(&(wb->wb[i]), params, wb->partitions.active) ;
         }
         if (!strcmp("tcpServer", elto_url->protocol))
         {
-             ret = clientstub_socket_close_partition(&(wb->wb[i]), params, wb->partitions.active) ;
-	     ret = clientstub_socket_finalize(&(wb->wb[i]), params) ;
+             ret = clientstub_socket_close_partition_element(&(wb->wb[i]), params, wb->partitions.active) ;
         }
         if (!strcmp("local",     elto_url->protocol))
         {
-	     ret = clientstub_local_close_partition(&(wb->wb[i]), params, wb->partitions.active) ;
-             ret = clientstub_local_finalize(&(wb->wb[i]), params) ;
+	     ret = clientstub_local_close_partition_element(&(wb->wb[i]), params, wb->partitions.active) ;
         }
     }
 
@@ -565,7 +558,8 @@ int  mfs_api_dbmdelete ( mfs_t *wb, long fd, void *buff_key, int count_key )
 int  mfs_api_get_rank  ( mfs_t *wb )
 {
     // Check params...
-    NULL_PRT_MSG_RET_VAL(wb, "[MFS_API]: NULL wb :-(\n", -1) ;
+    NULL_PRT_MSG_RET_VAL(wb,     "[MFS_API]: NULL wb     :-(\n", -1) ;
+    NULL_PRT_MSG_RET_VAL(wb->wb, "[MFS_API]: NULL wb->wb :-(\n", -1) ;
 
     return wb->wb[0].rank ;
 }

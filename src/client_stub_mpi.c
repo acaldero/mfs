@@ -94,20 +94,49 @@ int clientstub_mpi_action_over_fd_resource ( comm_t *wb, long fd, int opt, int a
 
 int clientstub_mpi_init ( comm_t *wb, params_t *params )
 {
-    int    ret = 0 ;
-    int    remote_rank ;
+    int ret = 0 ;
+    int claimed, provided ;
 
-    // Initialize
-    if (ret >= 0)
-    {
-        ret = mfs_comm_mpi_init(wb, params->argc, params->argv) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: initialization fails :-(\n", -1) ;
-        }
+    // Check params...
+    NULL_PRT_MSG_RET_VAL(wb, "Client[-1]: NULL wb :-(\n", -1) ;
+
+    // Initialization
+    mfs_comm_reset(wb) ;
+    wb->comm_protocol = COMM_USE_MPI ;
+    wb->comm_protocol_name = "MPI" ;
+
+    // MPI_Init
+    ret = MPI_Init_thread(params->argc, params->argv, MPI_THREAD_MULTIPLE, &provided) ;
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_ERROR, "Client[%d]: MPI_Init fails :-(\n", -1) ;
+        return -1 ;
     }
 
-    // Return OK/KO
-    return ret ;
+    // wb->rank = comm_rank()
+    ret = MPI_Comm_rank(MPI_COMM_WORLD, &(wb->rank));
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_ERROR, "Client[%d]: MPI_Comm_rank fails :-(\n", -1) ;
+        return -1 ;
+    }
+
+    MPI_Query_thread(&claimed) ;
+    if (claimed != provided) {
+        mfs_print(DBG_WARNING, "Client[%d]: MPI_Init_thread with only %s :-/\n", wb->rank, provided) ;
+    }
+
+    // wb->size = comm_size()
+    ret = MPI_Comm_size(MPI_COMM_WORLD, &(wb->size));
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_ERROR, "Client[%d]: MPI_Comm_size fails :-(\n", wb->rank) ;
+        return -1 ;
+    }
+
+    // id within local node...
+    MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &(wb->local_comm)) ;
+    MPI_Comm_rank(wb->local_comm, &(wb->local_rank)) ;
+
+    // Return OK
+    return 1 ;
 }
 
 int clientstub_mpi_finalize ( comm_t *wb, params_t *params )
@@ -129,18 +158,16 @@ int clientstub_mpi_finalize ( comm_t *wb, params_t *params )
     return ret ;
 }
 
-int clientstub_mpi_open_partition ( comm_t *wb, params_t *params, conf_part_t *partition )
+int clientstub_mpi_open_partition_element ( comm_t *wb, params_t *params, conf_part_t *partition, int remote_rank )
 {
     int    ret = 0 ;
-    int    remote_rank ;
     char  *srv_uri ;
 
     // Connect to service
     if (ret >= 0)
     {
         // Get node from partition
-        remote_rank = mfs_comm_get_rank(wb) % info_fsconf_get_partition_nnodes(partition) ;
-        srv_uri     = info_fsconf_get_partition_node(partition, remote_rank) ;
+        srv_uri = info_fsconf_get_partition_node(partition, remote_rank) ;
 
         // Lookup...
         ret = MPI_Lookup_name(srv_uri, MPI_INFO_NULL, wb->port_name) ;
@@ -163,7 +190,7 @@ int clientstub_mpi_open_partition ( comm_t *wb, params_t *params, conf_part_t *p
     return ret ;
 }
 
-int clientstub_mpi_close_partition ( comm_t *wb, params_t *params, conf_part_t *partition )
+int clientstub_mpi_close_partition_element ( comm_t *wb, params_t *params, conf_part_t *partition )
 {
     int   ret = 0 ;
 

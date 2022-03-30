@@ -25,7 +25,6 @@
  {
  	printf(" Current parameters:\n");
       	printf(" | -v  %d \t\t <level>\n",                  params->verbose) ;
-      	printf(" | -c  %s  \t\t MPI   | SOCKET | LOCAL\n",  params->comm_backend_name) ;
       	printf(" | -f  %s  \t\t POSIX | MPI-IO\n",          params->file_backend_name) ;
       	printf(" | -i  %s  \t\t POSIX\n",                   params->directory_backend_name) ;
       	printf(" | -b  %s  \t\t GDBM\n",                    params->dbm_backend_name) ;
@@ -53,7 +52,6 @@
  struct option long_options[] =
         {
           { "verbose",            required_argument, NULL, 'v' },
-          { "comm_backend",       required_argument, NULL, 'c' },
           { "file_backend",       required_argument, NULL, 'f' },
           { "directory_backend",  required_argument, NULL, 'i' },
           { "dbm_backend",        required_argument, NULL, 'b' },
@@ -87,13 +85,11 @@
         params->directory_backend_name = strdup("POSIX") ;
         params->thread_launch          = THREAD_USE_ONDEMAND ;
         params->thread_launch_name     = strdup("On demand") ;
-        params->comm_backend           = COMM_USE_MPI ;
-        params->comm_backend_name      = strdup("MPI") ;
         params->ns_backend             = NS_USE_DBM ;
         params->ns_backend_name        = strdup("DBM") ;
 
 	// getopt_long...
-	short_opt = "v:b:c:f:i:n:p:t:" ;
+	short_opt = "v:b:f:i:n:p:t:" ;
         c = getopt_long(*argc, *argv, short_opt, long_options, &option_index) ;
 	while (c != -1)
 	{
@@ -109,21 +105,6 @@
 
 	     case 'p':
 		  params->server_port = atoi(optarg) ;
-                  break ;
-
-	     case 'c':
-		  if (!strcmp("SOCKET",  optarg)) {
-		      params->comm_backend = COMM_USE_SOCKET ;
-		      mfs_free_and_strdup(&(params->comm_backend_name), "SOCKET") ;
-		  }
-		  if (!strcmp("MPI", optarg)) {
-		      params->comm_backend = COMM_USE_MPI ;
-		      mfs_free_and_strdup(&(params->comm_backend_name), "MPI") ;
-		  }
-		  if (!strcmp("LOCAL", optarg)) {
-		      params->comm_backend = COMM_USE_LOCAL ;
-		      mfs_free_and_strdup(&(params->comm_backend_name), "LOCAL") ;
-		  }
                   break ;
 
 	     case 'f':
@@ -190,7 +171,6 @@ int  info_params_free       ( params_t *params )
         free(params->dbm_backend_name) ;
         free(params->directory_backend_name) ;
         free(params->thread_launch_name) ;
-        free(params->comm_backend_name) ;
         free(params->mfs_server_stub_pname) ;
         free(params->ns_backend_name) ;
 

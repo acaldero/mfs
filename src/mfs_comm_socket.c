@@ -74,39 +74,23 @@ int mfs_comm_socket_finalize ( comm_t *cb )
 // Register, unregister, connect, disconnect
 //
 
-int mfs_comm_socket_accept ( comm_t *ab, int remote_rank )
+int mfs_comm_socket_accept ( comm_t *ab )
 {
 	int  ret ;
 	int  sd, size, val ;
 
 	// accept connection...
-        sd = base_socket_accept(ab->sd) ;
-	if (sd < 0) {
+        ab->dd = base_socket_accept(ab->sd) ;
+	if (ab->dd < 0) {
 	    mfs_print(DBG_ERROR, "[COMM]: accept fails :-(\n") ;
 	    return -1 ;
 	}
-
-	// set associated socket to rank
-	if (remote_rank < 0)
-	{
-	    for (int i=0; (i<ab->size) && (remote_rank < 0); i++)
-	    {
-	         if (ab->dd[i] != -1) {
-		     remote_rank = i ;
-	         }
-	    }
-	}
-	if (remote_rank < 0) {
-            return -1 ;
-	}
-
-	ab->dd[remote_rank] = sd ;
 
         // Return OK
         return 1 ;
 }
 
-int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri, int remote_rank )
+int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri )
 {
 	int    ret, sd, port_name_size ;
 	struct hostent *hp ;
@@ -129,30 +113,22 @@ int mfs_comm_socket_connect ( comm_t *cb, char *srv_uri, int remote_rank )
         }
 
 	// socket
-        sd = base_socket_connect(hp, srv_port) ;
-        if (ret < 0) {
+        cb->dd = base_socket_connect(hp, srv_port) ;
+        if (cb->dd < 0) {
             mfs_print(DBG_ERROR, "[COMM]: base_socket_connect fails :-(\n") ;
             return -1 ;
         }
-
-	// set associated socket to rank
-	cb->dd[remote_rank] = sd ;
 
         // Return OK
         return 1 ;
 }
 
-int mfs_comm_socket_disconnect ( comm_t *cb, int remote_rank )
+int mfs_comm_socket_disconnect ( comm_t *cb )
 {
 	int ret ;
 
-	// If already close then return
-	if (-1 == cb->dd[remote_rank]) {
-            return 1 ;
-	}
-
 	// Close socket
-        ret = base_socket_close(&(cb->dd[remote_rank])) ;
+        ret = base_socket_close(&(cb->dd)) ;
 	if (ret < 0) {
 	    mfs_print(DBG_ERROR, "[COMM]: close socket fails :-(\n") ;
 	    return -1 ;
@@ -172,34 +148,13 @@ int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size 
         int ret ;
 
         // Check arguments
-	NULL_PRT_MSG_RET_VAL(cb,     "[COMM]: NULL cb     :-(\n", -1) ;
-	NULL_PRT_MSG_RET_VAL(cb->dd, "[COMM]: NULL cb->dd :-(\n", -1) ;
+	NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb     :-(\n", -1) ;
+        if (-1 == cb->dd) { return -1; }
 
         // Try to receive data from...
-	ret = -1 ;
-	if (MPI_ANY_SOURCE == rank)
-	{
-	    for (int i=0; i<cb->size; i++)
-	    {
-	         if (cb->dd[i] != -1) {
-	             rank = i ;
-		     break ;
-	         }
-	    }
-
-	    if (rank != -1)
-	    {
-	        ret = mfs_file_posix_read(cb->dd[rank], buff, size) ;
-	        if (ret < 0) {
-	    	    mfs_print(DBG_ERROR, "[COMM]: read from socket %d fails :-(\n", cb->dd[rank]) ;
-	        }
-	    }
-	}
-	else
-	{
-	    if (cb->dd[rank] != -1) {
-                ret = mfs_file_posix_read(cb->dd[rank], buff, size) ;
-	    }
+        ret = mfs_file_posix_read(cb->dd, buff, size) ;
+	if (ret < 0) {
+	    mfs_print(DBG_ERROR, "[COMM]: read from socket %d fails :-(\n", cb->dd) ;
 	}
 
 	// Stats
@@ -214,12 +169,11 @@ int mfs_comm_socket_send_data_to  ( comm_t *cb, int rank, void *buff, int size )
         int ret ;
 
         // Check arguments
-	NULL_PRT_MSG_RET_VAL(cb,     "[COMM]: NULL cb     :-(\n", -1) ;
-	NULL_PRT_MSG_RET_VAL(cb->dd, "[COMM]: NULL cb->dd :-(\n", -1) ;
-        if (-1 == cb->dd[rank]) { return -1; }
+	NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb     :-(\n", -1) ;
+        if (-1 == cb->dd) { return -1; }
 
         // Send data to...
-        ret = mfs_file_posix_write(cb->dd[rank], buff, size) ;
+        ret = mfs_file_posix_write(cb->dd, buff, size) ;
 
         // Stats
         cb->n_send_req++ ;

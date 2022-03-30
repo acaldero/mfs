@@ -67,9 +67,6 @@
         int    thread_launch ;
         char  *thread_launch_name ;
 
-        int    comm_backend ;
-        char  *comm_backend_name ;
-
         int    ns_backend ;
         char  *ns_backend_name ;
 

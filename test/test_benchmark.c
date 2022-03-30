@@ -37,17 +37,16 @@ int main_benchmark1 ( mfs_t *wb, params_t *params )
     double mb, t ;
 
     // Initialize...
-    rank = mfs_api_get_rank(wb) ;
-
     ret = mfs_api_open_partition(wb, params, params->conf_fname) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Client[%d]: mfs_api_open_partition fails :-(\n", rank) ;
+        mfs_print(DBG_ERROR, "Client[%d]: mfs_api_open_partition fails :-(\n", -1) ;
         return -1 ;
     }
 
-    // Benchmark: write
+    rank = mfs_api_get_rank(wb) ;
     memset(buffer, 'x', BUFFER_SIZE) ;
 
+    // Benchmark: write
     printf("protocol;\ttest;\t\tclient;\t\tsize (KiB);\tavg.bandwidth (MiB/sec.);\n") ;
     for (int j=1; j<N_SIZES_BENCHMARK; j=2*j)
     {

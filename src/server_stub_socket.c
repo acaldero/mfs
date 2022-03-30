@@ -225,7 +225,7 @@ int serverstub_socket_accept ( comm_t *ab, params_t *params, comm_t *wb )
     memmove(ab, wb, sizeof(comm_t)) ;
 
     // Accept connections...
-    ret = mfs_comm_socket_accept(ab, -1) ;
+    ret = mfs_comm_socket_accept(ab) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: accept connections fails :-(\n", mfs_comm_get_rank(ab)) ;
         return -1 ;
@@ -242,15 +242,9 @@ int serverstub_socket_disconnect_all ( comm_t *ab, params_t *params )
     int ret ;
 
     // Disconnect
-    for (int i=0; i<ab->size; i++)
-    {
-         if (ab->dd[i] != -1)
-         {
-             ret = base_socket_close(&(ab->dd[i])) ;
-             if (ret < 0) {
-                 mfs_print(DBG_ERROR, "Server[%d]: disconnect %d fails :-(\n", mfs_comm_get_rank(ab), i) ;
-             }
-         }
+    ret = base_socket_close(&(ab->dd)) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: disconnect %d fails :-(\n", mfs_comm_get_rank(ab), ab->dd) ;
     }
 
     ab->is_connected = 0 ;

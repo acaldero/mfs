@@ -68,7 +68,7 @@ int clientstub_local_finalize ( comm_t *wb, params_t *params )
     return ret ;
 }
 
-int clientstub_local_open_partition ( comm_t *wb, params_t *params, conf_part_t *partition )
+int clientstub_local_open_partition_element ( comm_t *wb, params_t *params, conf_part_t *partition, int remote_rank )
 {
     wb->is_connected = 1 ;
 
@@ -76,7 +76,7 @@ int clientstub_local_open_partition ( comm_t *wb, params_t *params, conf_part_t 
     return 1 ;
 }
 
-int clientstub_local_close_partition ( comm_t *wb, params_t *params, conf_part_t *partition )
+int clientstub_local_close_partition_element ( comm_t *wb, params_t *params, conf_part_t *partition )
 {
     wb->is_connected = 0 ;
 

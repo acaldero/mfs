@@ -40,14 +40,14 @@ if true; then
    # start server...
    echo "   + ../bin/mfs_server &"
    echo "   + sleep 3"
-     mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server_mpi    -f ${F_BACKEND} -c MPI -v ${V_LEVEL} &
+     mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server_mpi    -f ${F_BACKEND} -v ${V_LEVEL} &
      sleep 3
    # run client...
    for i in $(seq 1 1 $N_TESTS)
    do
       echo "   + ./test_benchmark ...(test $i)"
       echo "   + sleep 2"
-        mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_benchmark -n conf.yaml -f ${F_BACKEND} -c MPI -v ${V_LEVEL}
+        mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_benchmark -n conf.yaml -f ${F_BACKEND} -v ${V_LEVEL}
         sleep 2
    done
 fi
@@ -64,14 +64,14 @@ if false; then
    # start server...
    echo "   + ../bin/mfs_server &"
    echo "   + sleep 3"
-    mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server_socket -f ${F_BACKEND} -c SOCKET -v ${V_LEVEL} &
+    mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server_socket -f ${F_BACKEND} -v ${V_LEVEL} &
     sleep 3
    # run client...
    for i in $(seq 1 1 $N_TESTS)
    do
       echo "   + ./test_benchmark ...(test $i)"
       echo "   + sleep 2"
-       mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_benchmark -n conf.yaml -f ${F_BACKEND} -c SOCKET -p 0 -v ${V_LEVEL}
+       mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_benchmark -n conf.yaml -f ${F_BACKEND} -p 0 -v ${V_LEVEL}
        sleep 2
    done
 fi

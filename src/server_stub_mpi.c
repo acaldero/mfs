@@ -86,9 +86,15 @@ int stubmpi_read_name ( comm_t *ab, char **buff_data_sys, int pathname_length )
 
 int serverstub_mpi_init ( comm_t *wb, params_t *params )
 {
-    int     ret ;
-    int     local_rank ;
-    char   *local_node ;
+    int   ret ;
+    int   local_rank ;
+    char *local_node ;
+    int   claimed, provided ;
+    MPI_Info info ;
+
+    // Check params...
+    NULL_PRT_MSG_RET_VAL(wb,     "[COMM]: NULL     wb :-(\n", -1) ;
+    NULL_PRT_MSG_RET_VAL(params, "[COMM]: NULL params :-(\n", -1) ;
 
     // Initialize files
     ret = mfs_file_init() ;
@@ -126,11 +132,36 @@ int serverstub_mpi_init ( comm_t *wb, params_t *params )
     }
 
     // Initialize
-    ret = mfs_comm_mpi_init(wb, params->argc, params->argv) ;
-    if (ret < 0) {
-        mfs_print(DBG_ERROR, "Server[%d]: initialization fails for comm :-(\n", -1) ;
+    mfs_comm_reset(wb) ;
+    wb->comm_protocol = COMM_USE_MPI ;
+    wb->comm_protocol_name = "MPI" ;
+
+    ret = MPI_Init_thread(params->argc, params->argv, MPI_THREAD_MULTIPLE, &provided) ;
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_ERROR, "Server[%d]: MPI_Init_thread fails :-(\n", -1) ;
         return -1 ;
     }
+
+    ret = MPI_Comm_rank(MPI_COMM_WORLD, &(wb->rank));
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_ERROR, "Server[%d]: MPI_Comm_rank fails :-(\n", -1) ;
+        return -1 ;
+    }
+
+    MPI_Query_thread(&claimed) ;
+    if (claimed != provided) {
+        mfs_print(DBG_ERROR, "Server[%d]: MPI_Query_thread fails :-(\n", -1) ;
+    }
+
+    ret = MPI_Comm_size(MPI_COMM_WORLD, &(wb->size));
+    if (MPI_SUCCESS != ret) {
+        mfs_print(DBG_ERROR, "Server[%d]: MPI_Comm_size fails :-(\n", -1) ;
+        return -1 ;
+    }
+
+    // id within local node...
+    MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &(wb->local_comm)) ;
+    MPI_Comm_rank(wb->local_comm, &(wb->local_rank)) ;
     if (info_fsconf_get_active_nnodes(&(wb->partitions)) != mfs_comm_get_size(wb)) {
         mfs_print(DBG_ERROR, "Server[%d]: partition in '%s' with different nodes than processes :-(\n", -1, params->conf_fname) ;
         return -1 ;
@@ -147,7 +178,6 @@ int serverstub_mpi_init ( comm_t *wb, params_t *params )
         return -1 ;
     }
 
-    MPI_Info info ;
     MPI_Info_create(&info) ;
     MPI_Info_set(info, "ompi_global_scope", "true") ;
 
@@ -159,7 +189,7 @@ int serverstub_mpi_init ( comm_t *wb, params_t *params )
     }
 
     // Return OK
-    return 0 ;
+    return 1 ;
 }
 
 int serverstub_mpi_finalize ( comm_t *wb, params_t *params )

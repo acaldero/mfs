@@ -38,17 +38,14 @@
     int mfs_comm_socket_init       ( comm_t *cb, int server_port, int ns_backend ) ;
     int mfs_comm_socket_finalize   ( comm_t *cb ) ;
 
-    int mfs_comm_socket_accept     ( comm_t *ab, int remote_rank ) ;
-    int mfs_comm_socket_connect    ( comm_t *cb, char *srv_uri, int remote_rank ) ;
+    int mfs_comm_socket_accept     ( comm_t *ab ) ;
+    int mfs_comm_socket_connect    ( comm_t *cb, char *srv_uri ) ;
 
     int mfs_comm_socket_recv_data_from ( comm_t *cb, int rank, void *buff, int size ) ;
     int mfs_comm_socket_send_data_to   ( comm_t *cb, int rank, void *buff, int size ) ;
 
     int mfs_comm_socket_send_request    ( comm_t *wb, int rank, long action, long arg1, long arg2, long arg3 ) ;
     int mfs_comm_socket_receive_request ( comm_t *wb, int rank, msg_t *msg ) ;
-
-    int mfs_comm_socket_stats_reset    ( comm_t *cb ) ;
-    int mfs_comm_socket_stats_show     ( comm_t *cb, char *prefix ) ;
 
 #endif
 

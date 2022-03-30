@@ -122,29 +122,40 @@ int clientstub_socket_action_send_buffer ( comm_t *wb, void *buff_char, int coun
 
 int clientstub_socket_init ( comm_t *wb, params_t *params )
 {
-    int    ret = 0 ;
+	int ret ;
 
-    // Initialize
-    if (ret >= 0)
-    {
-        ret = mfs_comm_socket_init(wb, params->server_port, params->ns_backend) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: initialization fails :-(\n", -1) ;
-        }
-    }
+        // Check params...
+        NULL_PRT_MSG_RET_VAL(wb, "Client[-1]: NULL wb :-(\n", -1) ;
 
-    // Return OK/KO
-    return ret ;
+	// Initialize fields
+        mfs_comm_reset(wb) ;
+        wb->comm_protocol      = COMM_USE_SOCKET ;
+        wb->comm_protocol_name = "SOCKET" ;
+	wb->ns_backend         = params->ns_backend ;
+
+	// new server socket
+        if (params->server_port != -1)
+	{
+            ret = base_socket_serversocket(&(wb->sd), params->server_port) ;
+	    if (ret < 0) {
+                mfs_print(DBG_ERROR, "Client[%d]: socket initialization fails :-(\n", -1) ;
+	        perror("socket: ") ;
+	        return -1 ;
+	    }
+	}
+
+        // Return OK
+        return 1 ;
 }
 
 int clientstub_socket_finalize ( comm_t *wb, params_t *params )
 {
     int   ret = 0 ;
 
-    // Finalize
+    // Close socket
     if (ret >= 0)
     {
-        ret = mfs_comm_socket_finalize(wb) ;
+        ret = base_socket_close(&(wb->sd)) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: finalization fails :-(\n", mfs_comm_get_rank(wb)) ;
         }
@@ -154,37 +165,22 @@ int clientstub_socket_finalize ( comm_t *wb, params_t *params )
     return ret ;
 }
 
-int clientstub_socket_open_partition ( comm_t *wb, params_t *params, conf_part_t *partition )
+int clientstub_socket_open_partition_element ( comm_t *wb, params_t *params, conf_part_t *partition, int remote_rank )
 {
     int    ret = 0 ;
     char  *srv_uri ;
 
-    // get the number of servers to connect to
-    wb->size = info_fsconf_get_partition_nnodes(partition) ;
-
-    // initialize descriptors for connections
-    wb->dd = (int *)malloc((wb->size)*sizeof(int)) ;
-    if (NULL == wb->dd) {
-        mfs_print(DBG_ERROR, "[COMM]: malloc fails :-(\n") ;
-        perror("malloc: ") ;
-        return -1 ;
-    }
-
-    for (int i=0; i<wb->size; i++) {
-         wb->dd[i] = -1 ;
-    }
+    // Initialize
+    wb->dd   = -1 ;
 
     // Connect to servers
     if (ret >= 0)
     {
-	for (int i=0; i<partition->n_nodes; i++)
-	{
-             srv_uri = info_fsconf_get_partition_node(partition, i) ;
-             ret = mfs_comm_socket_connect(wb, srv_uri, i) ;
-             if (ret < 0) {
-                 mfs_print(DBG_ERROR, "Client[%d]: connect to '%s' fails :-(\n", -1, srv_uri) ;
-             }
-	}
+        srv_uri = info_fsconf_get_partition_node(partition, remote_rank) ;
+        ret = mfs_comm_socket_connect(wb, srv_uri) ;
+        if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: connect to '%s' fails :-(\n", -1, srv_uri) ;
+        }
     }
 
     wb->is_connected = 1 ;
@@ -193,7 +189,7 @@ int clientstub_socket_open_partition ( comm_t *wb, params_t *params, conf_part_t
     return ret ;
 }
 
-int clientstub_socket_close_partition ( comm_t *wb, params_t *params, conf_part_t *partition )
+int clientstub_socket_close_partition_element ( comm_t *wb, params_t *params, conf_part_t *partition )
 {
     int   ret = 0 ;
 
@@ -206,23 +202,10 @@ int clientstub_socket_close_partition ( comm_t *wb, params_t *params, conf_part_
     // Disconnect...
     if (ret >= 0)
     {
-	for (int i=0; i<wb->size; i++)
-	{
-	     if (wb->dd[i] != -1)
-	     {
-		ret = base_socket_close(&(wb->dd[i])) ;
-		if (ret < 0) {
-                    mfs_print(DBG_ERROR, "Client[%d]: disconnect %d fails :-(\n", mfs_comm_get_rank(wb), i) ;
-		}
-	     }
+	ret = base_socket_close(&(wb->dd)) ;
+	if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: disconnect %d fails :-(\n", mfs_comm_get_rank(wb), wb->dd) ;
 	}
-    }
-
-    // finalize fields
-    if (ret >= 0)
-    {
-        free(wb->dd) ;
-        wb->dd = NULL ;
     }
 
     wb->is_connected = 0 ;

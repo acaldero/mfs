@@ -29,6 +29,8 @@
 
 
     // File protocol
+    #define COMM_NUMBER_OF_PROTOCOLS 3
+
     #define COMM_USE_LOCAL   1
     #define COMM_USE_MPI     2
     #define COMM_USE_SOCKET  3
@@ -47,9 +49,9 @@
         int    sd ;
 
         // destination
-	conf_t    partitions ;
         MPI_Comm  endpoint ;
-        int      *dd ;
+        int       dd ;
+	conf_t    partitions ; // TODO: remove this field (now in mfs_t)
 
         // MPI identification (MPI_COMM_WORLD)
         int   size ;
@@ -65,7 +67,7 @@
         int   status_count ;
 
         // some stats
-        char  is_connected ; // TODO   char *is_connected ; // array of is_connected, one per server ... + char *is_com; // array of comm_use_local/mpi/socket per server in active partition
+        char  is_connected ;
         long  n_send_req ;
         long  n_recv_req ;
 

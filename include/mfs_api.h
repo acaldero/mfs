@@ -33,9 +33,14 @@
     // Datatypes
     typedef struct
     {
+	// client itself
+        comm_t    cb[COMM_NUMBER_OF_PROTOCOLS] ;
+
+	// servers
         conf_t    partitions ;
         comm_t   *wb ;
         int       n_eltos ;
+
     } mfs_t ;
 
 

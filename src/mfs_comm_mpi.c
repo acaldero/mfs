@@ -23,58 +23,6 @@
 
 
 //
-// Init, interconnect
-//
-
-int mfs_comm_mpi_init ( comm_t *cb, int *main_argc, char ***main_argv )
-{
-    int ret ;
-    int claimed, provided ;
-
-    // Check params...
-    NULL_PRT_MSG_RET_VAL(cb, "[COMM]: NULL cb :-(\n", -1) ;
-
-    // Initialization
-    mfs_comm_reset(cb) ;
-    cb->comm_protocol = COMM_USE_MPI ;
-    cb->comm_protocol_name = "MPI" ;
-
-    // MPI_Init
-    ret = MPI_Init_thread(main_argc, main_argv, MPI_THREAD_MULTIPLE, &provided) ;
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Init fails :-(\n") ;
-        return -1 ;
-    }
-
-    // cb->rank = comm_rank()
-    ret = MPI_Comm_rank(MPI_COMM_WORLD, &(cb->rank));
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_rank fails :-(\n") ;
-        return -1 ;
-    }
-
-    MPI_Query_thread(&claimed) ;
-    if (claimed != provided) {
-        mfs_print(DBG_WARNING, "[COMM]: MPI_Init_thread with only %s :-/\n", provided) ;
-    }
-
-    // cb->size = comm_size()
-    ret = MPI_Comm_size(MPI_COMM_WORLD, &(cb->size));
-    if (MPI_SUCCESS != ret) {
-        mfs_print(DBG_ERROR, "[COMM]: MPI_Comm_size fails :-(\n") ;
-        return -1 ;
-    }
-
-    // id within local node...
-    MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &(cb->local_comm)) ;
-    MPI_Comm_rank(cb->local_comm, &(cb->local_rank)) ;
-
-    // Return OK
-    return 1 ;
-}
-
-
-//
 // Send/Receive buffer of data
 //
 
