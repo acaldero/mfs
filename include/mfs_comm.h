@@ -45,13 +45,14 @@
         int    ns_backend ;
 
         // accept incomming requests
-        char   port_name[MPI_MAX_PORT_NAME] ;
-        int    sd ;
+        char        port_name[MPI_MAX_PORT_NAME] ;
+        int         sd ;
+	char       *node_str ;
+	base_url_t *node_url ;
 
         // destination
         MPI_Comm  endpoint ;
         int       dd ;
-	conf_t    partitions ; // TODO: remove this field (now in mfs_t)
 
         // MPI identification (MPI_COMM_WORLD)
         int   size ;

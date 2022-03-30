@@ -48,5 +48,8 @@
     int base_url_parseURL ( base_url_t *urlbase, char *urlstr ) ;
     int base_url_freeURL  ( base_url_t *urlbase ) ;
 
+    base_url_t *base_url_dup  ( base_url_t  *base_url ) ;
+    int         base_url_free ( base_url_t **base_url ) ;
+
 #endif
 

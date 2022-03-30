@@ -86,9 +86,9 @@ int stub_read_name ( comm_t *ab, char **buff_data_sys, int pathname_length )
 
 int serverstub_socket_init ( comm_t *wb, params_t *params )
 {
-    int   ret ;
-    int   local_rank ;
-    char *local_node ;
+    int     ret ;
+    int     local_rank ;
+    conf_t  partitions ;
 
     // Initialize files
     ret = mfs_file_init() ;
@@ -111,27 +111,28 @@ int serverstub_socket_init ( comm_t *wb, params_t *params )
         return -1 ;
     }
 
-    // Get valid configuration..
-    ret = info_fsconf_get(&(wb->partitions), params->conf_fname) ;
-    if (ret < 0) {
-        mfs_print(DBG_ERROR, "Server[%d]: info_fsconf_get('%s') fails :-(\n", -1, params->conf_fname) ;
-        return -1 ;
-    }
-    if (wb->partitions.n_partitions < 1) {
-        mfs_print(DBG_ERROR, "Server[%d]: info_fsconf_get fails to read at least one partition in file '%s' :-(\n", -1, params->conf_fname) ;
-        return -1 ;
-    }
-    if (info_fsconf_get_active_nnodes(&(wb->partitions)) != mfs_comm_get_size(wb)) {
-        mfs_print(DBG_ERROR, "Server[%d]: partition in '%s' with different nodes than processes :-(\n", -1, params->conf_fname) ;
-        return -1 ;
-    }
-
-    // Initialize (fields and server socket)
+    // Initial default values
     mfs_comm_reset(wb) ;
     wb->comm_protocol      = COMM_USE_SOCKET ;
     wb->comm_protocol_name = "SOCKET" ;
     wb->ns_backend         = params->ns_backend ;
 
+    // Get valid configuration..
+    ret = info_fsconf_get(&partitions, params->conf_fname) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: info_fsconf_get('%s') fails :-(\n", -1, params->conf_fname) ;
+        return -1 ;
+    }
+    if (partitions.n_partitions < 1) {
+        mfs_print(DBG_ERROR, "Server[%d]: info_fsconf_get fails to read at least one partition in file '%s' :-(\n", -1, params->conf_fname) ;
+        return -1 ;
+    }
+    if (info_fsconf_get_active_nnodes(&partitions) != mfs_comm_get_size(wb)) {
+        mfs_print(DBG_ERROR, "Server[%d]: partition in '%s' with different nodes than processes :-(\n", -1, params->conf_fname) ;
+        return -1 ;
+    }
+
+    // Initialize (fields and server socket)
     if (params->server_port != -1)
     {
         ret = base_socket_serversocket(&(wb->sd), params->server_port) ;
@@ -142,8 +143,9 @@ int serverstub_socket_init ( comm_t *wb, params_t *params )
     }
 
     // Register service
-    local_rank = mfs_comm_get_rank(wb) ;
-    local_node = info_fsconf_get_active_node(&(wb->partitions), local_rank) ;
+    local_rank   = mfs_comm_get_rank(wb) ;
+    wb->node_str = info_fsconf_get_active_node(&partitions, local_rank) ;
+    wb->node_url = info_fsconf_get_active_url (&partitions, local_rank) ;
 
     ret = info_ns_get_portname(wb->port_name, wb->sd) ;
     if (ret < 0) {
@@ -151,9 +153,16 @@ int serverstub_socket_init ( comm_t *wb, params_t *params )
         return -1 ;
     }
 
-    ret = info_ns_insert(wb, wb->ns_backend, local_node, wb->port_name) ;
+    ret = info_ns_insert(wb, wb->ns_backend, wb->node_str, wb->port_name) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: port registration fails :-(\n", mfs_comm_get_rank(wb)) ;
+        return -1 ;
+    }
+
+    // Free configuration
+    ret = info_fsconf_free(&partitions) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: finalization fails for info_fsconf_free :-(\n", -1) ;
         return -1 ;
     }
 
@@ -163,15 +172,10 @@ int serverstub_socket_init ( comm_t *wb, params_t *params )
 
 int serverstub_socket_finalize ( comm_t *wb, params_t *params )
 {
-    int     ret ;
-    int     local_rank ;
-    char   *local_node ;
+    int  ret ;
 
     // UnRegister service
-    local_rank = mfs_comm_get_rank(wb) ;
-    local_node = info_fsconf_get_active_node(&(wb->partitions), local_rank) ;
-
-    ret = info_ns_remove(wb, wb->ns_backend, local_node) ;
+    ret = info_ns_remove(wb, wb->ns_backend, wb->node_str) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: port unregistration fails :-(\n", mfs_comm_get_rank(wb)) ;
         return -1 ;
@@ -211,13 +215,6 @@ int serverstub_socket_finalize ( comm_t *wb, params_t *params )
     ret = info_params_free(params) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: finalization fails for params_free :-(\n", -1) ;
-        return -1 ;
-    }
-
-    // Free configuration
-    ret = info_fsconf_free(&(wb->partitions)) ;
-    if (ret < 0) {
-        mfs_print(DBG_ERROR, "Server[%d]: finalization fails for info_fsconf_free :-(\n", -1) ;
         return -1 ;
     }
 
@@ -268,10 +265,8 @@ int serverstub_socket_disconnect_all ( comm_t *ab, params_t *params )
 
 int serverstub_socket_open ( comm_t *ab, params_t *params, int *fd, int pathname_length, int flags )
 {
-    long        ret ;
-    char       *buff_data_sys ;
-    int         local_rank ;
-    base_url_t *local_url ;
+    long    ret ;
+    char   *buff_data_sys ;
 
     // Check arguments...
     NULL_PRT_MSG_RET_VAL(ab,     "[SERV_STUB] NULL ab      :-/", -1) ;
@@ -281,17 +276,10 @@ int serverstub_socket_open ( comm_t *ab, params_t *params, int *fd, int pathname
     ret = 0 ;
     buff_data_sys  = NULL ;
 
-    // Get working node
-    if (ret >= 0)
-    {
-        local_rank = mfs_comm_get_rank(ab) ;
-	local_url  = info_fsconf_get_active_url(&(ab->partitions), local_rank) ;
-    }
-
     // read filename
     if (ret >= 0)
     {
-        ret = base_str_prepare_pathname(&buff_data_sys, local_url->file, ab->local_rank, pathname_length) ;
+        ret = base_str_prepare_pathname(&buff_data_sys, ab->node_url->file, ab->local_rank, pathname_length) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Server[%d]: base_str_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(ab), pathname_length) ;
         }
@@ -562,10 +550,8 @@ int serverstub_socket_write ( comm_t *ab, params_t *params, int fd, int count )
 
 int serverstub_socket_mkdir ( comm_t *ab, params_t *params, int pathname_length, int mode )
 {
-    long        ret ;
-    char       *buff_data_sys ;
-    int         local_rank ;
-    base_url_t *local_url ;
+    long    ret ;
+    char   *buff_data_sys ;
 
     // Check arguments...
     NULL_PRT_MSG_RET_VAL(ab,     "[SERV_STUB] NULL ab      :-/", -1) ;
@@ -575,17 +561,10 @@ int serverstub_socket_mkdir ( comm_t *ab, params_t *params, int pathname_length,
     ret = 0 ;
     buff_data_sys = NULL ;
 
-    // Get working node
-    if (ret >= 0)
-    {
-        local_rank = mfs_comm_get_rank(ab) ;
-	local_url  = info_fsconf_get_active_url(&(ab->partitions), local_rank) ;
-    }
-
     // read dirname
     if (ret >= 0)
     {
-        ret = base_str_prepare_pathname(&buff_data_sys, local_url->file, ab->local_rank, pathname_length) ;
+        ret = base_str_prepare_pathname(&buff_data_sys, ab->node_url->file, ab->local_rank, pathname_length) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Server[%d]: base_str_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(ab), pathname_length) ;
         }
@@ -631,10 +610,8 @@ int serverstub_socket_mkdir ( comm_t *ab, params_t *params, int pathname_length,
 
 int serverstub_socket_rmdir ( comm_t *ab, params_t *params, int pathname_length )
 {
-    long        ret ;
-    char       *buff_data_sys ;
-    int         local_rank ;
-    base_url_t *local_url ;
+    long    ret ;
+    char   *buff_data_sys ;
 
     // Check arguments...
     NULL_PRT_MSG_RET_VAL(ab,     "[SERV_STUB] NULL ab      :-/", -1) ;
@@ -644,17 +621,10 @@ int serverstub_socket_rmdir ( comm_t *ab, params_t *params, int pathname_length 
     ret = 0 ;
     buff_data_sys = NULL ;
 
-    // Get working node
-    if (ret >= 0)
-    {
-        local_rank = mfs_comm_get_rank(ab) ;
-	local_url  = info_fsconf_get_active_url(&(ab->partitions), local_rank) ;
-    }
-
     // read dirname
     //if (ret >= 0)
     {
-        ret = base_str_prepare_pathname(&buff_data_sys, local_url->file, ab->local_rank, pathname_length) ;
+        ret = base_str_prepare_pathname(&buff_data_sys, ab->node_url->file, ab->local_rank, pathname_length) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Server[%d]: base_str_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(ab), pathname_length) ;
         }
@@ -705,10 +675,8 @@ int serverstub_socket_rmdir ( comm_t *ab, params_t *params, int pathname_length 
 
 int serverstub_socket_dbmopen ( comm_t *ab, params_t *params, int *fd, int pathname_length, int flags )
 {
-    long        ret ;
-    char       *buff_data_sys ;
-    int         local_rank ;
-    base_url_t *local_url ;
+    long    ret ;
+    char   *buff_data_sys ;
 
     // Check arguments...
     NULL_PRT_MSG_RET_VAL(ab, "[SERV_STUB] NULL ab  :-/", -1) ;
@@ -718,17 +686,10 @@ int serverstub_socket_dbmopen ( comm_t *ab, params_t *params, int *fd, int pathn
     ret = 0 ;
     buff_data_sys  = NULL ;
 
-    // Get working node
-    if (ret >= 0)
-    {
-        local_rank = mfs_comm_get_rank(ab) ;
-	local_url  = info_fsconf_get_active_url(&(ab->partitions), local_rank) ;
-    }
-
     // read filename
     if (ret >= 0)
     {
-        ret = base_str_prepare_pathname(&buff_data_sys, local_url->file, ab->local_rank, pathname_length) ;
+        ret = base_str_prepare_pathname(&buff_data_sys, ab->node_url->file, ab->local_rank, pathname_length) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Server[%d]: base_str_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(ab), pathname_length) ;
         }

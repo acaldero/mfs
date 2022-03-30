@@ -135,7 +135,6 @@ int mfs_api_open_partition ( mfs_t *wb, params_t *params, char *conf_fname )
         if (!strcmp("file",      elto_url->protocol))
         {
 	     memcpy(&(wb->wb[i]), (void *)&(wb->cb[2]), sizeof(comm_t)) ;
-	     memcpy(&(wb->wb[i].partitions), &(wb->partitions), sizeof(conf_t)) ;
 	     ret = clientstub_local_open_partition_element(&(wb->wb[i]), params, wb->partitions.active, i) ;
         }
     }

@@ -229,8 +229,8 @@ long clientstub_mpi_open ( comm_t *wb, const char *pathname, int flags )
 int  clientstub_mpi_close ( comm_t *wb, long fd )
 {
      // Check arguments...
-     NULL_PRT_MSG_RET_VAL(wb, "[CLNT_STUB] NULL wb :-/", -1) ;
-      NEG_PRT_MSG_RET_VAL(fd, "[CLNT_STUB] fd < 0  :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(wb, "[CLNT_STUB] NULL wb :-/\n", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd, "[CLNT_STUB] fd < 0  :-/\n", -1) ;
 
      return clientstub_mpi_action_over_fd_resource(wb, fd, 0, REQ_ACTION_CLOSE) ;
 }
@@ -242,9 +242,9 @@ int  clientstub_mpi_read ( comm_t *wb, long fd, void *buff_char, int count )
      long remaining_size, current_size ;
 
      // Check arguments...
-     NULL_PRT_MSG_RET_VAL(wb,        "[CLNT_STUB] NULL wb        :-/", -1) ;
-      NEG_PRT_MSG_RET_VAL(fd,        "[CLNT_STUB] fd < 0  :-/", -1) ;
-     NULL_PRT_MSG_RET_VAL(buff_char, "[CLNT_STUB] NULL buff_char :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(wb,        "[CLNT_STUB] NULL wb        :-/\n", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd,        "[CLNT_STUB] fd < 0         :-/\n", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_char, "[CLNT_STUB] NULL buff_char :-/\n", -1) ;
 
      // Send read msg
      if (ret >= 0)
@@ -294,9 +294,9 @@ int  clientstub_mpi_write ( comm_t *wb, long fd, void *buff_char, int count )
      long remaining_size, current_size ;
 
      // Check arguments...
-     NULL_PRT_MSG_RET_VAL(wb,        "[CLNT_STUB] NULL wb        :-/", -1) ;
-      NEG_PRT_MSG_RET_VAL(fd,        "[CLNT_STUB] fd < 0         :-/", -1) ;
-     NULL_PRT_MSG_RET_VAL(buff_char, "[CLNT_STUB] NULL buff_char :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(wb,        "[CLNT_STUB] NULL wb        :-/\n", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd,        "[CLNT_STUB] fd < 0         :-/\n", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_char, "[CLNT_STUB] NULL buff_char :-/\n", -1) ;
 
      ret    = 0 ;
      status = -1 ;
@@ -368,8 +368,8 @@ long clientstub_mpi_dbmopen ( comm_t *wb, const char *pathname, int flags )
 int  clientstub_mpi_dbmclose ( comm_t *wb, long fd )
 {
      // Check arguments...
-     NULL_PRT_MSG_RET_VAL(wb, "[CLNT_STUB] NULL wb :-/", -1) ;
-      NEG_PRT_MSG_RET_VAL(fd, "[CLNT_STUB] fd < 0  :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(wb, "[CLNT_STUB] NULL wb :-/\n", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd, "[CLNT_STUB] fd < 0  :-/\n", -1) ;
 
      return clientstub_mpi_action_over_fd_resource(wb, fd, 0, REQ_ACTION_DBMCLOSE) ;
 }
@@ -380,10 +380,10 @@ int  clientstub_mpi_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_ke
      long remaining_size, current_size ;
 
      // Check arguments...
-     NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/", -1) ;
-      NEG_PRT_MSG_RET_VAL(fd,       "[CLNT_STUB] fd < 0        :-/", -1) ;
-     NULL_PRT_MSG_RET_VAL(buff_key, "[CLNT_STUB] NULL buff_key :-/", -1) ;
-     NULL_PRT_MSG_RET_VAL(buff_val, "[CLNT_STUB] NULL buff_val :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/\n", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd,       "[CLNT_STUB] fd < 0        :-/\n", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_key, "[CLNT_STUB] NULL buff_key :-/\n", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_val, "[CLNT_STUB] NULL buff_val :-/\n", -1) ;
 
      // Set initial values...
      ret = 0 ;
@@ -443,10 +443,10 @@ int  clientstub_mpi_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_ke
      int  ret, status  ;
 
      // Check arguments...
-     NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/", -1) ;
-      NEG_PRT_MSG_RET_VAL(fd,       "[CLNT_STUB] fd < 0        :-/", -1) ;
-     NULL_PRT_MSG_RET_VAL(buff_key, "[CLNT_STUB] NULL buff_key :-/", -1) ;
-     NULL_PRT_MSG_RET_VAL(buff_val, "[CLNT_STUB] NULL buff_val :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/\n", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd,       "[CLNT_STUB] fd < 0        :-/\n", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_key, "[CLNT_STUB] NULL buff_key :-/\n", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_val, "[CLNT_STUB] NULL buff_val :-/\n", -1) ;
 
      // Set initial values...
      ret = 0 ;
@@ -508,9 +508,9 @@ int  clientstub_mpi_dbmdelete ( comm_t *wb, long fd, void *buff_key, int count_k
      int  ret, status  ;
 
      // Check arguments...
-     NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/", -1) ;
-      NEG_PRT_MSG_RET_VAL(fd,       "[CLNT_STUB] fd < 0        :-/", -1) ;
-     NULL_PRT_MSG_RET_VAL(buff_key, "[CLNT_STUB] NULL buff_key :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/\n", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd,       "[CLNT_STUB] fd < 0        :-/\n", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_key, "[CLNT_STUB] NULL buff_key :-/\n", -1) ;
 
      // Set initial values...
      ret = 0 ;

@@ -335,3 +335,40 @@ int base_url_freeURL ( /* OUT */ base_url_t *urlbase )
         return 1 ;
 }
 
+// dup and free
+
+base_url_t *base_url_dup ( base_url_t  *base_url )
+{
+	int ret ;
+        base_url_t *elto ;
+       
+        ret = mfs_malloc((char **)&(elto), sizeof(base_url_t)) ;
+	if (ret < 0) return NULL ;
+
+	elto->protocol = (NULL == base_url->protocol) ? NULL : strdup(base_url->protocol) ;
+	elto->user     = (NULL == base_url->user)     ? NULL : strdup(base_url->user) ;
+	elto->machine  = (NULL == base_url->machine)  ? NULL : strdup(base_url->machine) ;
+        elto->port     = base_url->port ;
+	elto->file     = (NULL == base_url->file)     ? NULL : strdup(base_url->file) ;
+	elto->relative = (NULL == base_url->relative) ? NULL : strdup(base_url->relative) ;
+	elto->params   = (NULL == base_url->params)   ? NULL : strdup(base_url->params) ;
+
+	// return new element
+	return elto ;
+}
+
+int base_url_free ( base_url_t **base_url )
+{
+        mfs_free((char **)&((*base_url)->protocol)) ;
+        mfs_free((char **)&((*base_url)->user)) ;
+        mfs_free((char **)&((*base_url)->machine)) ;
+        mfs_free((char **)&((*base_url)->file)) ;
+        mfs_free((char **)&((*base_url)->relative)) ;
+        mfs_free((char **)&((*base_url)->params)) ;
+
+        mfs_free((char **)base_url) ;
+
+	// return OK
+	return 1 ;
+}
+

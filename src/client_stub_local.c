@@ -70,6 +70,23 @@ int clientstub_local_finalize ( comm_t *wb, params_t *params )
 
 int clientstub_local_open_partition_element ( comm_t *wb, params_t *params, conf_part_t *partition, int remote_rank )
 {
+    int  local_rank ;
+
+    // Get working node
+    local_rank = mfs_comm_get_rank(wb) ;
+
+    wb->node_str = info_fsconf_get_partition_node(partition, local_rank) ;
+    if (NULL == wb->node_str) {
+        mfs_print(DBG_ERROR, "Client[%d]: info_fsconf_get_active_node return NULL :-(\n", local_rank) ;
+	return -1 ;
+    }
+
+    wb->node_url = info_fsconf_get_partition_url(partition, local_rank) ;
+    if (NULL == wb->node_url) {
+        mfs_print(DBG_ERROR, "Client[%d]: info_fsconf_get_active_url return NULL :-(\n", local_rank) ;
+	return -1 ;
+    }
+
     wb->is_connected = 1 ;
 
     // Return OK
@@ -91,10 +108,9 @@ int clientstub_local_close_partition_element ( comm_t *wb, params_t *params, con
 
 long clientstub_local_open ( comm_t *wb, const char *pathname, int flags )
 {
-     int         ret, fd ;
-     char       *buff_data_sys ;
-     int         local_rank ;
-     base_url_t *local_url ;
+     int    ret, fd ;
+     char  *buff_data_sys ;
+     int    local_rank ;
 
      mfs_print(DBG_INFO, "Client[%d]: open('%s', %d)\n", mfs_comm_get_rank(wb), pathname, flags) ;
 
@@ -104,14 +120,9 @@ long clientstub_local_open ( comm_t *wb, const char *pathname, int flags )
 
      // Get working node
      local_rank = mfs_comm_get_rank(wb) ;
-     local_url  = info_fsconf_get_active_url(&(wb->partitions), local_rank) ;
-     if (NULL == local_url) {
-         mfs_print(DBG_ERROR, "Client[%d]: info_fsconf_get_active_url return NULL :-(\n", mfs_comm_get_rank(wb)) ;
-	 return -1 ;
-     }
 
      // Get filename
-     ret = base_str_prepare_pathname(&buff_data_sys, local_url->file, local_rank, strlen(pathname)) ;
+     ret = base_str_prepare_pathname(&buff_data_sys, wb->node_url->file, local_rank, strlen(pathname)) ;
      if (ret < 0) {
          mfs_print(DBG_ERROR, "Client[%d]: base_str_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(wb), strlen(pathname)) ;
 	 return -1 ;
@@ -183,23 +194,19 @@ long clientstub_local_rmdir ( comm_t *wb, const char *pathname )
 
 long clientstub_local_dbmopen ( comm_t *wb, const char *pathname, int flags )
 {
-     int         ret, fd ;
-     char       *buff_data_sys ;
-     int         local_rank ;
-     base_url_t *local_url ;
+     int    ret, fd ;
+     char  *buff_data_sys ;
+     int    local_rank ;
 
      mfs_print(DBG_INFO, "Client[%d]: dbmopen('%s', %d)\n", mfs_comm_get_rank(wb), pathname, flags) ;
 
      // Initialize...
      ret = 0 ;
      buff_data_sys = NULL ;
-
-     // Register service
-     local_rank = mfs_comm_get_rank(wb) ;
-     local_url  = info_fsconf_get_active_url(&(wb->partitions), local_rank) ;
+     local_rank    = mfs_comm_get_rank(wb) ;
 
      // Get filename
-     ret = base_str_prepare_pathname(&buff_data_sys, local_url->file, local_rank, strlen(pathname)) ;
+     ret = base_str_prepare_pathname(&buff_data_sys, wb->node_url->file, local_rank, strlen(pathname)) ;
      if (ret < 0) {
          mfs_print(DBG_ERROR, "Client[%d]: base_str_prepare_pathname(%d) fails :-(\n", mfs_comm_get_rank(wb), strlen(pathname)) ;
      }
