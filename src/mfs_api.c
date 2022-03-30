@@ -27,7 +27,7 @@
  *  File System API
  */
 
-int mfs_api_init ( comm_t *wb, params_t *params, int *argc, char ***argv )
+int mfs_api_init ( mfs_t *wb, params_t *params, int *argc, char ***argv )
 {
     int ret ;
 
@@ -45,60 +45,24 @@ int mfs_api_init ( comm_t *wb, params_t *params, int *argc, char ***argv )
         info_params_show(params) ;
     }
 
-    // Open server port...
-    wb->comm_protocol = params->comm_backend ;
-    switch (wb->comm_protocol)
-    {
-        case COMM_USE_SOCKET:
-	     ret = clientstub_socket_init(wb, params) ;
-             break ;
-
-        case COMM_USE_MPI:
-	     ret = clientstub_mpi_init(wb, params) ;
-             break ;
-
-        case COMM_USE_LOCAL:
-             ret = clientstub_local_init(wb, params) ;
-             break ;
-
-        default:
-	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->comm_protocol) ;
-	     return -1 ;
-             break ;
-    }
+    // Initialize...
+    wb->wb = NULL ;
+    wb->n_eltos = 0 ;
+    wb->partitions.n_partitions = 0 ;
+    wb->partitions.partitions   = NULL ;
+    wb->partitions.active       = NULL ;
 
     // Return OK
     return ret ;
 }
 
-int mfs_api_finalize ( comm_t *wb, params_t *params )
+int mfs_api_finalize ( mfs_t *wb, params_t *params )
 {
     int ret ;
 
     // Check params...
     NULL_PRT_MSG_RET_VAL(wb,     "[MFS_API]: NULL wb     :-(\n", -1) ;
     NULL_PRT_MSG_RET_VAL(params, "[MFS_API]: NULL params :-(\n", -1) ;
-
-    // Open server port...
-    switch (wb->comm_protocol)
-    {
-        case COMM_USE_SOCKET:
-	     ret = clientstub_socket_finalize(wb, params) ;
-             break ;
-
-        case COMM_USE_MPI:
-	     ret = clientstub_mpi_finalize(wb, params) ;
-             break ;
-
-        case COMM_USE_LOCAL:
-             ret = clientstub_local_finalize(wb, params) ;
-             break ;
-
-        default:
-	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->comm_protocol) ;
-	     return -1 ;
-             break ;
-    }
 
     // Finalize params
     if (ret >= 0)
@@ -110,10 +74,11 @@ int mfs_api_finalize ( comm_t *wb, params_t *params )
     return ret ;
 }
 
-int mfs_api_open_partition ( comm_t *wb, params_t *params, char *conf_fname )
+int mfs_api_open_partition ( mfs_t *wb, params_t *params, char *conf_fname )
 {
-    int ret ;
-    int n_servers ;
+    int         ret ;
+    base_url_t *elto_url ; 
+    int         mpiserver_activated ;
 
     // Check params...
     NULL_PRT_MSG_RET_VAL(wb,     "[MFS_API]: NULL wb     :-(\n", -1) ;
@@ -134,69 +99,94 @@ int mfs_api_open_partition ( comm_t *wb, params_t *params, char *conf_fname )
         mfs_print(DBG_ERROR, "[MFS_API]: info_fsconf_get fails to read at least one partition in file '%s' :-(\n", conf_fname) ;
         return -1 ;
     }
-    n_servers = info_fsconf_get_partition_nnodes(wb->partitions.active) ;
-    if (n_servers < 0) {
+
+    // Initialize wb with partition related info...
+    wb->n_eltos = info_fsconf_get_partition_nnodes(wb->partitions.active) ;
+    if (wb->n_eltos < 0) {
         mfs_print(DBG_ERROR, "[MFS_API]: negative number of servers in partition :-(\n") ;
         return -1 ;
     }
 
-    // Open server port...
-    switch (wb->comm_protocol)
+    wb->wb = (comm_t *)malloc(wb->n_eltos * sizeof(comm_t)) ;
+    if (NULL == wb->wb) {
+        mfs_print(DBG_ERROR, "[MFS_API]: malloc return NULL :-(\n") ;
+        return -1 ;
+    }
+
+    // Initialize elements...
+    mpiserver_activated = 0 ;
+    for (int i=0; i<wb->n_eltos; i++)
     {
-        case COMM_USE_SOCKET:
-             ret = clientstub_socket_open_partition(wb, params, wb->partitions.active) ;
-             break ;
-
-        case COMM_USE_MPI:
-             ret = clientstub_mpi_open_partition(wb, params, wb->partitions.active) ;
-             break ;
-
-        case COMM_USE_LOCAL:
-	     ret = clientstub_local_open_partition(wb, params, wb->partitions.active) ;
-             break ;
-
-        default:
-	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->comm_protocol) ;
-	     return -1 ;
-             break ;
+        elto_url = info_fsconf_get_active_url(&(wb->partitions), i) ;
+        if (!strcmp("mpiServer", elto_url->protocol))
+        {
+             if (1 == mpiserver_activated) {
+		 continue ;
+	     }
+             wb->wb[i].comm_protocol = COMM_USE_MPI ;
+    	     ret = clientstub_mpi_init(&(wb->wb[i]), params) ;
+             ret = clientstub_mpi_open_partition(&(wb->wb[i]), params, wb->partitions.active) ;
+             mpiserver_activated = 1 ;
+        }
+        if (!strcmp("tcpServer", elto_url->protocol))
+        {
+             wb->wb[i].comm_protocol = COMM_USE_SOCKET ;
+    	     ret = clientstub_socket_init(&(wb->wb[i]), params) ;
+             ret = clientstub_socket_open_partition(&(wb->wb[i]), params, wb->partitions.active) ;
+        }
+        if (!strcmp("local",     elto_url->protocol))
+        {
+             wb->wb[i].comm_protocol = COMM_USE_LOCAL ;
+             ret = clientstub_local_init(&(wb->wb[i]), params) ;
+	     ret = clientstub_local_open_partition(&(wb->wb[i]), params, wb->partitions.active) ;
+        }
     }
 
     // Return OK
     return ret ;
 }
 
-int mfs_api_close_partition ( comm_t *wb, params_t *params )
+int mfs_api_close_partition ( mfs_t *wb, params_t *params )
 {
     int ret ;
+    base_url_t *elto_url ;
+    int mpiserver_activated ;
 
     // Check params...
     NULL_PRT_MSG_RET_VAL(wb,     "[MFS_API]: NULL wb     :-(\n", -1) ;
     NULL_PRT_MSG_RET_VAL(params, "[MFS_API]: NULL params :-(\n", -1) ;
 
-    // Open server port...
-    switch (wb->comm_protocol)
+    // Close elements...
+    mpiserver_activated = 0 ;
+    for (int i=0; i<wb->n_eltos; i++)
     {
-        case COMM_USE_SOCKET:
-             ret = clientstub_socket_close_partition(wb, params, wb->partitions.active) ;
-             break ;
-
-        case COMM_USE_MPI:
-             ret = clientstub_mpi_close_partition(wb, params, wb->partitions.active) ;
-             break ;
-
-        case COMM_USE_LOCAL:
-	     ret = clientstub_local_close_partition(wb, params, wb->partitions.active) ;
-             break ;
-
-        default:
-	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->comm_protocol) ;
-	     return -1 ;
-             break ;
+        elto_url = info_fsconf_get_active_url(&(wb->partitions), i) ;
+        if (!strcmp("mpiServer", elto_url->protocol))
+        {
+             if (1 == mpiserver_activated) {
+		 continue ;
+	     }
+             ret = clientstub_mpi_close_partition(&(wb->wb[i]), params, wb->partitions.active) ;
+	     ret = clientstub_mpi_finalize(&(wb->wb[i]), params) ;
+        }
+        if (!strcmp("tcpServer", elto_url->protocol))
+        {
+             ret = clientstub_socket_close_partition(&(wb->wb[i]), params, wb->partitions.active) ;
+	     ret = clientstub_socket_finalize(&(wb->wb[i]), params) ;
+        }
+        if (!strcmp("local",     elto_url->protocol))
+        {
+	     ret = clientstub_local_close_partition(&(wb->wb[i]), params, wb->partitions.active) ;
+             ret = clientstub_local_finalize(&(wb->wb[i]), params) ;
+        }
     }
 
+    // Finalize vector
+    wb->n_eltos = 0 ;
+    free(wb->wb) ;
+
     // Finalize configuration
-    if (ret >= 0)
-    {
+    if (ret >= 0) {
         info_fsconf_free(&(wb->partitions)) ;
     }
 
@@ -209,30 +199,30 @@ int mfs_api_close_partition ( comm_t *wb, params_t *params )
  *  File API
  */
 
-long mfs_api_open ( comm_t *wb, const char *pathname, int flags )
+long mfs_api_open ( mfs_t *wb, const char *pathname, int flags )
 {
     int ret ;
 
     // Check params...
     NULL_PRT_MSG_RET_VAL(wb, "[MFS_API]: NULL wb :-(\n", -1) ;
 
-    // Open server port...
-    switch (wb->comm_protocol)
+    // Open...
+    switch (wb->wb[0].comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = clientstub_socket_open(wb, pathname, flags) ;
+	     ret = clientstub_socket_open(&(wb->wb[0]), pathname, flags) ;
              break ;
 
         case COMM_USE_MPI:
-	     ret = clientstub_mpi_open(wb, pathname, flags) ;
+	     ret = clientstub_mpi_open(&(wb->wb[0]), pathname, flags) ;
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = clientstub_local_open(wb, pathname, flags) ;
+	     ret = clientstub_local_open(&(wb->wb[0]), pathname, flags) ;
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->comm_protocol) ;
+	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->wb[0].comm_protocol) ;
 	     return -1 ;
              break ;
     }
@@ -241,7 +231,7 @@ long mfs_api_open ( comm_t *wb, const char *pathname, int flags )
     return ret ;
 }
 
-int  mfs_api_close ( comm_t *wb, long fd )
+int  mfs_api_close ( mfs_t *wb, long fd )
 {
     int ret ;
 
@@ -249,22 +239,22 @@ int  mfs_api_close ( comm_t *wb, long fd )
     NULL_PRT_MSG_RET_VAL(wb, "[MFS_API]: NULL wb :-(\n", -1) ;
 
     // Open server port...
-    switch (wb->comm_protocol)
+    switch (wb->wb[0].comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = clientstub_socket_close(wb, fd) ;
+	     ret = clientstub_socket_close(&(wb->wb[0]), fd) ;
              break ;
 
         case COMM_USE_MPI:
-	     ret = clientstub_mpi_close(wb, fd) ;
+	     ret = clientstub_mpi_close(&(wb->wb[0]), fd) ;
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = clientstub_local_close(wb, fd) ;
+	     ret = clientstub_local_close(&(wb->wb[0]), fd) ;
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->comm_protocol) ;
+	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->wb[0].comm_protocol) ;
 	     return -1 ;
              break ;
     }
@@ -273,7 +263,7 @@ int  mfs_api_close ( comm_t *wb, long fd )
     return ret ;
 }
 
-int mfs_api_read ( comm_t *wb, long fd, void *buff_char, int count )
+int mfs_api_read ( mfs_t *wb, long fd, void *buff_char, int count )
 {
     int ret ;
 
@@ -281,22 +271,22 @@ int mfs_api_read ( comm_t *wb, long fd, void *buff_char, int count )
     NULL_PRT_MSG_RET_VAL(wb, "[MFS_API]: NULL wb :-(\n", -1) ;
 
     // Open server port...
-    switch (wb->comm_protocol)
+    switch (wb->wb[0].comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = clientstub_socket_read(wb, fd, buff_char, count) ;
+	     ret = clientstub_socket_read(&(wb->wb[0]), fd, buff_char, count) ;
              break ;
 
         case COMM_USE_MPI:
-	     ret = clientstub_mpi_read(wb, fd, buff_char, count) ;
+	     ret = clientstub_mpi_read(&(wb->wb[0]), fd, buff_char, count) ;
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = clientstub_local_read(wb, fd, buff_char, count) ;
+	     ret = clientstub_local_read(&(wb->wb[0]), fd, buff_char, count) ;
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->comm_protocol) ;
+	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->wb[0].comm_protocol) ;
 	     return -1 ;
              break ;
     }
@@ -305,7 +295,7 @@ int mfs_api_read ( comm_t *wb, long fd, void *buff_char, int count )
     return ret ;
 }
 
-int mfs_api_write ( comm_t *wb, long fd, void *buff_char, int count )
+int mfs_api_write ( mfs_t *wb, long fd, void *buff_char, int count )
 {
     int ret ;
 
@@ -313,22 +303,22 @@ int mfs_api_write ( comm_t *wb, long fd, void *buff_char, int count )
     NULL_PRT_MSG_RET_VAL(wb, "[MFS_API]: NULL wb :-(\n", -1) ;
 
     // Open server port...
-    switch (wb->comm_protocol)
+    switch (wb->wb[0].comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = clientstub_socket_write(wb, fd, buff_char, count) ;
+	     ret = clientstub_socket_write(&(wb->wb[0]), fd, buff_char, count) ;
              break ;
 
         case COMM_USE_MPI:
-	     ret = clientstub_mpi_write(wb, fd, buff_char, count) ;
+	     ret = clientstub_mpi_write(&(wb->wb[0]), fd, buff_char, count) ;
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = clientstub_local_write(wb, fd, buff_char, count) ;
+	     ret = clientstub_local_write(&(wb->wb[0]), fd, buff_char, count) ;
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->comm_protocol) ;
+	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->wb[0].comm_protocol) ;
 	     return -1 ;
              break ;
     }
@@ -342,7 +332,7 @@ int mfs_api_write ( comm_t *wb, long fd, void *buff_char, int count )
  *  Directory API
  */
 
-long mfs_api_mkdir ( comm_t *wb, const char *pathname, int mode )
+long mfs_api_mkdir ( mfs_t *wb, const char *pathname, int mode )
 {
     int ret ;
 
@@ -350,22 +340,22 @@ long mfs_api_mkdir ( comm_t *wb, const char *pathname, int mode )
     NULL_PRT_MSG_RET_VAL(wb, "[MFS_API]: NULL wb :-(\n", -1) ;
 
     // Open server port...
-    switch (wb->comm_protocol)
+    switch (wb->wb[0].comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = clientstub_socket_mkdir(wb, pathname, mode) ;
+	     ret = clientstub_socket_mkdir(&(wb->wb[0]), pathname, mode) ;
              break ;
 
         case COMM_USE_MPI:
-	     ret = clientstub_mpi_mkdir(wb, pathname, mode) ;
+	     ret = clientstub_mpi_mkdir(&(wb->wb[0]), pathname, mode) ;
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = clientstub_local_mkdir(wb, pathname, mode) ;
+	     ret = clientstub_local_mkdir(&(wb->wb[0]), pathname, mode) ;
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->comm_protocol) ;
+	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->wb[0].comm_protocol) ;
 	     return -1 ;
              break ;
     }
@@ -374,7 +364,7 @@ long mfs_api_mkdir ( comm_t *wb, const char *pathname, int mode )
     return ret ;
 }
 
-long mfs_api_rmdir ( comm_t *wb, const char *pathname )
+long mfs_api_rmdir ( mfs_t *wb, const char *pathname )
 {
     int ret ;
 
@@ -382,22 +372,22 @@ long mfs_api_rmdir ( comm_t *wb, const char *pathname )
     NULL_PRT_MSG_RET_VAL(wb, "[MFS_API]: NULL wb :-(\n", -1) ;
 
     // Open server port...
-    switch (wb->comm_protocol)
+    switch (wb->wb[0].comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = clientstub_socket_rmdir(wb, pathname) ;
+	     ret = clientstub_socket_rmdir(&(wb->wb[0]), pathname) ;
              break ;
 
         case COMM_USE_MPI:
-	     ret = clientstub_mpi_rmdir(wb, pathname) ;
+	     ret = clientstub_mpi_rmdir(&(wb->wb[0]), pathname) ;
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = clientstub_local_rmdir(wb, pathname) ;
+	     ret = clientstub_local_rmdir(&(wb->wb[0]), pathname) ;
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->comm_protocol) ;
+	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->wb[0].comm_protocol) ;
 	     return -1 ;
              break ;
     }
@@ -411,7 +401,7 @@ long mfs_api_rmdir ( comm_t *wb, const char *pathname )
  *  DBM File API
  */
 
-long mfs_api_dbmopen ( comm_t *wb, const char *pathname, int flags )
+long mfs_api_dbmopen ( mfs_t *wb, const char *pathname, int flags )
 {
     int ret ;
     int fd ;
@@ -420,22 +410,22 @@ long mfs_api_dbmopen ( comm_t *wb, const char *pathname, int flags )
     NULL_PRT_MSG_RET_VAL(wb, "[MFS_API]: NULL wb :-(\n", -1) ;
 
     // Open server port...
-    switch (wb->comm_protocol)
+    switch (wb->wb[0].comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = clientstub_socket_dbmopen(wb, pathname, flags) ;
+	     ret = clientstub_socket_dbmopen(&(wb->wb[0]), pathname, flags) ;
              break ;
 
         case COMM_USE_MPI:
-	     ret = clientstub_mpi_dbmopen(wb, pathname, flags) ;
+	     ret = clientstub_mpi_dbmopen(&(wb->wb[0]), pathname, flags) ;
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = clientstub_local_dbmopen(wb, pathname, flags) ;
+	     ret = clientstub_local_dbmopen(&(wb->wb[0]), pathname, flags) ;
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->comm_protocol) ;
+	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->wb[0].comm_protocol) ;
 	     return -1 ;
              break ;
     }
@@ -444,7 +434,7 @@ long mfs_api_dbmopen ( comm_t *wb, const char *pathname, int flags )
     return ret ;
 }
 
-int  mfs_api_dbmclose ( comm_t *wb, long fd )
+int  mfs_api_dbmclose ( mfs_t *wb, long fd )
 {
     int ret ;
 
@@ -452,22 +442,22 @@ int  mfs_api_dbmclose ( comm_t *wb, long fd )
     NULL_PRT_MSG_RET_VAL(wb, "[MFS_API]: NULL wb :-(\n", -1) ;
 
     // Open server port...
-    switch (wb->comm_protocol)
+    switch (wb->wb[0].comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = clientstub_socket_dbmclose(wb, fd) ;
+	     ret = clientstub_socket_dbmclose(&(wb->wb[0]), fd) ;
              break ;
 
         case COMM_USE_MPI:
-	     ret = clientstub_mpi_dbmclose(wb, fd) ;
+	     ret = clientstub_mpi_dbmclose(&(wb->wb[0]), fd) ;
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = clientstub_local_dbmclose(wb, fd) ;
+	     ret = clientstub_local_dbmclose(&(wb->wb[0]), fd) ;
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->comm_protocol) ;
+	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->wb[0].comm_protocol) ;
 	     return -1 ;
              break ;
     }
@@ -476,7 +466,7 @@ int  mfs_api_dbmclose ( comm_t *wb, long fd )
     return ret ;
 }
 
-int  mfs_api_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int count_val )
+int  mfs_api_dbmstore ( mfs_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int count_val )
 {
     int ret ;
 
@@ -484,22 +474,22 @@ int  mfs_api_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_key, void
     NULL_PRT_MSG_RET_VAL(wb, "[MFS_API]: NULL wb :-(\n", -1) ;
 
     // Open server port...
-    switch (wb->comm_protocol)
+    switch (wb->wb[0].comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = clientstub_socket_dbmstore(wb, fd, buff_key, count_key, buff_val, count_val) ;
+	     ret = clientstub_socket_dbmstore(&(wb->wb[0]), fd, buff_key, count_key, buff_val, count_val) ;
              break ;
 
         case COMM_USE_MPI:
-	     ret = clientstub_mpi_dbmstore(wb, fd, buff_key, count_key, buff_val, count_val) ;
+	     ret = clientstub_mpi_dbmstore(&(wb->wb[0]), fd, buff_key, count_key, buff_val, count_val) ;
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = clientstub_local_dbmstore(wb, fd, buff_key, count_key, buff_val, count_val) ;
+	     ret = clientstub_local_dbmstore(&(wb->wb[0]), fd, buff_key, count_key, buff_val, count_val) ;
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->comm_protocol) ;
+	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->wb[0].comm_protocol) ;
 	     return -1 ;
              break ;
     }
@@ -508,7 +498,7 @@ int  mfs_api_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_key, void
     return ret ;
 }
 
-int  mfs_api_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int *count_val )
+int  mfs_api_dbmfetch ( mfs_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int *count_val )
 {
     int ret ;
 
@@ -516,22 +506,22 @@ int  mfs_api_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_key, void
     NULL_PRT_MSG_RET_VAL(wb, "[MFS_API]: NULL wb :-(\n", -1) ;
 
     // Open server port...
-    switch (wb->comm_protocol)
+    switch (wb->wb[0].comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = clientstub_socket_dbmfetch(wb, fd, buff_key, count_key, buff_val, count_val) ;
+	     ret = clientstub_socket_dbmfetch(&(wb->wb[0]), fd, buff_key, count_key, buff_val, count_val) ;
              break ;
 
         case COMM_USE_MPI:
-	     ret = clientstub_mpi_dbmfetch(wb, fd, buff_key, count_key, buff_val, count_val) ;
+	     ret = clientstub_mpi_dbmfetch(&(wb->wb[0]), fd, buff_key, count_key, buff_val, count_val) ;
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = clientstub_local_dbmfetch(wb, fd, buff_key, count_key, buff_val, count_val) ;
+	     ret = clientstub_local_dbmfetch(&(wb->wb[0]), fd, buff_key, count_key, buff_val, count_val) ;
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->comm_protocol) ;
+	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->wb[0].comm_protocol) ;
 	     return -1 ;
              break ;
     }
@@ -540,7 +530,7 @@ int  mfs_api_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count_key, void
     return ret ;
 }
 
-int  mfs_api_dbmdelete ( comm_t *wb, long fd, void *buff_key, int count_key )
+int  mfs_api_dbmdelete ( mfs_t *wb, long fd, void *buff_key, int count_key )
 {
     int ret ;
 
@@ -548,27 +538,35 @@ int  mfs_api_dbmdelete ( comm_t *wb, long fd, void *buff_key, int count_key )
     NULL_PRT_MSG_RET_VAL(wb, "[MFS_API]: NULL wb :-(\n", -1) ;
 
     // Open server port...
-    switch (wb->comm_protocol)
+    switch (wb->wb[0].comm_protocol)
     {
         case COMM_USE_SOCKET:
-	     ret = clientstub_socket_dbmdelete(wb, fd, buff_key, count_key) ;
+	     ret = clientstub_socket_dbmdelete(&(wb->wb[0]), fd, buff_key, count_key) ;
              break ;
 
         case COMM_USE_MPI:
-	     ret = clientstub_mpi_dbmdelete(wb, fd, buff_key, count_key) ;
+	     ret = clientstub_mpi_dbmdelete(&(wb->wb[0]), fd, buff_key, count_key) ;
              break ;
 
         case COMM_USE_LOCAL:
-	     ret = clientstub_local_dbmdelete(wb, fd, buff_key, count_key) ;
+	     ret = clientstub_local_dbmdelete(&(wb->wb[0]), fd, buff_key, count_key) ;
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->comm_protocol) ;
+	     mfs_print(DBG_INFO, "[MFS_API]: ERROR on comm_protocol(%d).\n", wb->wb[0].comm_protocol) ;
 	     return -1 ;
              break ;
     }
 
     // Return OK
     return ret ;
+}
+
+int  mfs_api_get_rank  ( mfs_t *wb )
+{
+    // Check params...
+    NULL_PRT_MSG_RET_VAL(wb, "[MFS_API]: NULL wb :-(\n", -1) ;
+
+    return wb->wb[0].rank ;
 }
 

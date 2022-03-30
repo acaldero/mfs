@@ -50,6 +50,7 @@ int info_ns_insert ( comm_t *wb, int ns_backend, char *srv_name, char *port_name
     ret = -1 ;
     switch (ns_backend)
     {
+	    /* TODO:
         case NS_USE_MFS:
 	     fd = mfs_api_dbmopen(wb, NS_FILE_NAME, GDBM_WRITER | GDBM_WRCREAT) ;
 	     if (fd >= 0) {
@@ -57,6 +58,7 @@ int info_ns_insert ( comm_t *wb, int ns_backend, char *srv_name, char *port_name
 	         mfs_api_dbmclose(wb, fd) ;
 	     }
              break ;
+	     */
 
         case NS_USE_DBM:
 #ifdef HAVE_GDBM_H
@@ -108,6 +110,7 @@ int info_ns_lookup ( comm_t *wb, int ns_backend, char *srv_name, char *port_name
     ret = -1 ;
     switch (ns_backend)
     {
+	    /* TODO:
         case NS_USE_MFS:
 	     fd = mfs_api_dbmopen(wb, NS_FILE_NAME, GDBM_READER) ;
 	     if (fd >= 0)
@@ -116,6 +119,7 @@ int info_ns_lookup ( comm_t *wb, int ns_backend, char *srv_name, char *port_name
 	         mfs_api_dbmclose(wb, fd) ;
 	     }
              break ;
+	     */
 
         case NS_USE_DBM:
 #ifdef HAVE_GDBM_H
@@ -173,6 +177,7 @@ int info_ns_remove ( comm_t *wb, int ns_backend, char *srv_name )
     ret = -1 ;
     switch (ns_backend)
     {
+	    /* TODO:
         case NS_USE_MFS:
 	     fd = mfs_api_dbmopen(wb, NS_FILE_NAME, GDBM_WRITER) ;
 	     if (fd >= 0)
@@ -181,6 +186,7 @@ int info_ns_remove ( comm_t *wb, int ns_backend, char *srv_name )
 	         mfs_api_dbmclose(wb, fd) ;
 	     }
              break ;
+	     */
 
         case NS_USE_DBM:
 #ifdef HAVE_GDBM_H

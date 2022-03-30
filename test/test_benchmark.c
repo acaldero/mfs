@@ -29,17 +29,19 @@
 
 char buffer[BUFFER_SIZE] ;
 
-int main_benchmark1 ( comm_t *wb, params_t *params )
+int main_benchmark1 ( mfs_t *wb, params_t *params )
 {
-    int    ret ;
+    int    ret, rank ;
     long   fd ;
     long   kb, t1, t2 ;
     double mb, t ;
 
     // Initialize...
+    rank = mfs_api_get_rank(wb) ;
+
     ret = mfs_api_open_partition(wb, params, params->conf_fname) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Client[%d]: mfs_api_open_partition fails :-(\n", -1) ;
+        mfs_print(DBG_ERROR, "Client[%d]: mfs_api_open_partition fails :-(\n", rank) ;
         return -1 ;
     }
 
@@ -64,7 +66,7 @@ int main_benchmark1 ( comm_t *wb, params_t *params )
 	 t  = (double) ((t2-t1)/1000.0) / N_TIMES_BENCHMARK ;
 	 kb = (long)   (j*BUFFER_SIZE) / 1024 ;
 	 mb = (double) kb / 1024 ;
-         printf("%s\t\twrite;\t\t%d;\t\t%d;\t\t%lf;\n", params->file_backend_name, wb->rank, kb, mb/t) ;
+         printf("%s\t\twrite;\t\t%d;\t\t%d;\t\t%lf;\n", params->file_backend_name, rank, kb, mb/t) ;
     }
 
     // Benchmark: read
@@ -86,7 +88,7 @@ int main_benchmark1 ( comm_t *wb, params_t *params )
 	 t  = (double) ((t2-t1)/1000.0) / N_TIMES_BENCHMARK ;
 	 kb = (long)   (j*BUFFER_SIZE) / 1024 ;
 	 mb = (double) kb / 1024 ;
-         printf("%s\t\tread;\t\t%d;\t\t%d;\t\t%lf;\n", params->file_backend_name, wb->rank, kb, mb/t) ;
+         printf("%s\t\tread;\t\t%d;\t\t%d;\t\t%lf;\n", params->file_backend_name, rank, kb, mb/t) ;
     }
 
     mfs_api_close_partition(wb, params) ;
@@ -97,7 +99,7 @@ int main_benchmark1 ( comm_t *wb, params_t *params )
 int main ( int argc, char **argv )
 {
     int      ret ;
-    comm_t   wb ;
+    mfs_t    wb ;
     params_t params ;
 
     // Welcome...
@@ -118,7 +120,7 @@ int main ( int argc, char **argv )
     ret = main_benchmark1(&wb, &params) ;
 
     // Finalize...
-    mfs_print(DBG_INFO, "Client[%d]: finalize...\n", wb.rank) ;
+    mfs_print(DBG_INFO, "Client[%d]: finalize...\n", -1) ;
     mfs_api_finalize(&wb, &params) ;
 
     // Return OK/KO

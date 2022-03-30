@@ -30,28 +30,40 @@
     #include "client_stub_local.h"
 
 
+    // Datatypes
+    typedef struct
+    {
+        conf_t    partitions ;
+        comm_t   *wb ;
+        int       n_eltos ;
+    } mfs_t ;
+
+
     // File System API
-    int mfs_api_init            ( comm_t *wb, params_t *params, int *argc, char ***argv ) ;
-    int mfs_api_finalize        ( comm_t *wb, params_t *params ) ;
-    int mfs_api_open_partition  ( comm_t *wb, params_t *params, char *conf_fname ) ;
-    int mfs_api_close_partition ( comm_t *wb, params_t *params ) ;
+    int mfs_api_init            ( mfs_t *wb, params_t *params, int *argc, char ***argv ) ;
+    int mfs_api_finalize        ( mfs_t *wb, params_t *params ) ;
+    int mfs_api_open_partition  ( mfs_t *wb, params_t *params, char *conf_fname ) ;
+    int mfs_api_close_partition ( mfs_t *wb, params_t *params ) ;
 
     // File API
-    long mfs_api_open      ( comm_t *wb, const char *pathname, int flags ) ;
-    int  mfs_api_close     ( comm_t *wb, long fd ) ;
-    int  mfs_api_read      ( comm_t *wb, long fd, void *buf, int count ) ;
-    int  mfs_api_write     ( comm_t *wb, long fd, void *buf, int count ) ;
+    long mfs_api_open      ( mfs_t *wb, const char *pathname, int flags ) ;
+    int  mfs_api_close     ( mfs_t *wb, long fd ) ;
+    int  mfs_api_read      ( mfs_t *wb, long fd, void *buf, int count ) ;
+    int  mfs_api_write     ( mfs_t *wb, long fd, void *buf, int count ) ;
 
     // Directory API
-    long mfs_api_mkdir     ( comm_t *wb, const char *pathname, int mode ) ;
-    long mfs_api_rmdir     ( comm_t *wb, const char *pathname ) ;
+    long mfs_api_mkdir     ( mfs_t *wb, const char *pathname, int mode ) ;
+    long mfs_api_rmdir     ( mfs_t *wb, const char *pathname ) ;
 
     // DBM File API
-    long mfs_api_dbmopen   ( comm_t *wb, const char *pathname, int flags ) ;
-    int  mfs_api_dbmclose  ( comm_t *wb, long fd ) ;
-    int  mfs_api_dbmstore  ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int  count_val ) ;
-    int  mfs_api_dbmfetch  ( comm_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int *count_val ) ;
-    int  mfs_api_dbmdelete ( comm_t *wb, long fd, void *buff_key, int count_key ) ;
+    long mfs_api_dbmopen   ( mfs_t *wb, const char *pathname, int flags ) ;
+    int  mfs_api_dbmclose  ( mfs_t *wb, long fd ) ;
+    int  mfs_api_dbmstore  ( mfs_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int  count_val ) ;
+    int  mfs_api_dbmfetch  ( mfs_t *wb, long fd, void *buff_key, int count_key, void *buff_val, int *count_val ) ;
+    int  mfs_api_dbmdelete ( mfs_t *wb, long fd, void *buff_key, int count_key ) ;
+
+    // General API
+    int  mfs_api_get_rank  ( mfs_t *wb ) ;
 
 #endif
 

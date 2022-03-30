@@ -25,23 +25,25 @@
 
 #define STR_SIZE 1024
 
-int main_test_file ( comm_t *wb )
+int main_test_file ( mfs_t *wb )
 {
-    int    ret ;
-    long   fd ;
-    char   str[STR_SIZE] ;
+    int  ret ;
+    long fd ;
+    char str[STR_SIZE] ;
+    int  rank ;
 
+    rank = mfs_api_get_rank(wb) ;
 
     // write("hello world")
     strcpy(str, "hello world") ;
 
-    printf("Client[%d]: creat(...) + write(...) + close(...)\n", wb->rank) ;
+    printf("Client[%d]: creat(...) + write(...) + close(...)\n", rank) ;
     fd = mfs_api_open(wb, "test1.txt", O_WRONLY | O_CREAT | O_TRUNC) ;
     mfs_api_write(wb, fd, str, strlen(str)) ;
     mfs_api_close(wb, fd) ;
 
     // read("...")
-    printf("Client[%d]: open(...) + read(...) + close(...)\n", wb->rank) ;
+    printf("Client[%d]: open(...) + read(...) + close(...)\n", rank) ;
     fd = mfs_api_open(wb, "test1.txt", O_RDONLY) ;
      mfs_api_read(wb, fd, str, STR_SIZE) ;
     mfs_api_close(wb, fd) ;
@@ -49,7 +51,7 @@ int main_test_file ( comm_t *wb )
     return 0;
 }
 
-int main_test_dbm ( comm_t *wb )
+int main_test_dbm ( mfs_t *wb )
 {
     int    ret ;
     long   fd ;
@@ -59,10 +61,11 @@ int main_test_dbm ( comm_t *wb )
     int    str1_len ;
     int    str2_len ;
 
+    rank = mfs_api_get_rank(wb) ;
 
     // dbmstore("m1", "hello world")
     n_servers = mfs_comm_get_nservers(wb) ;
-    rank      = mfs_comm_get_rank(wb) ;
+    rank      = mfs_api_get_rank(wb) ;
     if (rank < n_servers)
     {
         strcpy(str1, "m1") ;
@@ -70,7 +73,7 @@ int main_test_dbm ( comm_t *wb )
         str1_len = strlen(str1) + 1 ;
         str2_len = strlen(str2) + 1 ;
 
-        printf("Client[%d]: dbmopen(...) + dbmstore(...) + dbmclose(...)\n", wb->rank) ;
+        printf("Client[%d]: dbmopen(...) + dbmstore(...) + dbmclose(...)\n", rank) ;
         fd = mfs_api_dbmopen(wb, "test2.txt", GDBM_WRITER | GDBM_WRCREAT) ;
         if (fd < 0) return -1 ;
         mfs_api_dbmstore(wb, fd, str1, str1_len, str2, str2_len) ;
@@ -83,7 +86,7 @@ int main_test_dbm ( comm_t *wb )
     str1_len = strlen(str1) + 1 ;
     str2_len = STR_SIZE ;
 
-    printf("Client[%d]: dbmopen(...) + dbmfetch(...) + dbmclose(...)\n", wb->rank) ;
+    printf("Client[%d]: dbmopen(...) + dbmfetch(...) + dbmclose(...)\n", rank) ;
     fd = mfs_api_dbmopen(wb, "test2.txt", GDBM_READER) ;
     if (fd < 0) return -1 ;
     mfs_api_dbmfetch(wb, fd, str1, str1_len, &str2, &str2_len) ;
@@ -95,7 +98,7 @@ int main_test_dbm ( comm_t *wb )
         strcpy(str1, "m1") ;
         str1_len = strlen(str1) + 1 ;
 
-        printf("Client[%d]: dbmopen(...) + dbmdelete(...) + dbmclose(...)\n", wb->rank) ;
+        printf("Client[%d]: dbmopen(...) + dbmdelete(...) + dbmclose(...)\n", rank) ;
         fd = mfs_api_dbmopen(wb, "test2.txt", GDBM_WRITER) ;
         if (fd < 0) return -1 ;
         mfs_api_dbmdelete(wb, fd, str1, str1_len) ;
@@ -109,7 +112,7 @@ int main ( int argc, char **argv )
 {
     int      ret ;
     params_t params ;
-    comm_t   wb ;
+    mfs_t    wb ;
 
     // Welcome...
     printf("\n"
@@ -158,7 +161,7 @@ int main ( int argc, char **argv )
     }
 
     // Finalize...
-    printf("Client[%d]: finalize...\n", wb.rank) ;
+    printf("Client[%d]: finalize...\n", -1) ;
     mfs_api_finalize(&wb, &params) ;
 
     // Return OK/KO
