@@ -6,7 +6,7 @@
 # 
 HOSTNAME=$(hostname)
 SERVER_NP=2
-CLIENT_NP=1
+CLIENT_NP=2
 N_TESTS=1
 F_BACKEND=POSIX
 V_LEVEL=1
@@ -27,7 +27,7 @@ trap "trap - TERM && kill -- -$$" INT TERM EXIT
 #
 # MPI tests...
 #
-if true; then
+if false; then
    echo ""
    echo " # comm_backend=MPI ##################################### "
    echo ""
@@ -57,7 +57,7 @@ fi
 #
 # Sockets tests...
 #
-if false; then
+if true; then
    echo ""
    echo " # comm_backend=SOCKET ################################## "
    echo ""
@@ -82,7 +82,7 @@ fi
 #
 # Local tests...
 #
-if true; then
+if false; then
    echo ""
    echo " # comm_backend=LOCAL ################################### "
    echo ""

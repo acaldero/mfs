@@ -127,10 +127,12 @@ int serverstub_socket_init ( comm_t *wb, params_t *params )
         mfs_print(DBG_ERROR, "Server[%d]: info_fsconf_get fails to read at least one partition in file '%s' :-(\n", -1, params->conf_fname) ;
         return -1 ;
     }
+    /*
     if (info_fsconf_get_active_nnodes(&partitions) != mfs_comm_get_size(wb)) {
-        mfs_print(DBG_ERROR, "Server[%d]: partition in '%s' with different nodes than processes :-(\n", -1, params->conf_fname) ;
+        mfs_print(DBG_ERROR, "Server[%d]: partition in '%s' with different nodes (%d) than processes (%d) :-(\n", -1, params->conf_fname, info_fsconf_get_active_nnodes(&partitions), mfs_comm_get_size(wb)) ;
         return -1 ;
     }
+    */
 
     // Initialize (fields and server socket)
     if (params->server_port != -1)

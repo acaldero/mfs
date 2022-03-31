@@ -155,7 +155,7 @@ int main ( int argc, char **argv )
     }
 
     // Close partition...
-    if (ret >= 0)
+    //if (ret >= 0)
     {
         mfs_api_close_partition(&wb, &params) ;
     }

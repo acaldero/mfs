@@ -143,6 +143,9 @@ int clientstub_mpi_finalize ( comm_t *wb, params_t *params )
 {
     int   ret = 0 ;
 
+    // Check params...
+    NULL_PRT_MSG_RET_VAL(wb, "Client[-1]: NULL wb :-(\n", -1) ;
+
     // Finalize comms...
     if (ret >= 0)
     {
