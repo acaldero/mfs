@@ -93,9 +93,10 @@ int base_socket_serversocket ( int *sd, int port )
 	server_addr.sin_addr.s_addr = INADDR_ANY ;
 	server_addr.sin_port        = htons(port) ;
 
+	mfs_print(DBG_INFO, "[COMM]: bind(AF_INET, INADDR_ANY, %d)\n", port) ;
 	ret = bind((*sd), (struct sockaddr *)&server_addr, sizeof(server_addr));
 	if (ret < 0) {
-	    mfs_print(DBG_ERROR, "[COMM]: setsockopt fails :-(\n") ;
+	    mfs_print(DBG_ERROR, "[COMM]: bind fails :-(\n") ;
 	    perror("bind: ") ;
 	    return -1 ;
 	}

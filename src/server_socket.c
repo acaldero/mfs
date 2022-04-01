@@ -123,12 +123,12 @@
 
 	      case REQ_ACTION_DBMSTORE:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_socket_dbmstore(&th.ab, &params, fd, msg.req_arg2) ;
+                   ret = serverstub_socket_dbmstore(&th.ab, &params, fd, msg.req_arg2, msg.req_arg3) ;
 	           break;
 
 	      case REQ_ACTION_DBMFETCH:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_socket_dbmfetch(&th.ab, &params, fd, msg.req_arg2) ;
+                   ret = serverstub_socket_dbmfetch(&th.ab, &params, fd, msg.req_arg2, msg.req_arg3) ;
 	           break;
 
 	      case REQ_ACTION_DBMDELETE:

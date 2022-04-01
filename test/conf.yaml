@@ -3,8 +3,7 @@
          name: "P1"
          type: "NORMAL"
          nodes:
-                 - uri: "tcpServer://localhost:12345/data/"
-                 - uri: "tcpServer://localhost:12346/data/"
+                 - uri: "tcpServer://localhost:12345/./data/"
  partition:
          name: "P2"
          type: "NORMAL"

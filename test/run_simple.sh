@@ -5,8 +5,8 @@
 # initialization
 # 
 HOSTNAME=$(hostname)
-SERVER_NP=2
-CLIENT_NP=2
+SERVER_NP=1
+CLIENT_NP=1
 N_TESTS=1
 F_BACKEND=POSIX
 V_LEVEL=1

@@ -70,9 +70,9 @@
     //  DBM File API
     int serverstub_socket_dbmopen    ( comm_t *ab, params_t *params, int *fd, int pathname_length, int flags ) ;
     int serverstub_socket_dbmclose   ( comm_t *ab, params_t *params, int  fd ) ;
-    int serverstub_socket_dbmstore   ( comm_t *ab, params_t *params, int  fd, int count ) ;
-    int serverstub_socket_dbmfetch   ( comm_t *ab, params_t *params, int  fd, int count ) ;
-    int serverstub_socket_dbmdelete  ( comm_t *ab, params_t *params, int  fd, int count ) ;
+    int serverstub_socket_dbmstore   ( comm_t *ab, params_t *params, int  fd, int key_size, int val_size ) ;
+    int serverstub_socket_dbmfetch   ( comm_t *ab, params_t *params, int  fd, int key_size, int val_size ) ;
+    int serverstub_socket_dbmdelete  ( comm_t *ab, params_t *params, int  fd, int key_size ) ;
 
 #endif
 

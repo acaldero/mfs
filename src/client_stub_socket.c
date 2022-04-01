@@ -131,18 +131,18 @@ int clientstub_socket_init ( comm_t *wb, params_t *params )
         mfs_comm_reset(wb) ;
         wb->comm_protocol      = COMM_USE_SOCKET ;
         wb->comm_protocol_name = "SOCKET" ;
-	wb->ns_backend         = params->ns_backend ;
+	wb->ns_backend = params->ns_backend ;
+	wb->sd         = -1 ;
 
+	/*
 	// new server socket
-        if (params->server_port != -1)
-	{
-            ret = base_socket_serversocket(&(wb->sd), params->server_port) ;
-	    if (ret < 0) {
-                mfs_print(DBG_ERROR, "Client[%d]: socket initialization fails :-(\n", -1) ;
-	        perror("socket: ") ;
-	        return -1 ;
-	    }
+        ret = base_socket_serversocket(&(wb->sd), params->server_port) ;
+	if (ret < 0) {
+            mfs_print(DBG_ERROR, "Client[%d]: socket initialization fails :-(\n", -1) ;
+	    perror("socket: ") ;
+	    return -1 ;
 	}
+	*/
 
         // Return OK
         return 1 ;
@@ -244,8 +244,8 @@ long clientstub_socket_open ( comm_t *wb, const char *pathname, int flags )
 int  clientstub_socket_close ( comm_t *wb, long fd )
 {
      // Check arguments...
-     NULL_PRT_MSG_RET_VAL(wb, "[CLNT_STUB] NULL wb :-/", -1) ;
-      NEG_PRT_MSG_RET_VAL(fd, "[CLNT_STUB] fd < 0  :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(wb, "[CLNT_STUB] NULL wb :-/\n", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd, "[CLNT_STUB] fd < 0  :-/\n", -1) ;
 
      return clientstub_socket_action_over_fd_resource(wb, fd, 0, REQ_ACTION_CLOSE) ;
 }
@@ -257,9 +257,9 @@ int  clientstub_socket_read ( comm_t *wb, long fd, void *buff_char, int count )
      long remaining_size, current_size ;
 
      // Check arguments...
-     NULL_PRT_MSG_RET_VAL(wb,        "[CLNT_STUB] NULL wb        :-/", -1) ;
-      NEG_PRT_MSG_RET_VAL(fd,        "[CLNT_STUB] fd < 0  :-/", -1) ;
-     NULL_PRT_MSG_RET_VAL(buff_char, "[CLNT_STUB] NULL buff_char :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(wb,        "[CLNT_STUB] NULL wb        :-/\n", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd,        "[CLNT_STUB] fd < 0         :-/\n", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_char, "[CLNT_STUB] NULL buff_char :-/\n", -1) ;
 
      // Send read msg
      if (ret >= 0)
@@ -309,9 +309,9 @@ int  clientstub_socket_write ( comm_t *wb, long fd, void *buff_char, int count )
      long remaining_size, current_size ;
 
      // Check arguments...
-     NULL_PRT_MSG_RET_VAL(wb,        "[CLNT_STUB] NULL wb        :-/", -1) ;
-      NEG_PRT_MSG_RET_VAL(fd,        "[CLNT_STUB] fd < 0         :-/", -1) ;
-     NULL_PRT_MSG_RET_VAL(buff_char, "[CLNT_STUB] NULL buff_char :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(wb,        "[CLNT_STUB] NULL wb        :-/\n", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd,        "[CLNT_STUB] fd < 0         :-/\n", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_char, "[CLNT_STUB] NULL buff_char :-/\n", -1) ;
 
      ret    = 0 ;
      status = -1 ;
@@ -383,8 +383,8 @@ long clientstub_socket_dbmopen ( comm_t *wb, const char *pathname, int flags )
 int  clientstub_socket_dbmclose ( comm_t *wb, long fd )
 {
      // Check arguments...
-     NULL_PRT_MSG_RET_VAL(wb, "[CLNT_STUB] NULL wb :-/", -1) ;
-      NEG_PRT_MSG_RET_VAL(fd, "[CLNT_STUB] fd < 0  :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(wb, "[CLNT_STUB] NULL wb :-/\n", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd, "[CLNT_STUB] fd < 0  :-/\n", -1) ;
 
      return clientstub_socket_action_over_fd_resource(wb, fd, 0, REQ_ACTION_DBMCLOSE) ;
 }
@@ -395,10 +395,10 @@ int  clientstub_socket_dbmstore ( comm_t *wb, long fd, void *buff_key, int count
      long remaining_size, current_size ;
 
      // Check arguments...
-     NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/", -1) ;
-      NEG_PRT_MSG_RET_VAL(fd,       "[CLNT_STUB] fd < 0        :-/", -1) ;
-     NULL_PRT_MSG_RET_VAL(buff_key, "[CLNT_STUB] NULL buff_key :-/", -1) ;
-     NULL_PRT_MSG_RET_VAL(buff_val, "[CLNT_STUB] NULL buff_val :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/\n", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd,       "[CLNT_STUB] fd < 0        :-/\n", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_key, "[CLNT_STUB] NULL buff_key :-/\n", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_val, "[CLNT_STUB] NULL buff_val :-/\n", -1) ;
 
      // Set initial values...
      ret = 0 ;
@@ -408,17 +408,7 @@ int  clientstub_socket_dbmstore ( comm_t *wb, long fd, void *buff_key, int count
      if (ret >= 0)
      {
     	 mfs_print(DBG_INFO, "Client[%d]: dbmstore fd:%ld key_size:%d >> server\n", mfs_comm_get_rank(wb), fd, count_key) ;
-         ret = mfs_comm_socket_send_request(wb, 0, REQ_ACTION_DBMSTORE, fd, count_key, 0) ;
-     }
-
-     // Send value size (in bytes)
-     if (ret >= 0)
-     {
-    	mfs_print(DBG_INFO, "Client[%d]: dbmstore val_size:%d >> server\n", mfs_comm_get_rank(wb), count_val) ;
-        ret = mfs_comm_socket_send_data_to(wb, 0, &count_val, sizeof(int)) ;
-        if (ret < 0) {
-    	    mfs_print(DBG_ERROR, "Client[%d]: value size cannot be sent :-(\n", mfs_comm_get_rank(wb)) ;
-        }
+         ret = mfs_comm_socket_send_request(wb, 0, REQ_ACTION_DBMSTORE, fd, count_key, count_val) ;
      }
 
      // Receive status
@@ -465,31 +455,22 @@ int  clientstub_socket_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count
      int  ret, status  ;
 
      // Check arguments...
-     NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/", -1) ;
-      NEG_PRT_MSG_RET_VAL(fd,       "[CLNT_STUB] fd < 0        :-/", -1) ;
-     NULL_PRT_MSG_RET_VAL(buff_key, "[CLNT_STUB] NULL buff_key :-/", -1) ;
-     NULL_PRT_MSG_RET_VAL(buff_val, "[CLNT_STUB] NULL buff_val :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/\n", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd,       "[CLNT_STUB] fd < 0        :-/\n", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_key, "[CLNT_STUB] NULL buff_key :-/\n", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_val, "[CLNT_STUB] NULL buff_val :-/\n", -1) ;
 
      // Set initial values...
      ret = 0 ;
      status = -1 ;
 
-     // Send write msg
+     // (1) Send write msg
      if (ret >= 0)
      {
-         ret = mfs_comm_socket_send_request(wb, 0, REQ_ACTION_DBMFETCH, fd, count_key, 0) ;
+         ret = mfs_comm_socket_send_request(wb, 0, REQ_ACTION_DBMFETCH, fd, count_key, *count_val) ;
      }
 
-     // Send value size (in bytes)
-     if (ret >= 0)
-     {
-        ret = mfs_comm_socket_send_data_to(wb, 0, count_val, sizeof(int)) ;
-        if (ret < 0) {
-    	    mfs_print(DBG_ERROR, "Client[%d]: value size cannot be sent :-(\n", mfs_comm_get_rank(wb)) ;
-        }
-     }
-
-     // Receive status
+     // (2) Receive status
      if (ret >= 0)
      {
         ret = mfs_comm_socket_recv_data_from(wb, 0, &status, sizeof(int)) ;
@@ -503,28 +484,31 @@ int  clientstub_socket_dbmfetch ( comm_t *wb, long fd, void *buff_key, int count
 	}
      }
 
-     // Send key
+     // (3) Send key
      if (ret >= 0)
      {
         clientstub_socket_action_send_buffer(wb, buff_key, count_key, count_key) ;
      }
 
-     // Receive status
+     // (4) Receive status
      //if (ret >= 0)
      {
         ret = mfs_comm_socket_recv_data_from(wb, 0, &status, sizeof(int)) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(\n", mfs_comm_get_rank(wb)) ;
         }
+
+        // if remote error then return
+        if (status < 0) {
+            return -1 ;
+        }
      }
 
-     // Receive val
-     if (status > 0)
-     {
-        ret = mfs_comm_socket_recv_data_from(wb, 0, buff_val, *count_val) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(\n", mfs_comm_get_rank(wb)) ;
-        }
+     // (5) Receive val
+     *count_val = status ;
+     ret = mfs_comm_socket_recv_data_from(wb, 0, buff_val, *count_val) ;
+     if (ret < 0) {
+         mfs_print(DBG_ERROR, "Client[%d]: operation status not received :-(\n", mfs_comm_get_rank(wb)) ;
      }
 
      // Return bytes written
@@ -536,9 +520,9 @@ int  clientstub_socket_dbmdelete ( comm_t *wb, long fd, void *buff_key, int coun
      int  ret, status  ;
 
      // Check arguments...
-     NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/", -1) ;
-      NEG_PRT_MSG_RET_VAL(fd,       "[CLNT_STUB] fd < 0        :-/", -1) ;
-     NULL_PRT_MSG_RET_VAL(buff_key, "[CLNT_STUB] NULL buff_key :-/", -1) ;
+     NULL_PRT_MSG_RET_VAL(wb,       "[CLNT_STUB] NULL wb       :-/\n", -1) ;
+      NEG_PRT_MSG_RET_VAL(fd,       "[CLNT_STUB] fd < 0        :-/\n", -1) ;
+     NULL_PRT_MSG_RET_VAL(buff_key, "[CLNT_STUB] NULL buff_key :-/\n", -1) ;
 
      // Set initial values...
      ret = 0 ;
