@@ -87,7 +87,7 @@ int clientstub_local_open_partition_element ( comm_t *wb, params_t *params, conf
 	return -1 ;
     }
 
-    wb->node_str = strdup(wb->node_str) ;
+    wb->node_str = base_strdup(wb->node_str) ;
     wb->node_url = base_url_dup(wb->node_url) ;
 
     wb->is_connected = 1 ;

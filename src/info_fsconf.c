@@ -177,10 +177,10 @@
 	                 if (2 == kv_type)
 			 {
 			     if (1 == k_type) {
-                                 conf->partitions[id_last_part].name = strdup(token_val) ;
+                                 conf->partitions[id_last_part].name = base_strdup(token_val) ;
 			     }
 			     if (2 == k_type) {
-                                 conf->partitions[id_last_part].type = strdup(token_val) ;
+                                 conf->partitions[id_last_part].type = base_strdup(token_val) ;
 			     }
 			     if (4 == k_type)
 			     {
@@ -188,7 +188,7 @@
 				 if (ret < 0) return -1 ;
 
 				 id_last_node = conf->partitions[id_last_part].n_nodes - 1 ;
-				 conf->partitions[id_last_part].nodes[id_last_node] = strdup(token_val) ;
+				 conf->partitions[id_last_part].nodes[id_last_node] = base_strdup(token_val) ;
 
 				 ret = base_url_parseURL(&(conf->partitions[id_last_part].url[id_last_node]), token_val) ;
 				 if (ret < 0) return -1 ;

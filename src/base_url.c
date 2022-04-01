@@ -47,7 +47,7 @@ int    base_url_Match_protocol ( char **protocol, char **str )
                              base_strlen(base_url_protocols[i].name) ) ;
               if (ret == 0)
                  {
-                   (*protocol) = strdup(base_url_protocols[i].name) ;
+                   (*protocol) = base_strdup(base_url_protocols[i].name) ;
                    (*str)      = (*str) + base_strlen(base_url_protocols[i].name) ;
                    if ( (**str) == ':' )
                         (*str) ++ ;
@@ -59,7 +59,7 @@ int    base_url_Match_protocol ( char **protocol, char **str )
                  }
             }
 
-        (*protocol) = strdup("http") ;
+        (*protocol) = base_strdup("http") ;
         return 1 ;
 }
 
@@ -75,7 +75,7 @@ int    base_url_Match_user ( char **user, char **str )
         }
 
         pch[0] = '\0' ;
-        (*user) = strdup((*str)) ;
+        (*user) = base_strdup((*str)) ;
         (*str) = pch + 1 ;
         return 1 ;
 }
@@ -91,7 +91,7 @@ int    base_url_Match_machine ( char **machine, char *protocol, char **str )
         {
              int ret ;
 
-             (*machine) = strdup("localhost") ;
+             (*machine) = base_strdup("localhost") ;
              ret = strncmp((*str), "localhost", base_strlen("localhost")) ;
              if (ret == 0) {
                  (*str) = (*str) + base_strlen("localhost") ;
@@ -108,14 +108,14 @@ int    base_url_Match_machine ( char **machine, char *protocol, char **str )
         {
              if (pch1 == NULL)
              {
-                 (*machine) = strdup((*str)) ;
+                 (*machine) = base_strdup((*str)) ;
                  (*str) = (*str) + base_strlen((*str)) ;
                  return 1 ;
              }
              if (pch1 != NULL)
              {
                  pch1[0] = '\0' ;
-                 (*machine) = strdup((*str)) ;
+                 (*machine) = base_strdup((*str)) ;
                  (*str) = pch1 ;
                  pch1[0] = '/' ;
                  return 1 ;
@@ -124,7 +124,7 @@ int    base_url_Match_machine ( char **machine, char *protocol, char **str )
         if (pch2 != NULL)
         {
             pch2[0] = '\0' ;
-            (*machine) = strdup((*str)) ;
+            (*machine) = base_strdup((*str)) ;
             pch2[0] = ':' ;
             (*str) = pch2 ;
             return 1 ;
@@ -187,7 +187,7 @@ int    base_url_Match_file (  char **file, char **str )
         if (pch1 != NULL)
         {
              pch1[0] = '\0' ;
-             (*file) = strdup((*str)) ;
+             (*file) = base_strdup((*str)) ;
              (*str)  = (*str) + base_strlen(pch1) ;
              pch1[0] = '#' ;
              return 1 ;
@@ -197,7 +197,7 @@ int    base_url_Match_file (  char **file, char **str )
         if (pch1 != NULL)
         {
              pch1[0] = '\0' ;
-             (*file) = strdup((*str)) ;
+             (*file) = base_strdup((*str)) ;
              pch1[0] = '?' ;
              (*str)  = pch1 ;
              return 1 ;
@@ -206,12 +206,12 @@ int    base_url_Match_file (  char **file, char **str )
         /* ... all is file ... */
         if ((*str)[0] != '\0')
         {
-             (*file) = strdup((*str)) ;
+             (*file) = base_strdup((*str)) ;
              (*str)  = (*str) + base_strlen((*str)) ;
              return 1 ;
         }
 
-        (*file) = strdup("/") ;
+        (*file) = base_strdup("/") ;
         return 1 ;
 }
 
@@ -228,7 +228,7 @@ int base_url_Match_relative ( char **relative, char **str )
         pch2 = strchr(pch1,'?') ;
         if (pch2 == NULL)
            {
-             (*relative) = strdup((*str)) ;
+             (*relative) = base_strdup((*str)) ;
              (*str)      = (*str) + base_strlen((*str)) ;
              return 1 ;
            }
@@ -236,7 +236,7 @@ int base_url_Match_relative ( char **relative, char **str )
         if (pch2 != NULL)
            {
              pch2[0]     = '\0' ;
-             (*relative) = strdup(pch1) ;
+             (*relative) = base_strdup(pch1) ;
              (*str)      = pch2 ;
              pch2[0]     = '?' ;
              return 1 ;
@@ -256,7 +256,7 @@ int base_url_Match_params ( char **params, char **str )
 	}
 
         pch1 ++ ; /* skip '?' */
-        (*params) = strdup(pch1) ;
+        (*params) = base_strdup(pch1) ;
         (*str)    = (*str) + base_strlen((*str)) ;
         return 1 ;
 }
@@ -306,7 +306,7 @@ int base_url_parseURL ( /*OUT*/ base_url_t *urlbase, /*IN*/ char *urlstr )
         char *pch, *fch ;
         int   ok ;
 
-        fch = pch = strdup(urlstr) ;
+        fch = pch = base_strdup(urlstr) ;
         if (NULL == pch)  {
             return -1;
 	}
@@ -345,13 +345,13 @@ base_url_t *base_url_dup ( base_url_t  *base_url )
         ret = mfs_malloc((char **)&(elto), sizeof(base_url_t)) ;
 	if (ret < 0) return NULL ;
 
-	elto->protocol = (NULL == base_url->protocol) ? NULL : strdup(base_url->protocol) ;
-	elto->user     = (NULL == base_url->user)     ? NULL : strdup(base_url->user) ;
-	elto->machine  = (NULL == base_url->machine)  ? NULL : strdup(base_url->machine) ;
+	elto->protocol = base_strdup(base_url->protocol) ;
+	elto->user     = base_strdup(base_url->user) ;
+	elto->machine  = base_strdup(base_url->machine) ;
         elto->port     = base_url->port ;
-	elto->file     = (NULL == base_url->file)     ? NULL : strdup(base_url->file) ;
-	elto->relative = (NULL == base_url->relative) ? NULL : strdup(base_url->relative) ;
-	elto->params   = (NULL == base_url->params)   ? NULL : strdup(base_url->params) ;
+	elto->file     = base_strdup(base_url->file) ;
+	elto->relative = base_strdup(base_url->relative) ;
+	elto->params   = base_strdup(base_url->params) ;
 
 	// return new element
 	return elto ;
@@ -359,12 +359,12 @@ base_url_t *base_url_dup ( base_url_t  *base_url )
 
 int base_url_free ( base_url_t **base_url )
 {
-        mfs_free((char **)&((*base_url)->protocol)) ;
-        mfs_free((char **)&((*base_url)->user)) ;
-        mfs_free((char **)&((*base_url)->machine)) ;
-        mfs_free((char **)&((*base_url)->file)) ;
-        mfs_free((char **)&((*base_url)->relative)) ;
-        mfs_free((char **)&((*base_url)->params)) ;
+        mfs_free(&((*base_url)->protocol)) ;
+        mfs_free(&((*base_url)->user)) ;
+        mfs_free(&((*base_url)->machine)) ;
+        mfs_free(&((*base_url)->file)) ;
+        mfs_free(&((*base_url)->relative)) ;
+        mfs_free(&((*base_url)->params)) ;
 
         mfs_free((char **)base_url) ;
 

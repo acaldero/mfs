@@ -161,8 +161,8 @@ int main ( int argc, char **argv )
 
     // Welcome...
     printf("\n"
- 	   " mfs_server_mpi\n"
-	   " --------------\n") ;
+ 	   " mfs_server (MPI)\n"
+	   " ----------------\n") ;
 
     // Get parameters..
     ret = info_params_get(&params, &argc, &argv) ;

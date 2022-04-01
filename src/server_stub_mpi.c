@@ -172,7 +172,7 @@ int serverstub_mpi_init ( comm_t *wb, params_t *params )
     local_rank   = mfs_comm_get_rank(wb) ;
     wb->node_str = info_fsconf_get_active_node(&partitions, local_rank) ;
     wb->node_url = info_fsconf_get_active_url (&partitions, local_rank) ;
-    wb->node_str = strdup(wb->node_str) ;
+    wb->node_str = base_strdup(wb->node_str) ;
     wb->node_url = base_url_dup(wb->node_url) ;
 
     // Open server port...

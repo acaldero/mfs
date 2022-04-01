@@ -84,11 +84,10 @@ int stub_read_name ( comm_t *ab, char **buff_data_sys, int pathname_length )
  *  Server stub API
  */
 
-int serverstub_socket_init ( comm_t *wb, params_t *params )
+int serverstub_socket_init ( comm_t *wb, params_t *params, int rank )
 {
-    int     ret ;
-    int     local_rank ;
-    conf_t  partitions ;
+    int    ret ;
+    conf_t partitions ;
 
     // Initialize files
     ret = mfs_file_init() ;
@@ -127,30 +126,22 @@ int serverstub_socket_init ( comm_t *wb, params_t *params )
         mfs_print(DBG_ERROR, "Server[%d]: info_fsconf_get fails to read at least one partition in file '%s' :-(\n", -1, params->conf_fname) ;
         return -1 ;
     }
-    /*
-    if (info_fsconf_get_active_nnodes(&partitions) != mfs_comm_get_size(wb)) {
-        mfs_print(DBG_ERROR, "Server[%d]: partition in '%s' with different nodes (%d) than processes (%d) :-(\n", -1, params->conf_fname, info_fsconf_get_active_nnodes(&partitions), mfs_comm_get_size(wb)) ;
-        return -1 ;
-    }
-    */
 
     // Initialize (fields and server socket)
-    if (params->server_port != -1)
-    {
-        ret = base_socket_serversocket(&(wb->sd), params->server_port) ;
-        if (ret < 0) {
-            mfs_print(DBG_ERROR, "Server[%d]: initialization fails for base_socket_serversocket :-(\n", -1) ;
-            return -1 ;
-        }
+    wb->rank     = rank ;
+    wb->size     = info_fsconf_get_active_nnodes(&partitions) ;
+    wb->node_str = info_fsconf_get_active_node(&partitions, rank) ;
+    wb->node_url = info_fsconf_get_active_url (&partitions, rank) ;
+    wb->node_str = base_strdup(wb->node_str) ;
+    wb->node_url = base_url_dup(wb->node_url) ;
+
+    ret = base_socket_serversocket(&(wb->sd), wb->node_url->port) ;
+    if (ret < 0) {
+        mfs_print(DBG_ERROR, "Server[%d]: initialization fails for base_socket_serversocket :-(\n", -1) ;
+        return -1 ;
     }
 
     // Register service
-    local_rank   = mfs_comm_get_rank(wb) ;
-    wb->node_str = info_fsconf_get_active_node(&partitions, local_rank) ;
-    wb->node_url = info_fsconf_get_active_url (&partitions, local_rank) ;
-    wb->node_str = strdup(wb->node_str) ;
-    wb->node_url = base_url_dup(wb->node_url) ;
-
     ret = info_ns_get_portname(wb->port_name, wb->sd) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: info_ns_get_portname fails :-(\n", mfs_comm_get_rank(wb)) ;
@@ -162,6 +153,8 @@ int serverstub_socket_init ( comm_t *wb, params_t *params )
         mfs_print(DBG_ERROR, "Server[%d]: port registration fails :-(\n", mfs_comm_get_rank(wb)) ;
         return -1 ;
     }
+
+    mfs_print(DBG_INFO, "Server[%d]: ns_insert(key:%s, val:%s)\n", mfs_comm_get_rank(wb), wb->node_str, wb->port_name) ;
 
     // Free configuration
     ret = info_fsconf_free(&partitions) ;

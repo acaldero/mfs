@@ -266,7 +266,7 @@ int info_ns_split_portname ( char *port_name, struct hostent **host, int *port )
 
 	// copy default values...
 	strcpy(srv_host, port_name) ;
-	sprintf(srv_port, "%d", DEFAULT_PORT) ;
+	sprintf(srv_port, "%d", 12345) ; // TODO: 12345
 
 	// if "host:port" -> host\0port
 	pch = strchr(srv_host, ':') ;

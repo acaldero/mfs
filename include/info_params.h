@@ -38,7 +38,6 @@
    #define DEFAULT_DATA_PREFIX     "./data"
    #define DEFAULT_CONF_FILE       "conf.yaml"
    #define DEFAULT_STUB_PNAME      "mfs"
-   #define DEFAULT_PORT            12345
 
    #define THREAD_USE_ONDEMAND  1
    #define THREAD_USE_POOL      2
@@ -52,7 +51,6 @@
         // associated client
         char  *mfs_server_stub_pname ; // e.g.: "mfs"
         char             *conf_fname ; // e.g.: "/etc/mfs/conf.yaml"
-	int              server_port ; // e.g.: 12345
 
 	// backend options
         int    file_backend ;

@@ -153,14 +153,14 @@
 
 int main ( int argc, char **argv )
 {
-    int      ret ;
+    int      ret, rank ;
     comm_t   wb ;
     comm_t   ab ;
 
     // Welcome...
     printf("\n"
- 	   " mfs_server_socket\n"
-	   " -----------------\n") ;
+ 	   " mfs_server (sockets)\n"
+	   " --------------------\n") ;
 
     // Get parameters..
     ret = info_params_get(&params, &argc, &argv) ;
@@ -174,6 +174,12 @@ int main ( int argc, char **argv )
         mfs_print(DBG_INFO, "Server[%d]: initializing...\n", -1) ;
     }
 
+    // Get my rank
+    MPI_Init(NULL, NULL) ;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank) ;
+    MPI_Finalize() ;
+    sleep(rank) ;
+
     // Initialize workers
     ret = mfs_workers_init(&params) ;
     if (ret < 0) {
@@ -182,7 +188,7 @@ int main ( int argc, char **argv )
     }
 
     // Initialize stub...
-    ret = serverstub_socket_init(&wb, &params) ;
+    ret = serverstub_socket_init(&wb, &params, rank) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: serverstub_socket_init fails :-(\n", -1) ;
         return -1 ;

@@ -68,12 +68,13 @@
     int mfs_malloc  ( char **ptr, long size ) ;
     int mfs_free    ( char **ptr ) ;
     int mfs_realloc ( char **ptr, long new_size ) ;
-    int mfs_free_and_strdup ( char **ptr, char *str ) ;
 
     // Strings
-    int base_strlen    ( char *str1 ) ;
-    int base_str_equal ( char *str1, char *str2 ) ;
-    int base_str_prepare_pathname ( char **buff_data_sys, char *base_dirname, int local_rank, int pathname_length ) ;
+    int    base_strlen         ( char *str1 ) ;
+    int    base_str_equal      ( char *str1, char *str2 ) ;
+    char * base_strdup         ( char *str1 ) ;
+    int    base_free_and_strdup ( char **ptr, char *str ) ;
+    int    base_str_prepare_pathname ( char **buff_data_sys, char *base_dirname, int local_rank, int pathname_length ) ;
 
 #endif
 

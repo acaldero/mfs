@@ -144,20 +144,6 @@ int mfs_realloc ( char **ptr, long new_size )
     return 1 ;
 }
 
-int mfs_free_and_strdup ( char **ptr, char *str )
-{
-    // check arguments
-    if (NULL == ptr) {
-	return -1 ;
-    }
-
-    free(*ptr) ;
-    *ptr = strdup(str) ;
-
-    // Return OK
-    return 1 ;
-}
-
 
 //
 // Thread
@@ -201,6 +187,29 @@ int base_str_equal ( char *str1, char *str2 )
     }
 
     return (strcmp(str1, str2) == 0) ;
+}
+
+char * base_strdup ( char *str1 )
+{
+    if (NULL == str1) {
+	return NULL ;
+    }
+
+    return strdup(str1) ;
+}
+
+int base_free_and_strdup ( char **ptr, char *str )
+{
+    // check arguments
+    if (NULL == ptr) {
+	return -1 ;
+    }
+
+    free(*ptr) ;
+    *ptr = strdup(str) ;
+
+    // Return OK
+    return 1 ;
 }
 
 int base_str_prepare_pathname ( char **buff_data_sys, char *base_dirname, int local_rank, int pathname_length )

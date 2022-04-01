@@ -63,9 +63,9 @@ if true; then
    echo ""
    cp conf-socket.yaml conf.yaml
    # start server...
-   echo "   + ../bin/mfs_server &"
+   echo "   + ../bin/mfs_server_socket &"
    echo "   + sleep 3"
-    mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server_socket -f ${F_BACKEND} -v ${V_LEVEL} &
+    mpirun -np $SERVER_NP ../bin/mfs_server_socket -f ${F_BACKEND} -v ${V_LEVEL} &
     sleep 3
    # run client...
    echo ""
@@ -73,7 +73,7 @@ if true; then
    do
       echo "   + ./test_simple ...(test $i)"
       echo "   + sleep 2"
-       mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_simple -n conf.yaml -f ${F_BACKEND} -p 0 -v ${V_LEVEL}
+       mpirun -np $CLIENT_NP ./test_simple -n conf.yaml -f ${F_BACKEND} -v ${V_LEVEL}
        sleep 2
    done
 fi

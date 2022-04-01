@@ -71,7 +71,7 @@ if false; then
    do
       echo "   + ./test_benchmark ...(test $i)"
       echo "   + sleep 2"
-       mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_benchmark -n conf.yaml -f ${F_BACKEND} -p 0 -v ${V_LEVEL}
+       mpirun -np $CLIENT_NP -nameserver ${HOSTNAME} ./test_benchmark -n conf.yaml -f ${F_BACKEND} -v ${V_LEVEL}
        sleep 2
    done
 fi

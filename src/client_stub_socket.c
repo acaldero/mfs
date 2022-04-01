@@ -131,18 +131,8 @@ int clientstub_socket_init ( comm_t *wb, params_t *params )
         mfs_comm_reset(wb) ;
         wb->comm_protocol      = COMM_USE_SOCKET ;
         wb->comm_protocol_name = "SOCKET" ;
-	wb->ns_backend = params->ns_backend ;
-	wb->sd         = -1 ;
-
-	/*
-	// new server socket
-        ret = base_socket_serversocket(&(wb->sd), params->server_port) ;
-	if (ret < 0) {
-            mfs_print(DBG_ERROR, "Client[%d]: socket initialization fails :-(\n", -1) ;
-	    perror("socket: ") ;
-	    return -1 ;
-	}
-	*/
+	wb->ns_backend         = params->ns_backend ;
+	wb->sd                 = -1 ;
 
         // Return OK
         return 1 ;
@@ -183,13 +173,13 @@ int clientstub_socket_open_partition_element ( comm_t *wb, params_t *params, con
     port_name_size = MPI_MAX_PORT_NAME ;
     ret = info_ns_lookup(wb, wb->ns_backend, srv_uri, wb->port_name, &port_name_size) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Client[-1]: info_ns_lookup fails for '%s' with backend %d :-(\n", srv_uri, wb->ns_backend) ;
+        mfs_print(DBG_ERROR, "Client[-1]: info_ns_lookup fails for %d element of the partition with uri:'%s' and using backend:%d :-(\n", remote_rank, srv_uri, wb->ns_backend) ;
         return -1 ;
     }
 
     ret = info_ns_split_portname(wb->port_name, &hp, &srv_port) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Client[-1]: mfs_comm_socket_splithp fails :-(\n") ;
+        mfs_print(DBG_ERROR, "Client[-1]: info_ns_split_portname(%s, ...) fails :-(\n", wb->port_name) ;
         return -1 ;
     }
 
