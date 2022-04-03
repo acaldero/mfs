@@ -6,7 +6,7 @@
 CC=mpic++
 AR=ar
 #CFLAGS=-w -g -O2 -Wall -I/usr/local/include/ -I./ -I./include -DHAVE_GDBM_H -DHAVE_HIREDIS_H -DDEBUG 
- CFLAGS=-w -g -O2 -Wall -I/usr/local/include/ -I./ -I./include -DHAVE_GDBM_H -DHAVE_HIREDIS_H -DDEBUG
+ CFLAGS=-w -g -O2 -Wall -I/usr/local/include/ -I./ -I./include -DHAVE_GDBM_H -DHAVE_HIREDIS_H
 LDFLAGS=-lpthread  -lhiredis  -lgdbm  -lyaml
 
 OBJ_DIR=src

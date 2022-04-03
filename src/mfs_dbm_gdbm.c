@@ -2,20 +2,20 @@
 /*
  *  Copyright 2020-2022 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
  *
- *  This file is part of MFS.
+ *  This file is part of XPNlite.
  *
- *  MFS is free software: you can redistribute it and/or modify
+ *  XPNlite is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  MFS is distributed in the hope that it will be useful,
+ *  XPNlite is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
  *
  *  You should have received a copy of the GNU Lesser General Public License
- *  along with MFS.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with XPNlite.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -82,7 +82,7 @@ int   mfs_dbm_gdbm_store   ( GDBM_FILE  fd, void *buff_key, int count_key, void 
 
      // Store key+val
      ret = gdbm_store(fd, key, value, GDBM_REPLACE) ;
-     if (ret < 0) {
+     if (ret != 0) {
 	 fprintf(stderr, "gdbm_store: %s\n", gdbm_strerror(gdbm_errno)) ;
      }
 #endif

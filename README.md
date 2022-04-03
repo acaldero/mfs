@@ -1,5 +1,10 @@
-# MFS (v0.98)
-Prototype of MFS
+# XPNLite (v1.00)
+XPNLite: compact version of the XPN Parallel File System for prototyping
+
+*Licence*: GNU LESSER GENERAL PUBLIC LICENSE Version 2.1</br>
+*Authors*: [Felix Garcia Carballeira](https://researchportal.uc3m.es/display/inv16287) + [Diego Camarmas Alonso](https://github.com/dcamarmas/) + [Alejandro Calderon Mateos](https://github.com/acaldero)
+*Context*: XPNLite is related to the European ADMIRE project: https://www.admire-eurohpc.eu/
+
 
 ## Getting started
 
@@ -14,21 +19,30 @@ sudo apt-get install -y libgdbm-compat-dev libgdbm-dev
 sudo apt-get install -y libyaml-dev libyaml-doc
 ```
 
-### Get MFS source code
+### Get XPNLite source code
 
 ```
 git clone https://github.com/acaldero/mfs.git
 cd mfs
 ```
 
-### Compile MFS
+### Compile XPNLite
 
 ```
 make         -f Makefile_make
 make -C test -f Makefile_make
 ```
 
-## Executing MFS
+
+## Executing XPNLite
+
+### Examples included in XPNLite
+
+'''
+  cd test<br>
+  ./run_simple.sh
+  ./run_benchmark.sh
+'''
 
 ### Example of work session
 
@@ -38,34 +52,37 @@ make -C test -f Makefile_make
   <th>Server</th>
   <th>Client</th>
   </tr>
+
   <tr>
   <td>
-  cd test<br>
   HYDRA_HOST=$(hostname)<br>
   hydra_nameserver & <br>
-  mpirun -nameserver ${HYDRA_HOST} -np 2 ../bin/mfs_server &<br>
+  sleep 1
   </td>
   <td>
   &nbsp;
   </td>
   </tr>
+
+  <tr>
+  <td>
+  cd test<br>
+  mpirun -nameserver ${HYDRA_HOST} -np 2 ../bin/mfs_server_mpi -n conf-mpi.yaml &
+  </td>
+  <td>
+  &nbsp;
+  </td>
+  </tr>
+
   <tr>
   <td>
   &nbsp;
   </td>
   <td>
   cd test<br>
-  mpirun -nameserver ${HYDRA_HOST} -np 2 ./test_benchmark
+  mpirun -nameserver ${HYDRA_HOST} -np 2 ./test_simple -n conf-mpi.yaml
   </td>
   </tr>
   </table>
 </html>
 
-
-## About
-
-GNU LESSER GENERAL PUBLIC LICENSE Version 2.1</br>
-[Felix Garcia Carballeira](https://researchportal.uc3m.es/display/inv16287) + [Diego Camarmas Alonso](https://github.com/dcamarmas/) + [Alejandro Calderon Mateos](https://github.com/acaldero)
-
-This project is part of the ADMIRE project:
-https://www.admire-eurohpc.eu/

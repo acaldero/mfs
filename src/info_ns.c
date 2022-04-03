@@ -2,20 +2,20 @@
 /*
  *  Copyright 2020-2022 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
  *
- *  This file is part of MFS.
+ *  This file is part of XPNlite.
  *
- *  MFS is free software: you can redistribute it and/or modify
+ *  XPNlite is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  MFS is distributed in the hope that it will be useful,
+ *  XPNlite is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
  *
  *  You should have received a copy of the GNU Lesser General Public License
- *  along with MFS.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with XPNlite.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -64,10 +64,21 @@ int info_ns_insert ( comm_t *wb, int ns_backend, char *srv_name, char *port_name
 #ifdef HAVE_GDBM_H
              GDBM_FILE fd ;
 
-	     ret = mfs_dbm_gdbm_open(&fd, NS_FILE_NAME, GDBM_WRITER | GDBM_WRCREAT) ;
+	     mfs_print(DBG_INFO, "[INFO_NS]: open '%s' + store k:%s,v:%s + close\n", NS_FILE_NAME, srv_name, port_name) ;
+
+	     if (access(NS_FILE_NAME, F_OK) == 0 ) {
+	         ret = mfs_dbm_gdbm_open(&fd, NS_FILE_NAME, GDBM_WRITER) ;
+             } else {
+	         ret = mfs_dbm_gdbm_open(&fd, NS_FILE_NAME, GDBM_WRITER | GDBM_WRCREAT) ;
+             }
+
 	     if (ret >= 0) {
 	         ret = mfs_dbm_gdbm_store(fd, srv_name, strlen(srv_name) + 1, port_name, strlen(port_name) + 1) ; 
 	         mfs_dbm_gdbm_close(fd) ;
+	     }
+
+	     if (ret != 0) {
+	         fprintf(stderr, "gdbm_store: %s\n", gdbm_strerror(gdbm_errno)) ;
 	     }
 #endif
              break ;
@@ -88,7 +99,7 @@ int info_ns_insert ( comm_t *wb, int ns_backend, char *srv_name, char *port_name
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[FILE]: ERROR on ns_backend(%d).\n", ns_backend) ;
+	     mfs_print(DBG_INFO, "[INFO_NS]: ERROR on ns_backend(%d).\n", ns_backend) ;
 	     return -1 ;
              break ;
     }
@@ -157,7 +168,7 @@ int info_ns_lookup ( comm_t *wb, int ns_backend, char *srv_name, char *port_name
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[FILE]: ERROR on ns_backend(%d).\n", ns_backend) ;
+	     mfs_print(DBG_INFO, "[INFO_NS]: ERROR on ns_backend(%d).\n", ns_backend) ;
 	     return -1 ;
              break ;
     }
@@ -215,7 +226,7 @@ int info_ns_remove ( comm_t *wb, int ns_backend, char *srv_name )
              break ;
 
         default:
-	     mfs_print(DBG_INFO, "[FILE]: ERROR on ns_backend(%d).\n", ns_backend) ;
+	     mfs_print(DBG_INFO, "[INFO_NS]: ERROR on ns_backend(%d).\n", ns_backend) ;
 	     return -1 ;
              break ;
     }
