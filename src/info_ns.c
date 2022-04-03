@@ -52,7 +52,7 @@ int info_ns_insert ( comm_t *wb, int ns_backend, char *srv_name, char *port_name
     {
         case NS_USE_DBM:
 #ifdef HAVE_GDBM_H
-             GDBM_FILE fd ;
+             GDBM_FILE fd1 ;
 	     int flags ;
 
 	     flags = GDBM_WRITER ;
@@ -61,10 +61,10 @@ int info_ns_insert ( comm_t *wb, int ns_backend, char *srv_name, char *port_name
              }
 
 	     mfs_print(DBG_INFO, "[INFO_NS]: open '%s' + store k:%s,v:%s + close\n", NS_FILE_NAME, srv_name, port_name) ;
-	     ret = mfs_dbm_gdbm_open(&fd, NS_FILE_NAME, flags) ;
+	     ret = mfs_dbm_gdbm_open(&fd1, NS_FILE_NAME, flags) ;
 	     if (ret >= 0) {
-	         ret = mfs_dbm_gdbm_store(fd, srv_name, strlen(srv_name) + 1, port_name, strlen(port_name) + 1) ;
-	         mfs_dbm_gdbm_close(fd) ;
+	         ret = mfs_dbm_gdbm_store(fd1, srv_name, strlen(srv_name) + 1, port_name, strlen(port_name) + 1) ;
+	         mfs_dbm_gdbm_close(fd1) ;
 	     }
 
 	     if (ret != 0) {
@@ -75,17 +75,17 @@ int info_ns_insert ( comm_t *wb, int ns_backend, char *srv_name, char *port_name
 
         case NS_USE_TDB:
 #ifdef HAVE_TDB_H
-	     TDB_CONTEXT *fd ;
+	     TDB_CONTEXT *fd2 ;
 
 	     mfs_print(DBG_INFO, "[INFO_NS]: open '%s' + store k:%s,v:%s + close\n", NS_FILE_NAME, srv_name, port_name) ;
-	     fd = tdb_open(NS_FILE_NAME, 0, TDB_CLEAR_IF_FIRST, O_RDWR | O_CREAT, 0600) ;
-	     if (NULL == fd) {
+	     ret = mfs_dbm_tdb_open(&fd2, NS_FILE_NAME, O_RDWR | O_CREAT) ;
+	     if (NULL == fd2) {
 	         fprintf(stderr, "tdb_open fails :-S\n") ;
 	     }
 
 	     if (ret >= 0) {
-	         ret = mfs_dbm_tdb_store(fd, srv_name, strlen(srv_name) + 1, port_name, strlen(port_name) + 1) ;
-	         mfs_dbm_tdb_close(fd) ;
+	         ret = mfs_dbm_tdb_store(fd2, srv_name, strlen(srv_name) + 1, port_name, strlen(port_name) + 1) ;
+	         mfs_dbm_tdb_close(fd2) ;
 	     }
 #endif
              break ;
@@ -140,30 +140,30 @@ int info_ns_lookup ( comm_t *wb, int ns_backend, char *srv_name, char *port_name
     {
         case NS_USE_DBM:
 #ifdef HAVE_GDBM_H
-             GDBM_FILE fd ;
+             GDBM_FILE fd1 ;
 
 	     mfs_print(DBG_INFO, "[INFO_NS]: open '%s' + fetch k:%s + close\n", NS_FILE_NAME, srv_name) ;
-	     ret = mfs_dbm_gdbm_open(&fd, NS_FILE_NAME, GDBM_READER) ;
+	     ret = mfs_dbm_gdbm_open(&fd1, NS_FILE_NAME, GDBM_READER) ;
 	     if (ret >= 0) {
-	         ret = mfs_dbm_gdbm_fetch(fd, (char *)srv_name, strlen(srv_name) + 1, port_name, port_name_size) ;
-	         mfs_dbm_gdbm_close(fd) ;
+	         ret = mfs_dbm_gdbm_fetch(fd1, (char *)srv_name, strlen(srv_name) + 1, port_name, port_name_size) ;
+	         mfs_dbm_gdbm_close(fd1) ;
 	     }
 #endif
              break ;
 
         case NS_USE_TDB:
 #ifdef HAVE_TDB_H
-	     TDB_CONTEXT *fd ;
+	     TDB_CONTEXT *fd2 ;
 
 	     mfs_print(DBG_INFO, "[INFO_NS]: open '%s' + fetch k:%s + close\n", NS_FILE_NAME, srv_name) ;
-	     fd = tdb_open(NS_FILE_NAME, 0, TDB_CLEAR_IF_FIRST, O_RDONLY, 0600) ;
-	     if (NULL == fd) {
+	     ret = mfs_dbm_tdb_open(&fd2, NS_FILE_NAME, O_RDWR) ;
+	     if (NULL == fd2) {
 	         fprintf(stderr, "tdb_open fails :-S\n") ;
 	     }
 
 	     if (ret >= 0) {
-	         ret = mfs_dbm_tdb_fetch(fd, (char *)srv_name, strlen(srv_name) + 1, port_name, port_name_size) ;
-	         mfs_dbm_tdb_close(fd) ;
+	         ret = mfs_dbm_tdb_fetch(fd2, (char *)srv_name, strlen(srv_name) + 1, port_name, port_name_size) ;
+	         mfs_dbm_tdb_close(fd2) ;
 	     }
 #endif
              break ;
@@ -225,30 +225,30 @@ int info_ns_remove ( comm_t *wb, int ns_backend, char *srv_name )
     {
         case NS_USE_DBM:
 #ifdef HAVE_GDBM_H
-             GDBM_FILE fd ;
+             GDBM_FILE fd1 ;
 
 	     mfs_print(DBG_INFO, "[INFO_NS]: open '%s' + remove k:%s + close\n", NS_FILE_NAME, srv_name) ;
-	     ret = mfs_dbm_gdbm_open(&fd, NS_FILE_NAME, GDBM_WRITER) ;
+	     ret = mfs_dbm_gdbm_open(&fd1, NS_FILE_NAME, GDBM_WRITER) ;
 	     if (ret >= 0) {
-	         ret = mfs_dbm_gdbm_delete(fd, (char *)srv_name, strlen(srv_name) + 1) ;
-	         mfs_dbm_gdbm_close(fd) ;
+	         ret = mfs_dbm_gdbm_delete(fd1, (char *)srv_name, strlen(srv_name) + 1) ;
+	         mfs_dbm_gdbm_close(fd1) ;
 	     }
 #endif
              break ;
 
         case NS_USE_TDB:
 #ifdef HAVE_TDB_H
-	     TDB_CONTEXT *fd ;
+	     TDB_CONTEXT *fd2 ;
 
 	     mfs_print(DBG_INFO, "[INFO_NS]: open '%s' + remove k:%s + close\n", NS_FILE_NAME, srv_name) ;
-	     fd = tdb_open(NS_FILE_NAME, 0, TDB_CLEAR_IF_FIRST, O_RWONLY, 0600) ;
-	     if (NULL == fd) {
+	     ret = mfs_dbm_tdb_open(&fd2, NS_FILE_NAME, O_RDWR) ;
+	     if (NULL == fd2) {
 	         fprintf(stderr, "tdb_open fails :-S\n") ;
 	     }
 
 	     if (ret >= 0) {
-	         ret = mfs_dbm_tdb_delete(fd, (char *)srv_name, strlen(srv_name) + 1) ;
-	         mfs_dbm_tdb_close(fd) ;
+	         ret = mfs_dbm_tdb_delete(fd2, (char *)srv_name, strlen(srv_name) + 1) ;
+	         mfs_dbm_tdb_close(fd2) ;
 	     }
 #endif
              break ;

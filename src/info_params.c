@@ -27,7 +27,7 @@
       	printf(" | -v  %d \t\t <level>\n",                  params->verbose) ;
       	printf(" | -f  %s  \t\t POSIX | MPI-IO\n",          params->file_backend_name) ;
       	printf(" | -i  %s  \t\t POSIX\n",                   params->directory_backend_name) ;
-      	printf(" | -b  %s  \t\t GDBM\n",                    params->dbm_backend_name) ;
+      	printf(" | -b  %s  \t\t GDBM  | TDB\n",             params->dbm_backend_name) ;
       	printf(" | -t '%s' \t ondemand | pool\n",           params->thread_launch_name) ;
       	printf(" | -n '%s' \t <partition file>\n",          params->conf_fname) ;
 
@@ -42,7 +42,7 @@
       	printf("\t-c <string>:  MPI   | SOCKET | LOCAL     (default: %s)\n",   "MPI") ;
       	printf("\t-f <string>:  POSIX | MPI-IO             (default: %s)\n",   "POSIX") ;
       	printf("\t-i <string>:  POSIX                      (default: %s)\n",   "POSIX") ;
-      	printf("\t-b <string>:  GDBM                       (default: %s)\n",   "GDBM") ;
+      	printf("\t-b <string>:  GDBM  | TDB                (default: %s)\n",   "GDBM") ;
       	printf("\t-t <string>:  ondemand | pool            (default: %s)\n",   "ondemand") ;
       	printf("\t-n <string>:  name of the partition file (default: '%s')\n", DEFAULT_CONF_FILE) ;
  }
@@ -81,8 +81,8 @@
         params->directory_backend_name = base_strdup("POSIX") ;
         params->thread_launch          = THREAD_USE_ONDEMAND ;
         params->thread_launch_name     = base_strdup("On demand") ;
-        params->ns_backend             = NS_USE_DBM ;
-        params->ns_backend_name        = base_strdup("DBM") ;
+        params->ns_backend             = NS_USE_TDB ;
+        params->ns_backend_name        = base_strdup("TDB") ;
 
 	// getopt_long...
 	short_opt = "v:b:f:i:n:t:" ;
@@ -114,6 +114,10 @@
 		  if (!strcmp("GDBM",  optarg)) {
 		      params->dbm_backend = DBM_USE_GDBM ;
 		      base_free_and_strdup(&(params->dbm_backend_name), "GDBM") ;
+		  }
+		  if (!strcmp("TDB",  optarg)) {
+		      params->dbm_backend = DBM_USE_GDBM ;
+		      base_free_and_strdup(&(params->dbm_backend_name), "TDB") ;
 		  }
 		  if (!strcmp("REDIS", optarg)) {
 		      params->dbm_backend = DBM_USE_REDIS ;

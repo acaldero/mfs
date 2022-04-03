@@ -43,10 +43,13 @@ int  mfs_dbm_tdb_finalize ( void )
 int  mfs_dbm_tdb_open  ( TDB_CONTEXT **fd, const char *path_name, int flags )
 {
 #ifdef HAVE_TDB_H
+     int hash_size = 0 ;
+     int tdb_flags = 0 ; // TDB_DEFAULT ;
+
      // Open file
-     (*fd) = tdb_open((char *)path_name, 0, flags, 0700) ;
+     (*fd) = tdb_open((char *)path_name, hash_size, tdb_flags, flags, 0700) ;
      if (NULL == (*fd)) {
-	 fprintf(stderr, "tdb_open fails :-S\n") ;
+	 perror("tdb_open: ") ;
          return -1 ;
      }
 #endif
@@ -57,6 +60,8 @@ int  mfs_dbm_tdb_open  ( TDB_CONTEXT **fd, const char *path_name, int flags )
 
 int   mfs_dbm_tdb_close ( TDB_CONTEXT *fd )
 {
+     int ret = -1 ;
+
 #ifdef HAVE_TDB_H
      // Close file
      if (NULL != fd) {
@@ -67,20 +72,21 @@ int   mfs_dbm_tdb_close ( TDB_CONTEXT *fd )
      }
 #endif
 
-     // Return OK
-     return 1 ;
+     // Return OK/KO
+     return ret ;
 }
 
 int   mfs_dbm_tdb_store   ( TDB_CONTEXT *fd, void *buff_key, int count_key, void  *buff_val, int  count_val )
 {
      int ret = -1 ;
+
 #ifdef HAVE_TDB_H
      TDB_DATA key, value ;
 
      // Build key+val
-     key.dptr    = (char *)buff_key ;
+     key.dptr    = (unsigned char *)buff_key ;
      key.dsize   = count_key ;
-     value.dptr  = (char *)buff_val ;
+     value.dptr  = (unsigned char *)buff_val ;
      value.dsize = count_val ;
 
      // Store key+val
@@ -101,7 +107,7 @@ int   mfs_dbm_tdb_fetch  ( TDB_CONTEXT *fd, void *buff_key, int count_key, void 
      int cpy_size ;
 
      // Build key
-     key.dptr  = (char *)buff_key ;
+     key.dptr  = (unsigned char *)buff_key ;
      key.dsize = count_key ;
 
      // Fetch key+val
@@ -131,11 +137,12 @@ int   mfs_dbm_tdb_fetch  ( TDB_CONTEXT *fd, void *buff_key, int count_key, void 
 int   mfs_dbm_tdb_delete  ( TDB_CONTEXT *fd, void *buff_key, int count_key )
 {
      int ret = -1 ;
+
 #ifdef HAVE_TDB_H
      TDB_DATA key, value ;
 
      // Build key
-     key.dptr  = (char *)buff_key ;
+     key.dptr  = (unsigned char *)buff_key ;
      key.dsize = count_key ;
 
      // Fetch key+val

@@ -6,7 +6,7 @@
 CC=mpic++
 AR=ar
 CFLAGS=-w -g -O2 -Wall -I/usr/local/include/ -I./ -I../include # -DDEBUG
-LDFLAGS=-lpthread  -lhiredis  -lgdbm  -lyaml
+LDFLAGS=-lpthread  -lhiredis  -lgdbm  -lyaml  -ltdb
 
 LIB_DIR=../lib
 BIN_FILES=test_simple test_benchmark
