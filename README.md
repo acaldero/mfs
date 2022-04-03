@@ -2,7 +2,7 @@
 XPNLite: compact version of the XPN Parallel File System for prototyping
 
 *Licence*: GNU LESSER GENERAL PUBLIC LICENSE Version 2.1</br>
-*Authors*: [Felix Garcia Carballeira](https://researchportal.uc3m.es/display/inv16287) + [Diego Camarmas Alonso](https://github.com/dcamarmas/) + [Alejandro Calderon Mateos](https://github.com/acaldero)
+*Authors*: [Felix Garcia Carballeira](https://researchportal.uc3m.es/display/inv16287) + [Diego Camarmas Alonso](https://github.com/dcamarmas/) + [Alejandro Calderon Mateos](https://github.com/acaldero)</br>
 *Context*: XPNLite is related to the European ADMIRE project: https://www.admire-eurohpc.eu/
 
 
@@ -10,19 +10,21 @@ XPNLite: compact version of the XPN Parallel File System for prototyping
 
 ### Install prerequisites
 
+#### Mandatory (developer + MPICH + yaml + tdb)
+
 ```
 sudo apt-get install -y build-essential cmake flex libtool
-: MPICH
 sudo apt-get install -y mpich mpich-doc
-: YAML
 sudo apt-get install -y libyaml-dev libyaml-doc
-: GDBM
-sudo apt-get install -y libgdbm-compat-dev libgdbm-dev
-: TDB
 sudo apt-get install -y libtdb-dev tdb-tools
-: REDIS
+```
+
+#### Optionals (GDBM + REDIS)
+```
+sudo apt-get install -y libgdbm-compat-dev libgdbm-dev
 sudo apt-get install -y libhiredis-dev
 ```
+
 
 ### Get XPNLite source code
 
@@ -34,8 +36,8 @@ cd mfs
 ### Compile XPNLite
 
 ```
-make         -f Makefile_make
-make -C test -f Makefile_make
+make -f Makefile_make
+make -f Makefile_make -C test
 ```
 
 
@@ -43,11 +45,11 @@ make -C test -f Makefile_make
 
 ### Examples included in XPNLite
 
-'''
-  cd test<br>
+```
+  cd test
   ./run_simple.sh
   ./run_benchmark.sh
-'''
+```
 
 ### Example of work session
 
