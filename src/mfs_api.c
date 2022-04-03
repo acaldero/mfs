@@ -50,7 +50,7 @@ int mfs_api_init ( mfs_t *wb, params_t *params, int *argc, char ***argv )
 
     // Initialize cb elements...
     ret = clientstub_mpi_init   (&(wb->cb[0]), params) ;
-    ret = clientstub_socket_init(&(wb->cb[1]), params) ;
+    ret = clientstub_socket_init(&(wb->cb[1]), params, wb->cb[0].size, wb->cb[0].rank) ;
     ret = clientstub_local_init (&(wb->cb[2]), params) ;
 
     // Return OK
@@ -83,7 +83,7 @@ int mfs_api_finalize ( mfs_t *wb, params_t *params )
 int mfs_api_open_partition ( mfs_t *wb, params_t *params, char *conf_fname )
 {
     int         ret ;
-    base_url_t *elto_url ; 
+    base_url_t *elto_url ;
 
     // Check params...
     NULL_PRT_MSG_RET_VAL(wb,     "[MFS_API]: NULL wb     :-(\n", -1) ;

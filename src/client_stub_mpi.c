@@ -396,7 +396,7 @@ int  clientstub_mpi_dbmstore ( comm_t *wb, long fd, void *buff_key, int count_ke
      if (ret >= 0)
      {
     	 mfs_print(DBG_INFO,
-		   "Client[%d]: dbmstore fd:%ld k_size:%d v_size:%d >> server\n", 
+		   "Client[%d]: dbmstore fd:%ld k_size:%d v_size:%d >> server\n",
 		    mfs_comm_get_rank(wb), fd, count_key, count_val) ;
 
          ret = mfs_comm_mpi_send_request(wb, 0, REQ_ACTION_DBMSTORE, fd, count_key, count_val) ;

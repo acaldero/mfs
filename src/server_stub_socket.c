@@ -84,9 +84,9 @@ int stub_read_name ( comm_t *ab, char **buff_data_sys, int pathname_length )
  *  Server stub API
  */
 
-int serverstub_socket_init ( comm_t *wb, params_t *params, int rank )
+int serverstub_socket_init ( comm_t *wb, params_t *params, int size, int rank )
 {
-    int    ret ;
+    int    ret, rr_node ;
     conf_t partitions ;
 
     // Initialize files
@@ -128,10 +128,11 @@ int serverstub_socket_init ( comm_t *wb, params_t *params, int rank )
     }
 
     // Initialize (fields and server socket)
-    wb->rank     = rank ;
-    wb->size     = info_fsconf_get_active_nnodes(&partitions) ;
-    wb->node_str = info_fsconf_get_active_node(&partitions, rank) ;
-    wb->node_url = info_fsconf_get_active_url (&partitions, rank) ;
+    wb->rank = rank ;
+    wb->size = size ;
+    rr_node  = (wb->rank) % info_fsconf_get_active_nnodes(&partitions) ;
+    wb->node_str = info_fsconf_get_active_node(&partitions, rr_node) ;
+    wb->node_url = info_fsconf_get_active_url (&partitions, rr_node) ;
     wb->node_str = base_strdup(wb->node_str) ;
     wb->node_url = base_url_dup(wb->node_url) ;
 

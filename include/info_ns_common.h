@@ -31,14 +31,15 @@
 
 
     // File protocol
-    #define NS_USE_MFS   1
-    #define NS_USE_DBM   2
-    #define NS_USE_FILE  3
+    #define NS_USE_DBM   1
+    #define NS_USE_FILE  2
+    #define NS_USE_MFS   3
+    #define NS_USE_TDB   4
 
     // Consts
-    #define MAXPATHLEN    (1024)
-    #define NS_FILE_NAME  "ns.data"
-
+    #define MAXPATHLEN      (1024)
+    #define NS_FILE_NAME    "ns.data"
+    #define NS_DEFAULT_PORT 12345
 
 #endif
 

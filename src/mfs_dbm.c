@@ -77,6 +77,7 @@ int  mfs_dbm_stats_show ( int fd, char *prefix )
     printf("%s: + dbm_fd=%d\n",     prefix, fd) ;
     printf("%s: + protocol=%s\n",   prefix, fh->dbm_backend_name) ;
     printf("%s:   + gdbm_fd=%d\n",  prefix, fh->gdbm_fd) ;
+    printf("%s:   + tdb_fd=%p\n",   prefix, fh->tdb_ctxt) ;
     printf("%s: + offset=%ld\n",    prefix, fh->offset) ;
     printf("%s: + # read=%ld\n",    prefix, fh->n_read_req) ;
     printf("%s: + # write=%ld\n",   prefix, fh->n_write_req) ;
@@ -106,6 +107,12 @@ int  mfs_dbm_init ( void )
 	return -1 ;
     }
 
+    // initialize all protocols
+    ret = mfs_dbm_tdb_init() ;
+    if (ret < 0) {
+	return -1 ;
+    }
+
     ret = mfs_dbm_redis_init() ;
     if (ret < 0) {
 	return -1 ;
@@ -121,6 +128,12 @@ int  mfs_dbm_finalize ( void )
 
     // finalize all protocols
     ret = mfs_dbm_gdbm_finalize() ;
+    if (ret < 0) {
+	return -1 ;
+    }
+
+    // finalize all protocols
+    ret = mfs_dbm_tdb_finalize() ;
     if (ret < 0) {
 	return -1 ;
     }
@@ -165,6 +178,11 @@ int  mfs_dbm_open ( int *fd, int dbm_backend, const char *path_name, int flags )
              ret = (long)mfs_dbm_gdbm_open(&(fh->gdbm_fd), path_name, flags) ;
              break ;
 
+        case DBM_USE_TDB:
+             fh->dbm_backend_name = "TDB" ;
+             ret = mfs_dbm_tdb_open(&(fh->tdb_ctxt), path_name, flags) ;
+             break ;
+
         case DBM_USE_REDIS:
              fh->dbm_backend_name = "REDIS" ;
              ret = mfs_dbm_redis_open(&(fh->redis_ctxt), path_name, 6379) ;
@@ -204,6 +222,10 @@ int   mfs_dbm_close ( int fd )
              ret = mfs_dbm_gdbm_close(fh->gdbm_fd) ;
              break ;
 
+        case DBM_USE_TDB:
+             ret = mfs_dbm_tdb_close(fh->tdb_ctxt) ;
+             break ;
+
         case DBM_USE_REDIS:
              ret = mfs_dbm_redis_close(fh->redis_ctxt) ;
              break ;
@@ -239,6 +261,10 @@ int   mfs_dbm_store  ( int  fd, void *buff_key, int count_key, void *buff_val, i
              ret = mfs_dbm_gdbm_store(fh->gdbm_fd, buff_key, count_key, buff_val, count_val) ;
              break ;
 
+        case DBM_USE_TDB:
+             ret = mfs_dbm_tdb_store(fh->tdb_ctxt, buff_key, count_key, buff_val, count_val) ;
+             break ;
+
         case DBM_USE_REDIS:
              ret = mfs_dbm_redis_store(fh->redis_ctxt, buff_key, count_key, buff_val, count_val) ;
              break ;
@@ -250,7 +276,7 @@ int   mfs_dbm_store  ( int  fd, void *buff_key, int count_key, void *buff_val, i
     }
 
     // Stats...
-    (fh->n_read_req) ++ ;
+    (fh->n_write_req) ++ ;
 
     // Return number_bytes readed
     return ret ;
@@ -274,6 +300,10 @@ int   mfs_dbm_fetch  ( int  fd, void *buff_key, int count_key, void **buff_val, 
              ret = mfs_dbm_gdbm_fetch(fh->gdbm_fd, buff_key, count_key, *buff_val, count_val) ;
              break ;
 
+        case DBM_USE_TDB:
+             ret = mfs_dbm_tdb_fetch(fh->tdb_ctxt, buff_key, count_key, *buff_val, count_val) ;
+             break ;
+
         case DBM_USE_REDIS:
              ret = mfs_dbm_redis_fetch(fh->redis_ctxt, buff_key, count_key, *buff_val, count_val) ;
              break ;
@@ -285,7 +315,7 @@ int   mfs_dbm_fetch  ( int  fd, void *buff_key, int count_key, void **buff_val, 
     }
 
     // Stats...
-    (fh->n_write_req) ++ ;
+    (fh->n_read_req) ++ ;
 
     // Return number_bytes / KO
     return ret ;
@@ -307,6 +337,10 @@ int   mfs_dbm_delete  ( int  fd, void *buff_key, int count_key )
     {
         case DBM_USE_GDBM:
              ret = mfs_dbm_gdbm_delete(fh->gdbm_fd, buff_key, count_key) ;
+             break ;
+
+        case DBM_USE_TDB:
+             ret = mfs_dbm_tdb_delete(fh->tdb_ctxt, buff_key, count_key) ;
              break ;
 
         case DBM_USE_REDIS:

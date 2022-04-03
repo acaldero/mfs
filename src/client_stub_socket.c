@@ -120,22 +120,25 @@ int clientstub_socket_action_send_buffer ( comm_t *wb, void *buff_char, int coun
  *  File System API
  */
 
-int clientstub_socket_init ( comm_t *wb, params_t *params )
+int clientstub_socket_init ( comm_t *wb, params_t *params, int g_size, int g_rank )
 {
-	int ret ;
+    int ret ;
 
-        // Check params...
-        NULL_PRT_MSG_RET_VAL(wb, "Client[-1]: NULL wb :-(\n", -1) ;
+    // Check params...
+    NULL_PRT_MSG_RET_VAL(wb, "Client[-1]: NULL wb :-(\n", -1) ;
 
-	// Initialize fields
-        mfs_comm_reset(wb) ;
-        wb->comm_protocol      = COMM_USE_SOCKET ;
-        wb->comm_protocol_name = "SOCKET" ;
-	wb->ns_backend         = params->ns_backend ;
-	wb->sd                 = -1 ;
+    // Initialize fields
+    mfs_comm_reset(wb) ;
+    wb->comm_protocol      = COMM_USE_SOCKET ;
+    wb->comm_protocol_name = "SOCKET" ;
 
-        // Return OK
-        return 1 ;
+    wb->ns_backend         = params->ns_backend ;
+    wb->sd                 = -1 ;
+    wb->size               = g_size ;
+    wb->rank               = g_rank ;
+
+    // Return OK
+    return 1 ;
 }
 
 int clientstub_socket_finalize ( comm_t *wb, params_t *params )

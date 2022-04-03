@@ -31,7 +31,7 @@
 
 
     // File System API
-    int clientstub_socket_init            ( comm_t *wb, params_t *params ) ;
+    int clientstub_socket_init            ( comm_t *wb, params_t *params, int g_size, int g_rank ) ;
     int clientstub_socket_finalize        ( comm_t *wb, params_t *params ) ;
 
     int clientstub_socket_open_partition_element  ( comm_t *wb, params_t *params, conf_part_t *partition, int remote_rank ) ;

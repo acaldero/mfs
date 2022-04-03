@@ -20,7 +20,7 @@ OBJ_FILES=src/mfs_api.o \
 	  src/mfs_comm.o            src/mfs_comm_mpi.o          src/mfs_comm_socket.o        \
 	  src/mfs_files.o           src/mfs_files_posix.o       src/mfs_files_mpi.o          \
 	  src/mfs_directories.o     src/mfs_directories_posix.o                              \
-          src/mfs_dbm.o             src/mfs_dbm_gdbm.o          src/mfs_dbm_redis.o          \
+          src/mfs_dbm.o             src/mfs_dbm_gdbm.o          src/mfs_dbm_redis.o          src/mfs_dbm_tdb.o \
 	  src/mfs_workers.o         src/mfs_workers_pool.o      src/mfs_workers_onrequest.o  \
 	  src/info_ns.o             src/info_params.o           src/info_fsconf.o            \
 	  src/mfs_descriptors.o     src/base_socket.o           src/base_url.o               \

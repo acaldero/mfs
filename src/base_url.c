@@ -26,7 +26,7 @@
  *  Auxiliar functions
  */
 
-base_service_t  base_url_protocols[] = 
+base_service_t  base_url_protocols[] =
                 {
 		    { "http",          80 },
 		    { "ftp",           21 },
@@ -84,7 +84,7 @@ int    base_url_Match_machine ( char **machine, char *protocol, char **str )
 {
         char *pch1, *pch2 ;
 
-        /* 
+        /*
          *  file
          */
         if ( base_str_equal(protocol, "file") )
@@ -99,8 +99,8 @@ int    base_url_Match_machine ( char **machine, char *protocol, char **str )
              return 1 ;
         }
 
-        /* 
-         *  http || ftp 
+        /*
+         *  http || ftp
          */
         pch1 = strchr((*str),'/') ;
         pch2 = strchr((*str),':') ;
@@ -341,7 +341,7 @@ base_url_t *base_url_dup ( base_url_t  *base_url )
 {
 	int ret ;
         base_url_t *elto ;
-       
+
         ret = mfs_malloc((char **)&(elto), sizeof(base_url_t)) ;
 	if (ret < 0) return NULL ;
 

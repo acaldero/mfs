@@ -52,7 +52,7 @@
 
 
     // General API
-    int serverstub_socket_init           ( comm_t *wb, params_t *params, int rank ) ;
+    int serverstub_socket_init           ( comm_t *wb, params_t *params, int size, int rank ) ;
     int serverstub_socket_finalize       ( comm_t *wb, params_t *params ) ;
     int serverstub_socket_accept         ( comm_t *ab, params_t *params, comm_t *wb ) ;
     int serverstub_socket_disconnect_all ( comm_t *ab, params_t *params ) ;

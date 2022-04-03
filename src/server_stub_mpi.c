@@ -868,7 +868,7 @@ int serverstub_mpi_dbmstore ( comm_t *ab, params_t *params, int fd, int key_size
     if (ret >= 0)
     {
         mfs_print(DBG_INFO,
-		  "Server[%d]: File[%ld]: dbmstore(key=%.*s, val=%.*s) >> client\n", 
+		  "Server[%d]: File[%ld]: dbmstore(key=%.*s, val=%.*s) >> client\n",
 		  mfs_comm_get_rank(ab), fd, key_size, buff_key, val_size, buff_val) ;
 
         ret = mfs_dbm_store(fd, buff_key, key_size, buff_val, val_size) ;

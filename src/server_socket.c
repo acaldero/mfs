@@ -153,7 +153,7 @@
 
 int main ( int argc, char **argv )
 {
-    int      ret, rank ;
+    int      ret, size, rank ;
     comm_t   wb ;
     comm_t   ab ;
 
@@ -177,6 +177,7 @@ int main ( int argc, char **argv )
     // Get my rank
     MPI_Init(NULL, NULL) ;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank) ;
+    MPI_Comm_size(MPI_COMM_WORLD, &size) ;
     MPI_Finalize() ;
     sleep(rank) ;
 
@@ -188,7 +189,7 @@ int main ( int argc, char **argv )
     }
 
     // Initialize stub...
-    ret = serverstub_socket_init(&wb, &params, rank) ;
+    ret = serverstub_socket_init(&wb, &params, size, rank) ;
     if (ret < 0) {
         mfs_print(DBG_ERROR, "Server[%d]: serverstub_socket_init fails :-(\n", -1) ;
         return -1 ;

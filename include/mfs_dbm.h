@@ -26,12 +26,14 @@
     #include "base_lib.h"
     #include "mfs_descriptors.h"
     #include "mfs_dbm_gdbm.h"
+    #include "mfs_dbm_tdb.h"
     #include "mfs_dbm_redis.h"
 
 
     // File protocol
     #define DBM_USE_GDBM   1
-    #define DBM_USE_REDIS  2
+    #define DBM_USE_TDB    2
+    #define DBM_USE_REDIS  3
 
 
     // Datatypes
@@ -47,6 +49,7 @@
         // descriptors
         GDBM_FILE     gdbm_fd ;
 	redisContext *redis_ctxt ;
+	TDB_CONTEXT  *tdb_ctxt ;
 
         // some stats
         long  offset ;

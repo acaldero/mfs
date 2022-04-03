@@ -11,12 +11,17 @@ XPNLite: compact version of the XPN Parallel File System for prototyping
 ### Install prerequisites
 
 ```
-sudo apt-get install -y build-essential cmake
-sudo apt-get install -y flex libtool
+sudo apt-get install -y build-essential cmake flex libtool
+: MPICH
 sudo apt-get install -y mpich mpich-doc
-sudo apt-get install -y libhiredis-dev
-sudo apt-get install -y libgdbm-compat-dev libgdbm-dev
+: YAML
 sudo apt-get install -y libyaml-dev libyaml-doc
+: GDBM
+sudo apt-get install -y libgdbm-compat-dev libgdbm-dev
+: TDB
+sudo apt-get install -y libtdb-dev tdb-tools
+: REDIS
+sudo apt-get install -y libhiredis-dev
 ```
 
 ### Get XPNLite source code
