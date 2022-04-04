@@ -3,10 +3,10 @@
          name: "P1"
          type: "NORMAL"
          nodes:
-                 - uri: "tcpServer://localhost:12345/./data/"
-                 - uri: "tcpServer://localhost:12346/./data/"
+                 - uri: "file://./data/"
  partition:
          name: "P2"
          type: "NORMAL"
          nodes:
-                 - uri: "file:///tmp/1/"
+                 - uri: "mpiServer://mfs.0/data"
+                 - uri: "mpiServer://mfs.1/data"

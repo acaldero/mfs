@@ -28,6 +28,12 @@
     #include "mfs_comm.h"
 
 
+    // Define
+    #define CLT_STUB_LOCAL_DEFAULT_FILE  FILE_USE_POSIX
+    #define CLT_STUB_LOCAL_DEFAULT_DIR   DIRECTORY_USE_POSIX
+    #define CLT_STUB_LOCAL_DEFAULT_DBM   DBM_USE_GDBM
+
+
     // File System API
     int clientstub_local_init            ( comm_t *wb, params_t *params ) ;
     int clientstub_local_finalize        ( comm_t *wb, params_t *params ) ;

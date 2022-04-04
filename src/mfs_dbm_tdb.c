@@ -102,6 +102,8 @@ int   mfs_dbm_tdb_store   ( TDB_CONTEXT *fd, void *buff_key, int count_key, void
 
 int   mfs_dbm_tdb_fetch  ( TDB_CONTEXT *fd, void *buff_key, int count_key, void *buff_val, int *count_val )
 {
+     int ret = -1 ;
+
 #ifdef HAVE_TDB_H
      TDB_DATA key, value ;
      int cpy_size ;
@@ -114,8 +116,7 @@ int   mfs_dbm_tdb_fetch  ( TDB_CONTEXT *fd, void *buff_key, int count_key, void 
      value = tdb_fetch(fd, key) ;
 
      // Check returned value
-     if (value.dptr == NULL)
-     {
+     if (value.dptr == NULL) {
 	 fprintf(stderr, "tdb_fetch fails :-S\n") ;
          return -1 ;
      }
@@ -125,13 +126,11 @@ int   mfs_dbm_tdb_fetch  ( TDB_CONTEXT *fd, void *buff_key, int count_key, void 
      memcpy(buff_val, (void *)value.dptr, cpy_size) ;
      *count_val = cpy_size ;
      free(value.dptr) ;
-
-     // Return OK
-     return 1 ;
-#else
-     // Return KO
-     return -1 ;
+     ret = 1 ;
 #endif
+
+     // Return OK/KO
+     return ret ;
 }
 
 int   mfs_dbm_tdb_delete  ( TDB_CONTEXT *fd, void *buff_key, int count_key )
@@ -139,7 +138,7 @@ int   mfs_dbm_tdb_delete  ( TDB_CONTEXT *fd, void *buff_key, int count_key )
      int ret = -1 ;
 
 #ifdef HAVE_TDB_H
-     TDB_DATA key, value ;
+     TDB_DATA key ;
 
      // Build key
      key.dptr  = (unsigned char *)buff_key ;

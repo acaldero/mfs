@@ -103,8 +103,8 @@ int main ( int argc, char **argv )
 
     // Welcome...
     printf("\n"
- 	   " mfs_client\n"
-	   " ----------\n"
+ 	   " test_benchmark\n"
+	   " --------------\n"
 	   "\n") ;
 
     // Initialize...

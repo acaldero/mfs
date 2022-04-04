@@ -27,7 +27,7 @@ trap "trap - TERM && kill -- -$$" INT TERM EXIT
 #
 # MPI tests...
 #
-if false; then
+if true; then
    echo ""
    echo " # comm_backend=MPI ##################################### "
    echo ""
@@ -39,9 +39,9 @@ if false; then
      sleep 1
    # run server...
    echo "   + ../bin/mfs_server_mpi &"
-   echo "   + sleep 3"
+   echo "   + sleep 2"
      mpirun -np $SERVER_NP -nameserver ${HOSTNAME} ../bin/mfs_server_mpi    -f ${F_BACKEND} -v ${V_LEVEL} &
-     sleep 3
+     sleep 2
    # run client...
    echo ""
    for i in $(seq 1 1 $N_TESTS)
@@ -64,9 +64,9 @@ if true; then
    cp conf-socket.yaml conf.yaml
    # start server...
    echo "   + ../bin/mfs_server_socket &"
-   echo "   + sleep 3"
+   echo "   + sleep 2"
     mpirun -np $SERVER_NP ../bin/mfs_server_socket -f ${F_BACKEND} -v ${V_LEVEL} &
-    sleep 3
+    sleep 2
    # run client...
    echo ""
    for i in $(seq 1 1 $N_TESTS)
@@ -82,7 +82,7 @@ fi
 #
 # Local tests...
 #
-if false; then
+if true; then
    echo ""
    echo " # comm_backend=LOCAL ################################### "
    echo ""

@@ -27,10 +27,9 @@
 
 int main_test_file ( mfs_t *wb )
 {
-    int  ret ;
+    int  ret, rank ;
     long fd ;
     char str[STR_SIZE] ;
-    int  rank ;
 
     rank = mfs_api_get_rank(wb) ;
 
@@ -39,12 +38,14 @@ int main_test_file ( mfs_t *wb )
 
     printf("Client[%d]: creat(...) + write(...) + close(...)\n", rank) ;
     fd = mfs_api_open(wb, "test1.txt", O_WRONLY | O_CREAT | O_TRUNC) ;
+    if (fd < 0) return -1 ;
     mfs_api_write(wb, fd, str, strlen(str)) ;
     mfs_api_close(wb, fd) ;
 
     // read("...")
     printf("Client[%d]: open(...) + read(...) + close(...)\n", rank) ;
     fd = mfs_api_open(wb, "test1.txt", O_RDONLY) ;
+    if (fd < 0) return -1 ;
      mfs_api_read(wb, fd, str, STR_SIZE) ;
     mfs_api_close(wb, fd) ;
 
@@ -58,8 +59,7 @@ int main_test_dbm ( mfs_t *wb )
     int    n_servers, rank ;
     char   str1[STR_SIZE] ;
     char   str2[STR_SIZE] ;
-    int    str1_len ;
-    int    str2_len ;
+    int    str1_len, str2_len ;
 
     rank = mfs_api_get_rank(wb) ;
 
@@ -80,6 +80,8 @@ int main_test_dbm ( mfs_t *wb )
         mfs_api_dbmclose(wb, fd) ;
     }
 
+    sleep(1) ;
+
     // dbmfetch("m1")
     strcpy(str1, "m1") ;
     strcpy(str2, "") ;
@@ -91,6 +93,8 @@ int main_test_dbm ( mfs_t *wb )
     if (fd < 0) return -1 ;
     mfs_api_dbmfetch(wb, fd, str1, str1_len, &str2, &str2_len) ;
     mfs_api_dbmclose(wb, fd) ;
+
+    sleep(1) ;
 
     // dbmdelete("m1")
     if (rank < n_servers)
@@ -116,8 +120,8 @@ int main ( int argc, char **argv )
 
     // Welcome...
     printf("\n"
- 	   " mfs_client\n"
-	   " ----------\n") ;
+ 	   " test_simple\n"
+	   " -----------\n") ;
 
     // Initialize...
     mfs_print(DBG_INFO, "Client[%d]: initializing...\n", -1) ;

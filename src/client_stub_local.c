@@ -141,7 +141,7 @@ long clientstub_local_open ( comm_t *wb, const char *pathname, int flags )
      // Open file
      mfs_print(DBG_INFO, "Client[%d]: open('%s', %d)\n", mfs_comm_get_rank(wb), buff_data_sys, flags) ;
 
-     ret = mfs_file_open(&fd, FILE_USE_POSIX, buff_data_sys, flags) ;
+     ret = mfs_file_open(&fd, CLT_STUB_LOCAL_DEFAULT_FILE, buff_data_sys, flags) ;
      if (ret < 0) {
 	 mfs_print(DBG_WARNING, "Client[%d]: file '%s' not opened :-(\n", mfs_comm_get_rank(wb), pathname) ;
 	 return -1 ;
@@ -186,14 +186,14 @@ long clientstub_local_mkdir ( comm_t *wb, const char *pathname, int mode )
 {
      mfs_print(DBG_INFO, "Client[%d]: mkdir('%s', %d)\n", mfs_comm_get_rank(wb), pathname, mode) ;
 
-     return mfs_directory_mkdir(DIRECTORY_USE_POSIX, (char *)pathname, mode) ;
+     return mfs_directory_mkdir(CLT_STUB_LOCAL_DEFAULT_DIR, (char *)pathname, mode) ;
 }
 
 long clientstub_local_rmdir ( comm_t *wb, const char *pathname )
 {
      mfs_print(DBG_INFO, "Client[%d]: rmdir('%s')\n", mfs_comm_get_rank(wb), pathname) ;
 
-     return mfs_directory_rmdir(DIRECTORY_USE_POSIX, (char *)pathname) ;
+     return mfs_directory_rmdir(CLT_STUB_LOCAL_DEFAULT_DIR, (char *)pathname) ;
 }
 
 
@@ -224,7 +224,7 @@ long clientstub_local_dbmopen ( comm_t *wb, const char *pathname, int flags )
      // Open file
      mfs_print(DBG_INFO, "Client[%d]: dbmopen('%s', %d)\n", mfs_comm_get_rank(wb), buff_data_sys, flags) ;
 
-     ret = mfs_dbm_open(&fd, DBM_USE_GDBM, buff_data_sys, flags) ;
+     ret = mfs_dbm_open(&fd, CLT_STUB_LOCAL_DEFAULT_DBM, buff_data_sys, flags) ;
      if (ret < 0) {
 	 mfs_print(DBG_WARNING, "Client[%d]: file '%s' not opened :-(\n", mfs_comm_get_rank(wb), pathname) ;
 	 return -1 ;

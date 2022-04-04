@@ -69,6 +69,7 @@
 
     // General API
     int  mfs_api_get_rank  ( mfs_t *wb ) ;
+    int  mfs_api_get_size  ( mfs_t *wb ) ;
 
 #endif
 

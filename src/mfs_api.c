@@ -557,6 +557,15 @@ int  mfs_api_get_rank  ( mfs_t *wb )
     NULL_PRT_MSG_RET_VAL(wb,     "[MFS_API]: NULL wb     :-(\n", -1) ;
     NULL_PRT_MSG_RET_VAL(wb->wb, "[MFS_API]: NULL wb->wb :-(\n", -1) ;
 
-    return wb->wb[0].rank ;
+    return wb->cb[0].rank ;
+}
+
+int  mfs_api_get_size  ( mfs_t *wb )
+{
+    // Check params...
+    NULL_PRT_MSG_RET_VAL(wb,     "[MFS_API]: NULL wb     :-(\n", -1) ;
+    NULL_PRT_MSG_RET_VAL(wb->wb, "[MFS_API]: NULL wb->wb :-(\n", -1) ;
+
+    return wb->cb[0].size ;
 }
 
