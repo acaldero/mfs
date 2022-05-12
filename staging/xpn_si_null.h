@@ -1,6 +1,6 @@
 
-#ifndef _XPNI_NULL_H
-#define _XPNI_NULL_H
+#ifndef _XPN_SI_NULL_H
+#define _XPN_SI_NULL_H
 
  #ifdef  __cplusplus
     extern "C" {

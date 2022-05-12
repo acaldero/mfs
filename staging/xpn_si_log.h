@@ -1,6 +1,6 @@
 
-#ifndef _XPNI_LOG_H
-#define _XPNI_LOG_H
+#ifndef _XPN_SI_LOG_H
+#define _XPN_SI_LOG_H
 
  #ifdef  __cplusplus
     extern "C" {
