@@ -9,37 +9,38 @@
 
    /* ... Include / Inclusion ........................................... */
 
-      #include "all_system.h"
-      #include "xpni/common/xpni_fit.h"
-      #include "xpni/common/xpni_fsit.h"
-      #include "xpni/common/xpni_file.h"
-      #include "xpni/common/xpni_lowfsi.h"
+      #include "base_lib.h"
+      #include "xpni/xpni_fit.h"
+      #include "xpni/xpni_fsit.h"
+      #include "xpni/xpni_file.h"
 
 
    /* ... Functions / Funciones ......................................... */
 
       // register + unregister
-      int xpnsb_posix_register   ( xpni_fsi_t *fsi ) ;
-      int xpnsb_posix_unregister ( xpni_fsi_t *fsi ) ;
+      int  xpnsb_posix_register   ( xpni_fsi_t *fsi ) ;
+      int  xpnsb_posix_unregister ( xpni_fsi_t *fsi ) ;
 
       // init + destroy
-      int xpnsb_posix_init    () ;
-      int xpnsb_posix_destroy () ;
+      int     xpnsb_posix_init    () ;
+      int     xpnsb_posix_destroy () ;
 
-      // open + close + sread + swrite
+      // File API
       int     xpnsb_posix_creat  ( char *path, mode_t mode ) ;
       int     xpnsb_posix_open   ( char *path, int flags, mode_t mode ) ;
       int     xpnsb_posix_close  ( int fd ) ;
       off_t   xpnsb_posix_lseek  ( int fd, off_t offset, int flag ) ;
-      ssize_t xpnsb_posix_swrite ( int fd, void *buffer, size_t size, off_t offset ) ;
-      ssize_t xpnsb_posix_sread  ( int fd, void *buffer, size_t size, off_t offset ) ;
+      ssize_t xpnsb_posix_write  ( int fd, void *buffer, size_t size ) ;
+      ssize_t xpnsb_posix_read   ( int fd, void *buffer, size_t size ) ;
 
-      // import + export
-      int xpnsb_posix_exportFile ( __attribute__((__unused__)) int fd ) ;
-      int xpnsb_posix_importFile ( __attribute__((__unused__)) int fd ) ;
+      // Directory API
+      long    xpnsb_posix_mkdir     ( const char *pathname, int mode ) ;
+      long    xpnsb_posix_rmdir     ( const char *pathname ) ;
 
-      // opendir + closedir + readdir + rewind
-      DIR * xpnsb_posix_opendir ( char *path ) ;
+      DIR   * xpnsb_posix_opendir   ( char *path ) ;
+      int     xpnsb_posix_closedir  ( DIR *dirp ) ;
+      struct dirent *xpnsb_posix_readdir ( DIR *dirp ) ;
+      void    xpnsb_posix_rewinddir ( DIR *dirp ) ;
 
 
   /* .................................................................... */

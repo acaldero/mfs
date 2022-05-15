@@ -9,41 +9,42 @@
 
    /* ... Include / Inclusion ........................................... */
 
-      #include "xpn.h"
-      #include "expand.h"
-      #include "xpni/common/xpni_fit.h"
-      #include "xpni/common/xpni_fsit.h"
-      #include "xpni/common/xpni_file.h"
-      #include "xpni/common/xpni_lowfsi.h"
+      #include "base_lib.h"
       #include "base/math_misc.h"
+      #include "xpni/xpni_fit.h"
+      #include "xpni/xpni_fsit.h"
+      #include "xpni/xpni_file.h"
 
 
    /* ... Functions / Funciones ......................................... */
 
-      int     xpni_ft_init    ( ) ;
-      int     xpni_ft_destroy ( ) ;
+      // register + unregister
+      int  xpnsi_ft_register   ( xpni_fsi_t *fsi ) ;
+      int  xpnsi_ft_unregister ( xpni_fsi_t *fsi ) ;
 
-      int     xpni_ft_register   ( xpni_fsi_t *fsi ) ;
-      int     xpni_ft_unregister ( xpni_fsi_t *fsi ) ;
+      // init + destroy
+      int     xpnsi_ft_init    () ;
+      int     xpnsi_ft_destroy () ;
 
-      int     xpni_ft_importFile ( int fd ) ;
-      int     xpni_ft_exportFile ( int fd ) ;
+      // File API
+      int     xpnsi_ft_creat  ( char *path, mode_t mode ) ;
+      int     xpnsi_ft_open   ( char *path, int flags, mode_t mode ) ;
+      int     xpnsi_ft_close  ( int fd ) ;
+      off_t   xpnsi_ft_lseek  ( int fd, off_t offset, int flag ) ;
+      ssize_t xpnsi_ft_write  ( int fd, void *buffer, size_t size ) ;
+      ssize_t xpnsi_ft_read   ( int fd, void *buffer, size_t size ) ;
 
-      int     xpni_ft_open    ( int fd ) ;
-      int     xpni_ft_creat   ( int fd ) ;
-      int     xpni_ft_close   ( int fd ) ;
+      // Directory API
+      long    xpnsi_ft_mkdir     ( const char *pathname, int mode ) ;
+      long    xpnsi_ft_rmdir     ( const char *pathname ) ;
 
-      ssize_t xpni_ft_sread   ( int fd, void *buffer, off_t offset, size_t size ) ;
-      ssize_t xpni_ft_swrite  ( int fd, void *buffer, off_t offset, size_t size ) ;
-
-      off_t   xpni_ft_lseek   ( int fd, off_t offset, int flag ) ;
-
-      DIR    *xpni_ft_opendir ( int dd ) ;
-
-      /*#NewInterfaceFunction.AsFunction3#*/
+      DIR   * xpnsi_ft_opendir   ( char *path ) ;
+      int     xpnsi_ft_closedir  ( DIR *dirp ) ;
+      struct dirent *xpnsi_ft_readdir ( DIR *dirp ) ;
+      void    xpnsi_ft_rewinddir ( DIR *dirp ) ;
 
 
-  /* .................................................................... */
+   /* ................................................................... */
 
 
  #ifdef  __cplusplus

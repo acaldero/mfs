@@ -9,37 +9,40 @@
 
    /* ... Include / Inclusion ........................................... */
 
-      #include "xpn.h"
-      #include "expand.h"
-      #include "xpni/common/xpni_fit.h"
-      #include "xpni/common/xpni_fsit.h"
-      #include "xpni/common/xpni_file.h"
-      #include "xpni/common/xpni_lowfsi.h"
+      #include "base_lib.h"
+      #include "base/time_misc.h"
+      #include "xpni/xpni_log_elog.h"
+      #include "xpni/xpni_fit.h"
+      #include "xpni/xpni_fsit.h"
+      #include "xpni/xpni_file.h"
 
 
    /* ... Functions / Funciones ......................................... */
 
-      int     xpni_null_init    ( ) ;
-      int     xpni_null_destroy ( ) ;
+      // register + unregister
+      int  xpnsi_null_register   ( xpni_fsi_t *fsi ) ;
+      int  xpnsi_null_unregister ( xpni_fsi_t *fsi ) ;
 
-      int     xpni_null_register   ( xpni_fsi_t *fsi ) ;
-      int     xpni_null_unregister ( xpni_fsi_t *fsi ) ;
+      // init + destroy
+      int     xpnsi_null_init    () ;
+      int     xpnsi_null_destroy () ;
 
-      int     xpni_null_importFile ( int fd ) ;
-      int     xpni_null_exportFile ( int fd ) ;
+      // File API
+      int     xpnsi_null_creat  ( char *path, mode_t mode ) ;
+      int     xpnsi_null_open   ( char *path, int flags, mode_t mode ) ;
+      int     xpnsi_null_close  ( int fd ) ;
+      off_t   xpnsi_null_lseek  ( int fd, off_t offset, int flag ) ;
+      ssize_t xpnsi_null_write  ( int fd, void *buffer, size_t size ) ;
+      ssize_t xpnsi_null_read   ( int fd, void *buffer, size_t size ) ;
 
-      int     xpni_null_open    ( int fd ) ;
-      int     xpni_null_creat   ( int fd ) ;
-      int     xpni_null_close   ( int fd ) ;
+      // Directory API
+      long    xpnsi_null_mkdir     ( const char *pathname, int mode ) ;
+      long    xpnsi_null_rmdir     ( const char *pathname ) ;
 
-      ssize_t xpni_null_sread   ( int fd, void *buffer, off_t offset, size_t size ) ;
-      ssize_t xpni_null_swrite  ( int fd, void *buffer, off_t offset, size_t size ) ;
-
-      off_t   xpni_null_lseek   ( int fd, off_t offset, int flag ) ;
-
-      DIR    *xpni_null_opendir	( int dd ) ;
-
-      /*#NewInterfaceFunction.AsFunction3#*/
+      DIR   * xpnsi_null_opendir   ( char *path ) ;
+      int     xpnsi_null_closedir  ( DIR *dirp ) ;
+      struct dirent *xpnsi_null_readdir ( DIR *dirp ) ;
+      void    xpnsi_null_rewinddir ( DIR *dirp ) ;
 
 
   /* .................................................................... */

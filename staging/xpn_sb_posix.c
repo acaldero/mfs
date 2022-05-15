@@ -21,19 +21,25 @@
 	/* register xpnsb_posix interface */
 	fsi->fsi_name   = STRING_MISC_StrDup("xpnsb_posix") ;
 
+	// file API
 	fsi->fsi_init       = xpnsb_posix_init ;
         fsi->fsi_destroy    = xpnsb_posix_destroy ;
         fsi->fsi_open       = xpnsb_posix_open ;
         fsi->fsi_creat      = xpnsb_posix_creat ;
         fsi->fsi_close      = xpnsb_posix_close ;
-        fsi->fsi_sread      = xpnsb_posix_sread ;
-        fsi->fsi_swrite     = xpnsb_posix_swrite ;
+        fsi->fsi_read       = xpnsb_posix_read ;
+        fsi->fsi_write      = xpnsb_posix_write ;
         fsi->fsi_lseek      = xpnsb_posix_lseek ;
+	// directory API
         fsi->fsi_opendir    = xpnsb_posix_opendir ;
+        fsi->fsi_closedir   = xpnsb_posix_closedir ;
+        fsi->fsi_readdir    = xpnsb_posix_readdir ;
+        fsi->fsi_mkdir      = xpnsb_posix_mkdir ;
+        fsi->fsi_rmdir      = xpnsb_posix_rmdir ;
+        fsi->fsi_rewinddir  = xpnsb_posix_rewinddir ;
+	// register/unregister API
         fsi->fsi_register   = xpnsb_posix_register ;
         fsi->fsi_unregister = xpnsb_posix_unregister ;
-        fsi->fsi_importFile = xpnsb_posix_importFile ;
-        fsi->fsi_exportFile = xpnsb_posix_exportFile ;
 
 	/* return ok */
 	return (1) ;
@@ -47,20 +53,30 @@
 	}
 
 	/* unregister xpnsb_posix interface */
-	free(fsi->fsi_name) ;
+	if (NULL != fsi->fsi_name) {
+	    free(fsi->fsi_name) ;
+	    fsi->fsi_name   = NULL ;
+	}
 
+	// file API
 	fsi->fsi_init       = NULL ;
         fsi->fsi_destroy    = NULL ;
         fsi->fsi_open       = NULL ;
         fsi->fsi_creat      = NULL ;
         fsi->fsi_close      = NULL ;
-        fsi->fsi_sread      = NULL ;
-        fsi->fsi_swrite     = NULL ;
+        fsi->fsi_read       = NULL ;
+        fsi->fsi_write      = NULL ;
         fsi->fsi_lseek      = NULL ;
+	// directory API
+        fsi->fsi_opendir    = NULL ;
+        fsi->fsi_closedir   = NULL ;
+        fsi->fsi_readdir    = NULL ;
+        fsi->fsi_mkdir      = NULL ;
+        fsi->fsi_rmdir      = NULL ;
+        fsi->fsi_rewinddir  = NULL ;
+	// register/unregister API
         fsi->fsi_register   = NULL ;
         fsi->fsi_unregister = NULL ;
-        fsi->fsi_importFile = NULL ;
-        fsi->fsi_exportFile = NULL ;
 
 	/* return ok */
 	return (1) ;
@@ -122,33 +138,14 @@
 	  return lseek(fd, offset, flag) ;
       }
 
-      ssize_t xpnsb_posix_swrite ( int fd, void *buffer, size_t size, off_t offset )
+      ssize_t xpnsb_posix_write ( int fd, void *buffer, size_t size )
       {
-	  lseek(fd, offset, SEEK_SET) ;
 	  return write(fd, buffer, size) ;
       }
 
-      ssize_t xpnsb_posix_sread ( int fd, void *buffer, size_t size, off_t offset )
+      ssize_t xpnsb_posix_read ( int fd, void *buffer, size_t size )
       {
-	  lseek(fd, offset, SEEK_SET) ;
 	  return read(fd, buffer, size) ;
-      }
-
-
-      //
-      // import + export
-      //
-
-      int xpnsb_posix_exportFile ( __attribute__((__unused__)) int fd )
-      {
-	  /* return ok, nothing to do by now... */
-	  return (1) ;
-      }
-
-      int xpnsb_posix_importFile ( __attribute__((__unused__)) int fd )
-      {
-	  /* return ok, nothing to do by now... */
-	  return (1) ;
       }
 
 
@@ -159,6 +156,32 @@
       DIR * xpnsb_posix_opendir ( char *path )
       {
 	  return opendir(path) ;
+      }
+
+      int     xpnsb_posix_closedir  ( DIR *dirp )
+      {
+	  return closedir(dirp) ;
+      }
+
+      struct dirent *xpnsb_posix_readdir ( DIR *dirp )
+      {
+	  return readdir(dirp) ;
+      }
+
+      void    xpnsb_posix_rewinddir ( DIR *dirp )
+      {
+	  return rewinddir(dirp) ;
+      }
+
+
+      long    xpnsb_posix_mkdir     ( const char *pathname, int mode )
+      {
+	  return mkdir(pathname, mode) ;
+      }
+
+      long    xpnsb_posix_rmdir     ( const char *pathname )
+      {
+	  return rmdir(pathname) ;
       }
 
 
