@@ -1,6 +1,6 @@
 
-#ifndef _XPNI_LOG_ELOG_H
-#define _XPNI_LOG_ELOG_H
+#ifndef _UTIL_LOG_API_H
+#define _UTIL_LOG_API_H
 
  #ifdef  __cplusplus
     extern "C" {
@@ -15,7 +15,7 @@
 
    /* ... Functions / Funciones ......................................... */
 
-      int xpni_log_elog
+      int util_log_elog
 	  (
              /*IN*/  struct timeval *t1,
              /*IN*/  struct timeval *t2,
@@ -25,7 +25,7 @@
              /*IN*/  int             size
 	  ) ;
 
-      int xpni_log_vprintf
+      int util_log_vprintf
 	  (
 	     /*IN*/  char           *ename,
              ...

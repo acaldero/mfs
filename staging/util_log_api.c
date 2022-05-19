@@ -1,8 +1,28 @@
 
+/*
+ *  Copyright 2020-2022 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
+ *
+ *  This file is part of XPNlite.
+ *
+ *  XPNlite is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Lesser General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  XPNlite is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with XPNlite.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 
    /* ... Include / Inclusion ........................................... */
 
-      #include "include/xpn_log_api.h"
+      #include "include/util_log_api.h"
 
 
    /* ... Variables / Variabls .......................................... */
@@ -13,7 +33,7 @@
 
    /* ... Functions / Funciones ......................................... */
 
-      int xpni_log_elog
+      int util_log_elog
       (
          /*IN*/  struct timeval *t1,
          /*IN*/  struct timeval *t2,
@@ -36,7 +56,7 @@
 
          /* debugging */
 	 #if defined(XPNI_DEBUG)
-             printf("[%s:%d] xpni_log_elog(%p,%p,%s,%d); \n",
+             printf("[%s:%d] util_log_elog(%p,%p,%s,%d); \n",
                     __FILE__,__LINE__,t1,t2,action,object);
 	 #endif
 
@@ -65,12 +85,12 @@
              object_name = "null";
 
 	 /* write event to log... */
-         ret = xpni_log_vprintf("%f %f %d %s %d %d %s\n",
+         ret = util_log_vprintf("%f %f %d %s %d %d %s\n",
 				 t1_ms,diff_ms,
                                  object,action,offset,size,
 				 object_name) ;
 	 /*
-         ret = xpni_log_vprintf("%4.0ld-%2.0ld-%2.0ld-%2.0ld-%2.0ld %f %d %s %d %d %s\n",
+         ret = util_log_vprintf("%4.0ld-%2.0ld-%2.0ld-%2.0ld-%2.0ld %f %d %s %d %d %s\n",
                                  t1_Y,t1_D,t1_h,t1_m,t1_s,diff_ms,
                                  object,action,offset,size,
 				 object_name) ;
@@ -81,7 +101,7 @@
 
       }
 
-      int xpni_log_vprintf
+      int util_log_vprintf
       (
          /*IN*/   char *einfo,
          ...
@@ -97,7 +117,7 @@
 
         /* debugging */
 	#if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpni_log_elog(%s); \n",
+            printf("[%s:%d] util_log_elog(%s); \n",
                    __FILE__,__LINE__,ename);
 	#endif
 
