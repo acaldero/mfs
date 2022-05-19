@@ -1,25 +1,45 @@
 
+/*
+ *  Copyright 2020-2022 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
+ *
+ *  This file is part of XPNlite.
+ *
+ *  XPNlite is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Lesser General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  XPNlite is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with XPNlite.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 
    /* ... Include / Inclusion ........................................... */
 
-      #include "include/xpn_si_ft.h"
+      #include "include/stk_mid_ft.h"
 
 
    /* ... Internal functions / Funciones internas ....................... */
 
-      char *xpnsi_ft_metaData_getMetaDataFileName ( int fd )
+      char *stk_mid_ft_metaData_getMetaDataFileName ( int fd )
       {
         char  *pfname ;
         int    pfname_len ;
 
         /* debugging */
         #if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_metaData_getMetaDataFileName(%d); \n",
+            printf("[%s:%d] stk_mid_ft_metaData_getMetaDataFileName(%d); \n",
                    __FILE__,__LINE__,fd);
         #endif
 
         pfname_len = strlen(xpni_fit_get_XPN_FNAME(fd)) +
-                     strlen(".xpnsi_ft") +
+                     strlen(".stk_mid_ft") +
                      1 /* '\0'*/ ;
 
         pfname = (char *)malloc(pfname_len) ;
@@ -27,12 +47,12 @@
  	    return NULL ;
 
 	strcpy(pfname,xpni_fit_get_XPN_FNAME(fd)) ;
-	strcat(pfname,".xpnsi_ft") ;
+	strcat(pfname,".stk_mid_ft") ;
 
         return pfname ;
       }
 
-      ssize_t xpnsi_ft_sread_fail_r5o
+      ssize_t stk_mid_ft_sread_fail_r5o
       (
          int fd,
          void *buffer,
@@ -56,7 +76,7 @@
 
         /* debugging */
         #if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_sread_r5o(%d,%p,%d,%d); \n",
+            printf("[%s:%d] stk_mid_ft_sread_r5o(%d,%p,%d,%d); \n",
                    __FILE__,__LINE__,fd,buffer,(int)offset,size);
         #endif
 
@@ -120,7 +140,7 @@
 	return ret ;
       }
 
-      ssize_t xpnsi_ft_sread_nofail_r5o
+      ssize_t stk_mid_ft_sread_nofail_r5o
       (
          int fd,
          void *buffer,
@@ -130,7 +150,7 @@
       {
         /* debugging */
         #if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_sread_r5o(%d,%p,%d,%d); \n",
+            printf("[%s:%d] stk_mid_ft_sread_r5o(%d,%p,%d,%d); \n",
                    __FILE__,__LINE__,fd,buffer,(int)offset,size);
         #endif
 
@@ -140,7 +160,7 @@
 			         size) ;
       }
 
-      ssize_t xpnsi_ft_sread_r5o
+      ssize_t stk_mid_ft_sread_r5o
       (
         int fd,
         void *buffer,
@@ -155,7 +175,7 @@
 
         /* debugging */
         #if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_sread_r5o(%d,%p,%d,%d); \n",
+            printf("[%s:%d] stk_mid_ft_sread_r5o(%d,%p,%d,%d); \n",
                    __FILE__,__LINE__,fd,buffer,(int)offset,size);
         #endif
 
@@ -172,17 +192,17 @@
 		switch (fmeta_nerrors)
 		{
 			case 0:
-                             ret = xpnsi_ft_sread_nofail_r5o(fd,buffer,(int)offset,size) ;
+                             ret = stk_mid_ft_sread_nofail_r5o(fd,buffer,(int)offset,size) ;
 			     break;
 
 			case 1:
-                             ret = xpnsi_ft_sread_fail_r5o(fd,buffer,(int)offset,size) ;
+                             ret = stk_mid_ft_sread_fail_r5o(fd,buffer,(int)offset,size) ;
 			     break;
 
 			default:
                              ret = (-1);
 #if defined(XPNI_DEBUG)
-                             printf("[%s:%d] xpnsi_ft_sread_r5o(%d,%p,%d,%d): %d fail(s)\n",
+                             printf("[%s:%d] stk_mid_ft_sread_r5o(%d,%p,%d,%d): %d fail(s)\n",
                                     __FILE__,__LINE__,fd,buffer,(int)offset,size,fmeta_nerrors);
 #endif
 			     break;
@@ -193,7 +213,7 @@
 	{
             ret = (-1);
 #if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_sread_r5o(%d,%p,%d,%d): Unknow file system tag: '%s' (not %s or %s)\n",
+            printf("[%s:%d] stk_mid_ft_sread_r5o(%d,%p,%d,%d): Unknow file system tag: '%s' (not %s or %s)\n",
                    __FILE__,__LINE__,fd,buffer,(int)offset,size,
 		   fmeta_fsTag,FS_TAG_RAID5OUTER,FS_TAG_RAID5OUTER);
 #endif
@@ -204,7 +224,7 @@
       }
 
 
-      ssize_t xpnsi_ft_swrite_nofail_r5o
+      ssize_t stk_mid_ft_swrite_nofail_r5o
       (
         int fd,
         void *buffer,
@@ -248,7 +268,7 @@
 
         /* debugging */
         #if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_swrite_r5o(%d,%p,%d,%d); \n",
+            printf("[%s:%d] stk_mid_ft_swrite_r5o(%d,%p,%d,%d); \n",
                    __FILE__,__LINE__,fd,buffer,(int)offset,size);
         #endif
 
@@ -419,7 +439,7 @@
         return size ;
       }
 
-      ssize_t xpnsi_ft_swrite_fail_r5o
+      ssize_t stk_mid_ft_swrite_fail_r5o
       (
         int fd,
         void *buffer,
@@ -463,7 +483,7 @@
 
         /* debugging */
         #if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_swrite_r5o(%d,%p,%d,%d); \n",
+            printf("[%s:%d] stk_mid_ft_swrite_r5o(%d,%p,%d,%d); \n",
                    __FILE__,__LINE__,fd,buffer,(int)offset,size);
         #endif
 
@@ -652,7 +672,7 @@
         return size ;
       }
 
-      ssize_t xpnsi_ft_swrite_r5o
+      ssize_t stk_mid_ft_swrite_r5o
       (
         int fd,
         void *buffer,
@@ -667,7 +687,7 @@
 
         /* debugging */
         #if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_swrite_r5o(%d,%p,%d,%d); \n",
+            printf("[%s:%d] stk_mid_ft_swrite_r5o(%d,%p,%d,%d); \n",
                    __FILE__,__LINE__,fd,buffer,(int)offset,size);
         #endif
 
@@ -684,17 +704,17 @@
 		switch (fmeta_nerrors)
 		{
 			case 0:
-                             ret = xpnsi_ft_swrite_nofail_r5o(fd,buffer,(int)offset,size) ;
+                             ret = stk_mid_ft_swrite_nofail_r5o(fd,buffer,(int)offset,size) ;
 			     break;
 
 			case 1:
-                             ret = xpnsi_ft_swrite_fail_r5o(fd,buffer,(int)offset,size) ;
+                             ret = stk_mid_ft_swrite_fail_r5o(fd,buffer,(int)offset,size) ;
 			     break;
 
 			default:
                              ret = (-1);
 #if defined(XPNI_DEBUG)
-                             printf("[%s:%d] xpnsi_ft_swrite_r5o(%d,%p,%d,%d): %d fail(s)\n",
+                             printf("[%s:%d] stk_mid_ft_swrite_r5o(%d,%p,%d,%d): %d fail(s)\n",
                                     __FILE__,__LINE__,fd,buffer,(int)offset,size,fmeta_nerrors);
 #endif
 			     break;
@@ -705,7 +725,7 @@
 	{
             ret = (-1);
 #if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_swrite_r5o(%d,%p,%d,%d): Unknow file system tag: '%s' (not %s or %s)\n",
+            printf("[%s:%d] stk_mid_ft_swrite_r5o(%d,%p,%d,%d): Unknow file system tag: '%s' (not %s or %s)\n",
                    __FILE__,__LINE__,fd,buffer,(int)offset,size,
 		   fmeta_fsTag,FS_TAG_RAID5OUTER,FS_TAG_RAID5OUTER);
 #endif
@@ -715,19 +735,19 @@
         return ret ;
       }
 
-      int xpnsi_ft_exportFile_r5o ( int fd )
+      int stk_mid_ft_exportFile_r5o ( int fd )
       {
 	char  *pfname ;
 	int    ret ;
 
         /* debugging */
 	#if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_exportFile_r5o(%d); \n",
+            printf("[%s:%d] stk_mid_ft_exportFile_r5o(%d); \n",
                    __FILE__,__LINE__,fd);
 	#endif
 
         /* parity file name */
-        pfname = xpnsi_ft_metaData_getMetaDataFileName(fd) ;
+        pfname = stk_mid_ft_metaData_getMetaDataFileName(fd) ;
         if (NULL == pfname)
 	    return (-1) ;
 
@@ -741,7 +761,7 @@
 	return (ret) ;
       }
 
-      int xpnsi_ft_importFile_r5o ( int fd )
+      int stk_mid_ft_importFile_r5o ( int fd )
       {
 
 	int       ret;
@@ -758,12 +778,12 @@
 
         /* debugging */
 	#if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_importFile_r5o(%d); \n",
+            printf("[%s:%d] stk_mid_ft_importFile_r5o(%d); \n",
                    __FILE__,__LINE__,fd);
 	#endif
 
         /* parity file name */
-	pfname = xpnsi_ft_metaData_getMetaDataFileName(fd) ;
+	pfname = stk_mid_ft_metaData_getMetaDataFileName(fd) ;
         if (NULL == pfname)
  	    return (-1) ;
 
@@ -857,36 +877,36 @@
       // register + unregister
       //
 
-      int xpnsi_ft_register   ( xpni_fsi_t *fsi )
+      int stk_mid_ft_register   ( stk_fs_t *fsi )
       {
-	/* register xpnsi_ft interface */
-	fsi->fsi_name   = STRING_MISC_StrDup("xpn_si_ft") ;
+	/* register stk_mid_ft interface */
+	fsi->fsi_name   = STRING_MISC_StrDup("stk_mid_ft") ;
 
 	// file API
-	fsi->fsi_init       = xpnsi_ft_init ;
-        fsi->fsi_destroy    = xpnsi_ft_destroy ;
-        fsi->fsi_open       = xpnsi_ft_open ;
-        fsi->fsi_creat      = xpnsi_ft_creat ;
-        fsi->fsi_close      = xpnsi_ft_close ;
-        fsi->fsi_read       = xpnsi_ft_read ;
-        fsi->fsi_write      = xpnsi_ft_write ;
-        fsi->fsi_lseek      = xpnsi_ft_lseek ;
+	fsi->fsi_init       = stk_mid_ft_init ;
+        fsi->fsi_destroy    = stk_mid_ft_destroy ;
+        fsi->fsi_open       = stk_mid_ft_open ;
+        fsi->fsi_creat      = stk_mid_ft_creat ;
+        fsi->fsi_close      = stk_mid_ft_close ;
+        fsi->fsi_read       = stk_mid_ft_read ;
+        fsi->fsi_write      = stk_mid_ft_write ;
+        fsi->fsi_lseek      = stk_mid_ft_lseek ;
 	// directory API
-        fsi->fsi_opendir    = xpnsi_ft_opendir ;
-        fsi->fsi_closedir   = xpnsi_ft_closedir ;
-        fsi->fsi_readdir    = xpnsi_ft_readdir ;
-        fsi->fsi_mkdir      = xpnsi_ft_mkdir ;
-        fsi->fsi_rmdir      = xpnsi_ft_rmdir ;
-        fsi->fsi_rewinddir  = xpnsi_ft_rewinddir ;
+        fsi->fsi_opendir    = stk_mid_ft_opendir ;
+        fsi->fsi_closedir   = stk_mid_ft_closedir ;
+        fsi->fsi_readdir    = stk_mid_ft_readdir ;
+        fsi->fsi_mkdir      = stk_mid_ft_mkdir ;
+        fsi->fsi_rmdir      = stk_mid_ft_rmdir ;
+        fsi->fsi_rewinddir  = stk_mid_ft_rewinddir ;
 	// register/unregister API
-        fsi->fsi_register   = xpnsi_ft_register ;
-        fsi->fsi_unregister = xpnsi_ft_unregister ;
+        fsi->fsi_register   = stk_mid_ft_register ;
+        fsi->fsi_unregister = stk_mid_ft_unregister ;
 
 	/* return ok */
 	return (1) ;
       }
 
-      int xpnsi_ft_unregister ( xpni_fsi_t *fsi )
+      int stk_mid_ft_unregister ( stk_fs_t *fsi )
       {
 	/* check params */
 	if (NULL == fsi) {
@@ -928,32 +948,26 @@
       // init + destroy
       //
 
-      int xpnsi_ft_init ()
+      int stk_mid_ft_init ( void )
       {
-        /* debugging */
-	#if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_init(); \n",
-                   __FILE__,__LINE__);
-	#endif
+	int ret ;
 
-	return xpni_lowfsi_init();
+	XPN_DEBUG_BEGIN();
+	ret = xpni_lowfsi_init();
+	XPN_DEBUG_END();
+
+	return ret ;
       }
 
-      int xpnsi_ft_destroy ()
+      int stk_mid_ft_destroy ( void )
       {
-        /* debugging */
-	#if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_destroy(); \n",
-                   __FILE__,__LINE__);
-	#endif
+	int ret ;
 
-	/* TODO: bug in xpn_destroy */
-#if (0)
-	return xpni_lowfsi_destroy();
-#else
-	return (1);
-#endif
+	XPN_DEBUG_BEGIN();
+	ret = xpni_lowfsi_destroy();
+	XPN_DEBUG_END();
 
+	return ret ;
       }
 
 
@@ -961,25 +975,80 @@
       // open + close + sread + swrite
       //
 
-      int xpnsi_ft_creat ( int fd )
+      int stk_mid_ft_creat ( int fd )
       {
-       char      *pfname ;
-       int        ret ;
+          char      *pfname ;
+          int        ret ;
 
-       /* check params */
-       if ( ! xpni_fit_is_correct(fd) )
-           return (-1) ;
+	  XPN_DEBUG_BEGIN_CUSTOM("%d", fd) ;
 
-       /* parity file name */
-       if ( ! strcmp
+          /* check params */
+          if ( ! xpni_fit_is_correct(fd) ) {
+               return (-1) ;
+	  }
+
+          /* parity file name */
+          if ( ! strcmp
               (
                 (xpni_fit_get_XPN_FMETA(fd)).filesystem_tag,
 		FS_TAG_RAID5OUTER
               )
-       )
-       {
+          )
+          {
 	       /* parity file name */
-               pfname = xpnsi_ft_metaData_getMetaDataFileName(fd) ;
+               pfname = stk_mid_ft_metaData_getMetaDataFileName(fd) ;
+	       if (NULL == pfname)
+		   return (-1) ;
+
+	       /* open parity file */
+	       ret = xpni_lowfsi_open(pfname, O_CREAT|O_RDWR, S_IRWXU);
+	       if (ret < 0)
+		   return (-1) ;
+
+	       /* update file description */
+	       xpni_fit_set_XPN_MDATA_FD(fd, ret) ;
+
+	       /* free resources */
+ 	       free(pfname) ;
+          }
+
+          /* open data file */
+          ret = xpni_lowfsi_creat(xpni_fit_get_XPN_FNAME(fd), xpni_fit_get_XPN_MODE(fd)) ;
+          if (ret < 0)
+          {
+              xpni_lowfsi_close(xpni_fit_get_XPN_MDATA_FD(fd)) ;
+              return (-1) ;
+          }
+
+          /* update file description */
+          xpni_fit_set_XPN_DATA_FD(fd, ret) ;
+
+	  XPN_DEBUG_END_CUSTOM("%d", fd) ;
+
+          /* return xpn file descriptor */
+          return ret ;
+      }
+
+      int stk_mid_ft_open ( int fd )
+      {
+          char      *pfname ;
+          int        ret ;
+
+	  XPN_DEBUG_BEGIN_CUSTOM("%d", fd) ;
+
+          /* check params */
+          if ( ! xpni_fit_is_correct(fd) )
+               return (-1) ;
+
+          /* parity file name */
+          if ( ! strcmp
+                (
+                  (xpni_fit_get_XPN_FMETA(fd)).filesystem_tag,FS_TAG_RAID5OUTER
+                )
+          )
+          {
+	       /* parity file name */
+               pfname = stk_mid_ft_metaData_getMetaDataFileName(fd) ;
 	       if (NULL == pfname)
 		   return (-1) ;
 
@@ -995,249 +1064,152 @@
 
 	       /* free resources */
 	       free(pfname) ;
-       }
+          }
 
-       /* open data file */
-       ret = xpni_lowfsi_creat(xpni_fit_get_XPN_FNAME(fd),
-                               xpni_fit_get_XPN_MODE(fd)) ;
-       if (ret < 0)
-       {
-           xpni_lowfsi_close(xpni_fit_get_XPN_MDATA_FD(fd)) ;
-           return (-1) ;
-       }
+          /* open data file */
+          ret = xpni_lowfsi_open(xpni_fit_get_XPN_FNAME(fd),
+			         xpni_fit_get_XPN_FLAG(fd),
+			         xpni_fit_get_XPN_MODE(fd)) ;
+          if (ret < 0)
+          {
+             xpni_lowfsi_close(xpni_fit_get_XPN_MDATA_FD(fd)) ;
+             return (-1) ;
+          }
 
-       /* update file description */
-       xpni_fit_set_XPN_DATA_FD(fd,ret) ;
+          /* update file description */
+          xpni_fit_set_XPN_DATA_FD(fd,ret) ;
 
-       /* return xpn file descriptor */
-       return ret ;
+	  XPN_DEBUG_END_CUSTOM("%d", fd) ;
+
+          /* return xpn file descriptor */
+          return ret ;
       }
 
-      int xpnsi_ft_open ( int fd )
+      int stk_mid_ft_close ( int fd )
       {
-       char      *pfname ;
-       int        ret ;
+	  int ret ;
 
-       /* debugging */
-       #if defined(XPNI_DEBUG)
-           printf("[%s:%d] xpnsi_ft_open(%d); \n",
-                  __FILE__,__LINE__,fd);
-       #endif
+	  XPN_DEBUG_BEGIN_CUSTOM("%d", fd) ;
 
-       /* check params */
-       if ( ! xpni_fit_is_correct(fd) )
-           return (-1) ;
+          /* check params */
+          if ( ! xpni_fit_is_correct(fd) )
+              return (-1) ;
 
-       /* parity file name */
-       if ( ! strcmp
-              (
-                (xpni_fit_get_XPN_FMETA(fd)).filesystem_tag,FS_TAG_RAID5OUTER
-              )
-       )
-       {
-	       /* parity file name */
-               pfname = xpnsi_ft_metaData_getMetaDataFileName(fd) ;
-	       if (NULL == pfname)
-		   return (-1) ;
+          /* close file: data and metadata */
+          if ( ! strcmp((xpni_fit_get_XPN_FMETA(fd)).filesystem_tag, FS_TAG_RAID5OUTER) )
+          {
+	      xpni_lowfsi_close(xpni_fit_get_XPN_MDATA_FD(fd));
+          }
 
-	       /* open parity file */
-	       ret = xpni_lowfsi_open(pfname,
-                                      O_CREAT|O_RDWR,
-                                      S_IRWXU);
-	       if (ret < 0)
-		   return (-1) ;
+	  ret = xpni_lowfsi_close(xpni_fit_get_XPN_DATA_FD(fd));
 
-	       /* update file description */
-	       xpni_fit_set_XPN_MDATA_FD(fd,ret) ;
+	  XPN_DEBUG_END_CUSTOM("%d", fd) ;
 
-	       /* free resources */
-	       free(pfname) ;
-       }
-
-       /* open data file */
-       ret = xpni_lowfsi_open(xpni_fit_get_XPN_FNAME(fd),
-                              xpni_fit_get_XPN_FLAG(fd),
-                              xpni_fit_get_XPN_MODE(fd)) ;
-       if (ret < 0)
-       {
-           xpni_lowfsi_close(xpni_fit_get_XPN_MDATA_FD(fd)) ;
-           return (-1) ;
-       }
-
-       /* update file description */
-       xpni_fit_set_XPN_DATA_FD(fd,ret) ;
-
-       /* return xpn file descriptor */
-       return ret ;
+          /* return ok|ko */
+          return ret ;
       }
 
-      int xpnsi_ft_close ( int fd )
+      off_t   stk_mid_ft_lseek   ( int fd, off_t offset, int flag )
       {
-        /* debugging */
-	#if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_close(%d); \n",
-                   __FILE__,__LINE__,fd);
-	#endif
+	  int ret ;
 
-        /* check params */
-        if ( ! xpni_fit_is_correct(fd) )
-            return (-1) ;
+	  XPN_DEBUG_BEGIN_CUSTOM("%d %d %d", fd, offset, flag) ;
 
-        /* close file: data and metadata */
-        if ( ! strcmp
-              (
-                (xpni_fit_get_XPN_FMETA(fd)).filesystem_tag,FS_TAG_RAID5OUTER
-              )
-        )
-        {
-	   xpni_lowfsi_close(xpni_fit_get_XPN_MDATA_FD(fd));
-        }
+          /* check params */
+          if ( ! xpni_fit_is_correct(fd) )
+              return (-1) ;
 
-	xpni_lowfsi_close(xpni_fit_get_XPN_DATA_FD(fd));
+          /* lseek file: data only */
+	  ret = xpni_lowfsi_lseek(xpni_fit_get_XPN_DATA_FD(fd),offset,flag);
 
-        /* return ok */
-        return (1) ;
+	  XPN_DEBUG_END_CUSTOM("%d %d %d", fd, offset, flag) ;
+
+          /* return ok */
+          return ret ;
       }
 
-      off_t   xpnsi_ft_lseek   ( int fd, off_t offset, int flag )
+      ssize_t stk_mid_ft_write ( int fd, void *buffer, size_t size )
       {
-        /* debugging */
-	#if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_lseek(%d); \n",
-                   __FILE__,__LINE__,fd);
-	#endif
+          char *fmeta_fsTag;     /* File metadata (file system tag) */
+          int   fmeta_nerrors;   /* File metadata (number of errors) */
+          ssize_t   ret;         /* Returned value from called functions */
 
-        /* check params */
-        if ( ! xpni_fit_is_correct(fd) )
-            return (-1) ;
+	  XPN_DEBUG_BEGIN_CUSTOM("%d %p %d", fd, buffer, size) ;
 
-        /* lseek file: data only */
-	xpni_lowfsi_lseek(xpni_fit_get_XPN_DATA_FD(fd),offset,flag);
+          /* check params */
+          if ( ! xpni_fit_is_correct(fd) )
+              return (-1) ;
 
-        /* return ok */
-        return (1) ;
-      }
+          /* Select (file system type) x (status) */
+          fmeta_fsTag   = xpni_fit_get_XPN_FMETA(fd).filesystem_tag ;
+          fmeta_nerrors = xpni_fit_get_XPN_FMETA(fd).nerrors ;
 
-      ssize_t xpnsi_ft_swrite
-      (
-        int fd,
-        void *buffer,
-        off_t offset,
-        size_t size
-      )
-      {
-        char *fmeta_fsTag;     /* File metadata (file system tag) */
-        int   fmeta_nerrors;   /* File metadata (number of errors) */
-        ssize_t   ret;         /* Returned value from called functions */
-
-
-        /* debugging */
-        #if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_swrite(%d,%p,%d,%d); \n",
-                   __FILE__,__LINE__,fd,buffer,(int)offset,size);
-        #endif
-
-        /* check params */
-        if ( ! xpni_fit_is_correct(fd) )
-            return (-1) ;
-
-        /* Select (file system type) x (status) */
-        fmeta_fsTag   = xpni_fit_get_XPN_FMETA(fd).filesystem_tag ;
-        fmeta_nerrors = xpni_fit_get_XPN_FMETA(fd).nerrors ;
-
-        if (!strncmp(fmeta_fsTag,FS_TAG_RAID5OUTER,strlen(FS_TAG_RAID5OUTER)))
-	{
+          ret = -1 ;
+          if (!strncmp(fmeta_fsTag,FS_TAG_RAID5OUTER,strlen(FS_TAG_RAID5OUTER)))
+	  {
 		switch (fmeta_nerrors)
 		{
 			case 0:
-                             //ret = xpnsi_ft_swrite_fail_r5o(fd,buffer,(int)offset,size) ;
-                             ret = xpnsi_ft_swrite_nofail_r5o(fd,buffer,(int)offset,size) ;
+                             //ret = stk_mid_ft_swrite_fail_r5o(fd,buffer,(int)offset,size) ;
+                             ret = stk_mid_ft_swrite_nofail_r5o(fd,buffer,(int)offset,size) ;
 			     break;
 
 			case 1:
-                             ret = xpnsi_ft_swrite_fail_r5o(fd,buffer,(int)offset,size) ;
+                             ret = stk_mid_ft_swrite_fail_r5o(fd,buffer,(int)offset,size) ;
 			     break;
 
 			default:
                              ret = (-1);
-#if defined(XPNI_DEBUG)
-                             printf("[%s:%d] xpnsi_ft_swrite(%d,%p,%d,%d): %d fail(s)\n",
-                                    __FILE__,__LINE__,fd,buffer,(int)offset,size,fmeta_nerrors);
-#endif
 			     break;
 		}
-	}
+	  }
 
-        else
-	{
-            ret = (-1);
-#if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_swrite(%d,%p,%d,%d): Unknow file system tag: '%s' (not %s or %s)\n",
-                   __FILE__,__LINE__,fd,buffer,(int)offset,size,
-		   fmeta_fsTag,FS_TAG_RAID5INNER,FS_TAG_RAID5OUTER);
-#endif
-	}
+	  XPN_DEBUG_END_CUSTOM("%d %p %d -> %d", fd, buffer, size, ret) ;
 
-        /* Return bytes written */
-        return ret ;
+          /* Return bytes written */
+          return ret ;
       }
 
-      ssize_t xpnsi_ft_sread (int fd, void *buffer, off_t offset, size_t size)
+      ssize_t stk_mid_ft_read ( int fd, void *buffer, size_t size )
       {
-        char *fmeta_fsTag;     /* File metadata (file system tag) */
-        int   fmeta_nerrors;   /* File metadata (number of errors) */
-        ssize_t   ret;         /* Returned value from called functions */
+          char *fmeta_fsTag;     /* File metadata (file system tag) */
+          int   fmeta_nerrors;   /* File metadata (number of errors) */
+          ssize_t   ret;         /* Returned value from called functions */
 
+	  XPN_DEBUG_BEGIN_CUSTOM("%d %p %d", fd, buffer, size) ;
 
-        /* debugging */
-        #if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_sread(%d,%p,%d,%d); \n",
-                   __FILE__,__LINE__,fd,buffer,(int)offset,size);
-        #endif
+          /* check params */
+          if ( ! xpni_fit_is_correct(fd) )
+               return (-1) ;
 
-        /* check params */
-        if ( ! xpni_fit_is_correct(fd) )
-            return (-1) ;
+          /* Select file system type */
+          fmeta_fsTag   = xpni_fit_get_XPN_FMETA(fd).filesystem_tag ;
+          fmeta_nerrors = xpni_fit_get_XPN_FMETA(fd).nerrors ;
 
-        /* Select file system type */
-        fmeta_fsTag   = xpni_fit_get_XPN_FMETA(fd).filesystem_tag ;
-        fmeta_nerrors = xpni_fit_get_XPN_FMETA(fd).nerrors ;
-
-        if (!strncmp(fmeta_fsTag,FS_TAG_RAID5OUTER,strlen(FS_TAG_RAID5OUTER)))
-	{
+	  ret = -1 ;
+          if (! strncmp(fmeta_fsTag, FS_TAG_RAID5OUTER, strlen(FS_TAG_RAID5OUTER)))
+	  {
 		switch (fmeta_nerrors)
 		{
 			case 0:
-                             //ret = xpnsi_ft_sread_fail_r5o(fd,buffer,offset,size) ;
-                             ret = xpnsi_ft_sread_nofail_r5o(fd,buffer,offset,size) ;
+                             //ret = stk_mid_ft_sread_fail_r5o(fd,buffer,offset,size) ;
+                             ret = stk_mid_ft_sread_nofail_r5o(fd,buffer,offset,size) ;
 			     break;
 
 			case 1:
-                             ret = xpnsi_ft_sread_fail_r5o(fd,buffer,offset,size) ;
+                             ret = stk_mid_ft_sread_fail_r5o(fd,buffer,offset,size) ;
 			     break;
 
 			default:
-                             ret = (-1);
-#if defined(XPNI_DEBUG)
-                             printf("[%s:%d] xpnsi_ft_sread(%d,%p,%d,%d): %d fail(s)\n",
-                                    __FILE__,__LINE__,fd,buffer,(int)offset,size,fmeta_nerrors);
-#endif
+                             ret = -1;
 			     break;
 		}
-	}
+	  }
 
-        else
-	{
-            ret = (-1);
-#if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_sread(%d,%p,%d,%d): Unknow file system tag: '%s' (not %s or %s)\n",
-                   __FILE__,__LINE__,fd,buffer,(int)offset,size,
-		   fmeta_fsTag,FS_TAG_RAID5INNER,FS_TAG_RAID5OUTER);
-#endif
-	}
+	  XPN_DEBUG_END_CUSTOM("%d %p %d -> %d", fd, buffer, size, ret) ;
 
-        /* Return bytes readed */
-        return ret ;
+          /* Return bytes readed */
+          return ret ;
       }
 
 
@@ -1245,74 +1217,54 @@
       // import + export
       //
 
-      int xpnsi_ft_exportFile ( int fd )
+      int stk_mid_ft_exportFile ( int fd )
       {
-        char *fmeta_fsTag;     /* File metadata (file system tag) */
-        ssize_t ret;           /* Returned value from called functions */
+          char *fmeta_fsTag;     /* File metadata (file system tag) */
+          ssize_t ret;           /* Returned value from called functions */
 
+	  XPN_DEBUG_BEGIN_CUSTOM("%d", fd) ;
 
-        /* debugging */
-        #if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_exportFile(%d); \n",
-                   __FILE__,__LINE__,fd);
-        #endif
+          /* check params */
+          if ( ! xpni_fit_is_correct(fd) )
+               return (-1) ;
 
-        /* check params */
-        if ( ! xpni_fit_is_correct(fd) )
-            return (-1) ;
+          /* Select file system type */
+          fmeta_fsTag = xpni_fit_get_XPN_FMETA(fd).filesystem_tag ;
 
-        /* Select file system type */
-        fmeta_fsTag = xpni_fit_get_XPN_FMETA(fd).filesystem_tag ;
+	  ret = -1 ;
+          if (!strncmp(fmeta_fsTag,FS_TAG_RAID5OUTER,strlen(FS_TAG_RAID5OUTER))) {
+              ret = stk_mid_ft_exportFile_r5o(fd) ;
+	  }
 
-        if (!strncmp(fmeta_fsTag,FS_TAG_RAID5OUTER,strlen(FS_TAG_RAID5OUTER)))
-            ret = xpnsi_ft_exportFile_r5o(fd) ;
+	  XPN_DEBUG_END_CUSTOM("%d", fd) ;
 
-        else
-	{
-            ret = (-1);
-        #if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_exportFile(%d,%p,%d,%d): Unknow file system tag: '%s' (not %s or %s)\n",
-                   __FILE__,__LINE__,fd,buffer,(int)offset,size,fmeta_fsTag,FS_TAG_RAID5INNER,FS_TAG_RAID5OUTER);
-        #endif
-	}
-
-        /* Return bytes readed */
-        return ret ;
+          /* Return bytes readed */
+          return ret ;
       }
 
-      int xpnsi_ft_importFile ( int fd )
+      int stk_mid_ft_importFile ( int fd )
       {
-        char *fmeta_fsTag;     /* File metadata (file system tag) */
-        ssize_t ret;           /* Returned value from called functions */
+          char *fmeta_fsTag;     /* File metadata (file system tag) */
+          ssize_t ret;           /* Returned value from called functions */
 
+	  XPN_DEBUG_BEGIN_CUSTOM("%d", fd) ;
 
-        /* debugging */
-        #if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_importFile(%d); \n",
-                   __FILE__,__LINE__,fd);
-        #endif
+          /* check params */
+          if ( ! xpni_fit_is_correct(fd) )
+               return (-1) ;
 
-        /* check params */
-        if ( ! xpni_fit_is_correct(fd) )
-            return (-1) ;
+          /* Select file system type */
+          fmeta_fsTag = xpni_fit_get_XPN_FMETA(fd).filesystem_tag ;
 
-        /* Select file system type */
-        fmeta_fsTag = xpni_fit_get_XPN_FMETA(fd).filesystem_tag ;
+	  ret = -1 ;
+          if (!strncmp(fmeta_fsTag,FS_TAG_RAID5OUTER,strlen(FS_TAG_RAID5OUTER))) {
+              ret = stk_mid_ft_importFile_r5o(fd) ;
+	  }
 
-        if (!strncmp(fmeta_fsTag,FS_TAG_RAID5OUTER,strlen(FS_TAG_RAID5OUTER)))
-            ret = xpnsi_ft_importFile_r5o(fd) ;
+	  XPN_DEBUG_END_CUSTOM("%d", fd) ;
 
-        else
-	{
-            ret = (-1);
-        #if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_importFile(%d,%p,%d,%d): Unknow file system tag: '%s' (not %s or %s)\n",
-                   __FILE__,__LINE__,fd,buffer,(int)offset,size,fmeta_fsTag,FS_TAG_RAID5INNER,FS_TAG_RAID5OUTER);
-        #endif
-	}
-
-        /* Return bytes readed */
-        return ret ;
+          /* Return bytes readed */
+          return ret ;
       }
 
 
@@ -1320,26 +1272,69 @@
       // opendir + closedir + readdir + rewind
       //
 
-      DIR   *xpnsi_ft_opendir ( int dd )
+      DIR   *stk_mid_ft_opendir ( char * path )
       {
-        DIR  *ret;
+          DIR  *ret;
 
-        /* debugging */
-	#if defined(XPNI_DEBUG)
-            printf("[%s:%d] xpnsi_ft_opendir(%d); \n",
-                   __FILE__,__LINE__,dd);
-	#endif
+	  XPN_DEBUG_BEGIN_CUSTOM("%s", path) ;
+	  ret = xpni_lowfsi_opendir(path);
+       // !! xpni_fit_set_XPN_DATA_FD(dd, (long)ret) ; /* sizeof(int) === sizeof(DIR *) */
+	  XPN_DEBUG_END_CUSTOM("%s", path) ;
 
-        /* open directory */
-	ret = xpni_lowfsi_opendir(xpni_fit_get_XPN_FNAME(dd));
-
-        /* update directory description */
-        xpni_fit_set_XPN_DATA_FD(dd, (long)ret) ; /* sizeof(int) === sizeof(DIR *) */
-
-	return ret;
-
+	  return ret;
       }
 
+      int     stk_mid_ft_closedir  ( DIR *dirp )
+      {
+          int  ret;
+
+	  XPN_DEBUG_BEGIN_CUSTOM("%p", dirp) ;
+	  ret = xpni_lowfsi_closedir(dirp);
+	  XPN_DEBUG_END_CUSTOM("%p", dirp) ;
+
+	  return ret;
+      }
+
+      struct dirent *stk_mid_ft_readdir ( DIR *dirp )
+      {
+          struct dirent *ret;
+
+	  XPN_DEBUG_BEGIN_CUSTOM("%p", dirp) ;
+	  ret = xpni_lowfsi_readdir(dirp);
+	  XPN_DEBUG_END_CUSTOM("%p", dirp) ;
+
+	  return ret;
+      }
+
+      void    stk_mid_ft_rewinddir ( DIR *dirp )
+      {
+	  XPN_DEBUG_BEGIN_CUSTOM("%p", dirp) ;
+	  xpni_lowfsi_readdir(dirp);
+	  XPN_DEBUG_END_CUSTOM("%p", dirp) ;
+      }
+
+
+      long    stk_mid_ft_mkdir     ( const char *pathname, int mode )
+      {
+          long  ret;
+
+	  XPN_DEBUG_BEGIN_CUSTOM("%s %d", pathname, mode) ;
+	  ret = xpni_lowfsi_mkdir(pathname, mode);
+	  XPN_DEBUG_END_CUSTOM("%s %d", pathname, mode) ;
+
+	  return ret;
+      }
+
+      long    stk_mid_ft_rmdir     ( const char *pathname )
+      {
+          long  ret;
+
+	  XPN_DEBUG_BEGIN_CUSTOM("%s", pathname) ;
+	  ret = xpni_lowfsi_rmdir(pathname);
+	  XPN_DEBUG_END_CUSTOM("%s", pathname) ;
+
+	  return ret;
+      }
 
    /* ................................................................... */
 
