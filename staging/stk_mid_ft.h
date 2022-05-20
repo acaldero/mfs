@@ -15,6 +15,12 @@
       #include "include/stk_fs.h"
 
 
+   /* ... Const / Constantes ............................................ */
+
+      #define FS_TAG_RAID5OUTER  "stk_mid_ft_raid5outer"
+      #define FS_TAG_RAID5INNER  "stk_mid_ft_raid5inner"
+
+
    /* ... Functions / Funciones ......................................... */
 
       // register + unregister

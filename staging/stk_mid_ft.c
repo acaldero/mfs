@@ -32,11 +32,7 @@
         char  *pfname ;
         int    pfname_len ;
 
-        /* debugging */
-        #if defined(XPNI_DEBUG)
-            printf("[%s:%d] stk_mid_ft_metaData_getMetaDataFileName(%d); \n",
-                   __FILE__,__LINE__,fd);
-        #endif
+	XPN_DEBUG_BEGIN_CUSTOM("%d", fd) ;
 
         pfname_len = strlen(xpni_fit_get_XPN_FNAME(fd)) +
                      strlen(".stk_mid_ft") +
@@ -48,6 +44,8 @@
 
 	strcpy(pfname,xpni_fit_get_XPN_FNAME(fd)) ;
 	strcat(pfname,".stk_mid_ft") ;
+
+	XPN_DEBUG_END_CUSTOM("%d", fd) ;
 
         return pfname ;
       }
@@ -75,11 +73,7 @@
 	int toRecover, i, j;
 
         /* debugging */
-        #if defined(XPNI_DEBUG)
-            printf("[%s:%d] stk_mid_ft_sread_r5o(%d,%p,%d,%d); \n",
-                   __FILE__,__LINE__,fd,buffer,(int)offset,size);
-        #endif
-
+	XPN_DEBUG_BEGIN_CUSTOM("%d,%p,%d,%d", fd,buffer,(int)offset,size) ;
 
         fmeta = xpni_fit_get_XPN_FMETA(fd) ;
 
@@ -137,6 +131,9 @@
 		free(buffer_row);
 	}
 
+        /* debugging */
+	XPN_DEBUG_END_CUSTOM("%d,%p,%d,%d", fd,buffer,(int)offset,size) ;
+
 	return ret ;
       }
 
@@ -148,16 +145,13 @@
          size_t size
       )
       {
-        /* debugging */
-        #if defined(XPNI_DEBUG)
-            printf("[%s:%d] stk_mid_ft_sread_r5o(%d,%p,%d,%d); \n",
-                   __FILE__,__LINE__,fd,buffer,(int)offset,size);
-        #endif
+         ssize_t ret ;
 
-	return xpni_lowfsi_pread(xpni_fit_get_XPN_DATA_FD(fd),
-	 		         buffer,
-			         (int)offset,
-			         size) ;
+	 XPN_DEBUG_BEGIN_CUSTOM("%d,%p,%d,%d", fd,buffer,(int)offset,size) ;
+	 ret = xpni_lowfsi_pread(xpni_fit_get_XPN_DATA_FD(fd), buffer, (int)offset, size) ;
+	 XPN_DEBUG_END_CUSTOM("%d,%p,%d,%d", fd,buffer,(int)offset,size) ;
+
+	 return ret ;
       }
 
       ssize_t stk_mid_ft_sread_r5o
@@ -168,27 +162,24 @@
         size_t size
       )
       {
-        char *fmeta_fsTag;     /* File metadata (file system tag) */
-        int   fmeta_nerrors;   /* File metadata (number of errors) */
-        ssize_t   ret;         /* Returned value from called functions */
+         char *fmeta_fsTag;     /* File metadata (file system tag) */
+         int   fmeta_nerrors;   /* File metadata (number of errors) */
+         ssize_t   ret;         /* Returned value from called functions */
 
+         /* debugging */
+	 XPN_DEBUG_BEGIN_CUSTOM("%d,%p,%d,%d", fd,buffer,(int)offset,size) ;
 
-        /* debugging */
-        #if defined(XPNI_DEBUG)
-            printf("[%s:%d] stk_mid_ft_sread_r5o(%d,%p,%d,%d); \n",
-                   __FILE__,__LINE__,fd,buffer,(int)offset,size);
-        #endif
+         /* check params */
+         if ( ! xpni_fit_is_correct(fd) )
+             return (-1) ;
 
-        /* check params */
-        if ( ! xpni_fit_is_correct(fd) )
-            return (-1) ;
+         /* Select (file system type) x (status) */
+         fmeta_fsTag   = xpni_fit_get_XPN_FMETA(fd).filesystem_tag ;
+         fmeta_nerrors = xpni_fit_get_XPN_FMETA(fd).nerrors ;
 
-        /* Select (file system type) x (status) */
-        fmeta_fsTag   = xpni_fit_get_XPN_FMETA(fd).filesystem_tag ;
-        fmeta_nerrors = xpni_fit_get_XPN_FMETA(fd).nerrors ;
-
-        if (!strncmp(fmeta_fsTag,FS_TAG_RAID5OUTER,strlen(FS_TAG_RAID5OUTER)))
-	{
+         ret = -1 ;
+         if (!strncmp(fmeta_fsTag,FS_TAG_RAID5OUTER,strlen(FS_TAG_RAID5OUTER)))
+	 {
 		switch (fmeta_nerrors)
 		{
 			case 0:
@@ -201,26 +192,15 @@
 
 			default:
                              ret = (-1);
-#if defined(XPNI_DEBUG)
-                             printf("[%s:%d] stk_mid_ft_sread_r5o(%d,%p,%d,%d): %d fail(s)\n",
-                                    __FILE__,__LINE__,fd,buffer,(int)offset,size,fmeta_nerrors);
-#endif
 			     break;
 		}
-	}
+	 }
 
-        else
-	{
-            ret = (-1);
-#if defined(XPNI_DEBUG)
-            printf("[%s:%d] stk_mid_ft_sread_r5o(%d,%p,%d,%d): Unknow file system tag: '%s' (not %s or %s)\n",
-                   __FILE__,__LINE__,fd,buffer,(int)offset,size,
-		   fmeta_fsTag,FS_TAG_RAID5OUTER,FS_TAG_RAID5OUTER);
-#endif
-	}
+         /* debugging */
+	 XPN_DEBUG_END_CUSTOM("%d,%p,%d,%d -> %d", fd,buffer,(int)offset,size, ret) ;
 
-        /* Return bytes written */
-        return ret ;
+         /* Return bytes written */
+         return ret ;
       }
 
 
@@ -266,34 +246,30 @@
 	int to_write2;         /* Auxiliar for how many bytes write in total */
 
 
-        /* debugging */
-        #if defined(XPNI_DEBUG)
-            printf("[%s:%d] stk_mid_ft_swrite_r5o(%d,%p,%d,%d); \n",
-                   __FILE__,__LINE__,fd,buffer,(int)offset,size);
-        #endif
+         /* debugging */
+	 XPN_DEBUG_BEGIN_CUSTOM("%d,%p,%d,%d", fd,buffer,(int)offset,size) ;
 
 
-        /*
-         * Locate logical block position (first and last blocks)
-         */
+         /*
+          * Locate logical block position (first and last blocks)
+          */
 
-        fmeta = xpni_fit_get_XPN_FMETA(fd) ;
+         fmeta = xpni_fit_get_XPN_FMETA(fd) ;
 
-        block_index1   = (offset)      / fmeta.block_size ;
-        block_offset1  = (offset)      % fmeta.block_size ;
-        block_index2   = (offset+size) / fmeta.block_size ;
-        block_offset2  = (offset+size) % fmeta.block_size ;
+         block_index1   = (offset)      / fmeta.block_size ;
+         block_offset1  = (offset)      % fmeta.block_size ;
+         block_index2   = (offset+size) / fmeta.block_size ;
+         block_offset2  = (offset+size) % fmeta.block_size ;
 
 
-        /*
-         * Alloc memory
-         */
+         /*
+          * Alloc memory
+          */
 
-        buffer_i = (char *)buffer;
-
-        buffer_row = (char *)malloc(fmeta.block_size*fmeta.servers_count);
-        if (NULL == buffer_row)
-            return (-1) ;
+         buffer_i   = (char *)buffer;
+         buffer_row = (char *)malloc(fmeta.block_size*fmeta.servers_count);
+         if (NULL == buffer_row)
+             return (-1) ;
 
 
         /*
@@ -423,20 +399,21 @@
 		block_i = block_i - (block_i % (fmeta.servers_count - 1)) ;
 
             block_i = block_i + (fmeta.servers_count - 1) ;
-        }
+         }
 
 
-        /*
-         * Free memory
-         */
-        free(buffer_row) ;
+         /*
+          * Free memory
+          */
+         free(buffer_row) ;
 
+         /* debugging */
+	 XPN_DEBUG_END_CUSTOM("%d,%p,%d,%d", fd,buffer,(int)offset,size) ;
 
-        /*
-         * Return bytes readed
-         */
-
-        return size ;
+         /*
+          * Return bytes readed
+          */
+         return size ;
       }
 
       ssize_t stk_mid_ft_swrite_fail_r5o
@@ -481,49 +458,45 @@
 	int to_write2;         /* Auxiliar for how many bytes write in total */
 
 
-        /* debugging */
-        #if defined(XPNI_DEBUG)
-            printf("[%s:%d] stk_mid_ft_swrite_r5o(%d,%p,%d,%d); \n",
-                   __FILE__,__LINE__,fd,buffer,(int)offset,size);
-        #endif
+         /* debugging */
+	 XPN_DEBUG_BEGIN_CUSTOM("%d,%p,%d,%d", fd,buffer,(int)offset,size) ;
 
 
-        /*
-         * Locate logical block position (first and last blocks)
-         */
+         /*
+          * Locate logical block position (first and last blocks)
+          */
 
-        fmeta = xpni_fit_get_XPN_FMETA(fd) ;
+         fmeta = xpni_fit_get_XPN_FMETA(fd) ;
 
-        block_index1   = (offset)      / fmeta.block_size ;
-        block_offset1  = (offset)      % fmeta.block_size ;
-        block_index2   = (offset+size) / fmeta.block_size ;
-        block_offset2  = (offset+size) % fmeta.block_size ;
+         block_index1   = (offset)      / fmeta.block_size ;
+         block_offset1  = (offset)      % fmeta.block_size ;
+         block_index2   = (offset+size) / fmeta.block_size ;
+         block_offset2  = (offset+size) % fmeta.block_size ;
 
 
-        /*
-         * Alloc memory
-         */
+         /*
+          * Alloc memory
+          */
 
-        buffer_i = (char *)buffer;
-
-        buffer_row = (char *)malloc(fmeta.block_size*fmeta.servers_count);
-        if (NULL == buffer_row)
-            return (-1) ;
+         buffer_i   = (char *)buffer;
+         buffer_row = (char *)malloc(fmeta.block_size*fmeta.servers_count);
+         if (NULL == buffer_row)
+             return (-1) ;
 
 
         /*
          * Read physical block positions
          */
 
-	/* Physical rows to read... */
-	aux2 = (fmeta.servers_count - 1) ;
-	rows = (block_index2 / aux2) - (block_index1 / aux2) + 1;
+	 /* Physical rows to read... */
+	 aux2 = (fmeta.servers_count - 1) ;
+	 rows = (block_index2 / aux2) - (block_index1 / aux2) + 1;
 
-        block_i       = block_index1;
-	block_offseti = block_offset1;
+         block_i       = block_index1;
+	 block_offseti = block_offset1;
 
-        for (row=0; row<rows; row++)
-        {
+         for (row=0; row<rows; row++)
+         {
             ret = MATH_MISC_locateInRAID5withExternalParity(block_i,
                                                             fmeta.servers_count,
                                                             &SPi,&IPi,&SDi,&IDi);
@@ -656,20 +629,21 @@
 		block_i = block_i - (block_i % (fmeta.servers_count - 1)) ;
 
             block_i = block_i + (fmeta.servers_count - 1) ;
-        }
+         }
 
 
-        /*
-         * Free memory
-         */
-        free(buffer_row) ;
+         /*
+          * Free memory
+          */
+         free(buffer_row) ;
 
+	 /* debugging */
+	 XPN_DEBUG_END_CUSTOM("%d,%p,%d,%d", fd,buffer,(int)offset,size) ;
 
-        /*
-         * Return bytes readed
-         */
-
-        return size ;
+         /*
+          * Return bytes readed
+          */
+         return size ;
       }
 
       ssize_t stk_mid_ft_swrite_r5o
@@ -680,27 +654,24 @@
         size_t size
       )
       {
-        char *fmeta_fsTag;     /* File metadata (file system tag) */
-        int   fmeta_nerrors;   /* File metadata (number of errors) */
-        ssize_t   ret;         /* Returned value from called functions */
+         char *fmeta_fsTag;     /* File metadata (file system tag) */
+         int   fmeta_nerrors;   /* File metadata (number of errors) */
+         ssize_t   ret;         /* Returned value from called functions */
 
+         /* debugging */
+	 XPN_DEBUG_BEGIN_CUSTOM("%d,%p,%d,%d", fd,buffer,(int)offset,size) ;
 
-        /* debugging */
-        #if defined(XPNI_DEBUG)
-            printf("[%s:%d] stk_mid_ft_swrite_r5o(%d,%p,%d,%d); \n",
-                   __FILE__,__LINE__,fd,buffer,(int)offset,size);
-        #endif
+         /* check params */
+         if ( ! xpni_fit_is_correct(fd) )
+             return (-1) ;
 
-        /* check params */
-        if ( ! xpni_fit_is_correct(fd) )
-            return (-1) ;
+         /* Select (file system type) x (status) */
+         fmeta_fsTag   = xpni_fit_get_XPN_FMETA(fd).filesystem_tag ;
+         fmeta_nerrors = xpni_fit_get_XPN_FMETA(fd).nerrors ;
 
-        /* Select (file system type) x (status) */
-        fmeta_fsTag   = xpni_fit_get_XPN_FMETA(fd).filesystem_tag ;
-        fmeta_nerrors = xpni_fit_get_XPN_FMETA(fd).nerrors ;
-
-        if (!strncmp(fmeta_fsTag,FS_TAG_RAID5OUTER,strlen(FS_TAG_RAID5OUTER)))
-	{
+         ret = -1 ;
+         if (!strncmp(fmeta_fsTag,FS_TAG_RAID5OUTER,strlen(FS_TAG_RAID5OUTER)))
+	 {
 		switch (fmeta_nerrors)
 		{
 			case 0:
@@ -712,127 +683,109 @@
 			     break;
 
 			default:
-                             ret = (-1);
-#if defined(XPNI_DEBUG)
-                             printf("[%s:%d] stk_mid_ft_swrite_r5o(%d,%p,%d,%d): %d fail(s)\n",
-                                    __FILE__,__LINE__,fd,buffer,(int)offset,size,fmeta_nerrors);
-#endif
+                             ret = -1 ;
 			     break;
 		}
-	}
+	 }
 
-        else
-	{
-            ret = (-1);
-#if defined(XPNI_DEBUG)
-            printf("[%s:%d] stk_mid_ft_swrite_r5o(%d,%p,%d,%d): Unknow file system tag: '%s' (not %s or %s)\n",
-                   __FILE__,__LINE__,fd,buffer,(int)offset,size,
-		   fmeta_fsTag,FS_TAG_RAID5OUTER,FS_TAG_RAID5OUTER);
-#endif
-	}
+         /* debugging */
+	 XPN_DEBUG_END_CUSTOM("%d,%p,%d,%d -> %d", fd,buffer,(int)offset,size,ret) ;
 
-        /* Return bytes written */
-        return ret ;
+         /* Return bytes written */
+         return ret ;
       }
 
       int stk_mid_ft_exportFile_r5o ( int fd )
       {
-	char  *pfname ;
-	int    ret ;
+	 char  *pfname ;
+	 int    ret ;
 
-        /* debugging */
-	#if defined(XPNI_DEBUG)
-            printf("[%s:%d] stk_mid_ft_exportFile_r5o(%d); \n",
-                   __FILE__,__LINE__,fd);
-	#endif
+         /* debugging */
+	 XPN_DEBUG_BEGIN_CUSTOM("%d", fd) ;
 
-        /* parity file name */
-        pfname = stk_mid_ft_metaData_getMetaDataFileName(fd) ;
-        if (NULL == pfname)
-	    return (-1) ;
+         /* parity file name */
+         pfname = stk_mid_ft_metaData_getMetaDataFileName(fd) ;
+         if (NULL == pfname)
+	     return (-1) ;
 
-        /* unlink file */
-	ret = xpn_unlink(pfname) ;
+         /* unlink file */
+	 ret = xpn_unlink(pfname) ;
 
-        /* free parity file name */
-        free(pfname) ;
+         /* free parity file name */
+         free(pfname) ;
 
-	/* return 'ok' */
-	return (ret) ;
+         /* debugging */
+	 XPN_DEBUG_END_CUSTOM("%d", fd) ;
+
+	 /* return 'ok' */
+	 return (ret) ;
       }
 
       int stk_mid_ft_importFile_r5o ( int fd )
       {
+	 int       ret;
+	 int       i;
+	 char     *pfname ;
+	 fmeta_t   fmeta;
+	 int       readed ;
+	 int       len_d, len_p, len_a ;
+	 char     *buf_d, *buf_p, **buf_a ;
+	 int       offset_p, block_p, row_p, col_p ;
+	 int       offset_d, block_d, row_d ;
+	 int       block_per_row ;
 
-	int       ret;
-	int       i;
-	char     *pfname ;
-	fmeta_t   fmeta;
-	int       readed ;
-	int       len_d, len_p, len_a ;
-	char     *buf_d, *buf_p, **buf_a ;
-	int       offset_p, block_p, row_p, col_p ;
-	int       offset_d, block_d, row_d ;
-	int       block_per_row ;
+         /* debugging */
+	 XPN_DEBUG_BEGIN_CUSTOM("%d", fd) ;
 
+         /* parity file name */
+	 pfname = stk_mid_ft_metaData_getMetaDataFileName(fd) ;
+         if (NULL == pfname)
+ 	     return (-1) ;
 
-        /* debugging */
-	#if defined(XPNI_DEBUG)
-            printf("[%s:%d] stk_mid_ft_importFile_r5o(%d); \n",
-                   __FILE__,__LINE__,fd);
-	#endif
+         /* open parity file */
+         ret = xpni_lowfsi_open(pfname, O_CREAT|O_RDWR, S_IRWXU);
+         if (ret < 0)
+	     return (-1) ;
 
-        /* parity file name */
-	pfname = stk_mid_ft_metaData_getMetaDataFileName(fd) ;
-        if (NULL == pfname)
- 	    return (-1) ;
+         /* update file description */
+         xpni_fit_set_XPN_MDATA_FD(fd,ret) ;
 
-        /* open parity file */
-        ret = xpni_lowfsi_open(pfname,
-			       O_CREAT|O_RDWR,
-			       S_IRWXU);
-        if (ret < 0)
-	    return (-1) ;
+         /* free resources */
+	 free(pfname) ;
 
-        /* update file description */
-        xpni_fit_set_XPN_MDATA_FD(fd,ret) ;
+	 /* get file metadata */
+	 fmeta = xpni_fit_get_XPN_FMETA(fd) ;
 
-        /* free resources */
-	free(pfname) ;
+	 /* alloc buffers */
+	 block_per_row = fmeta.servers_count - 1 ;
 
-	/* get file metadata */
-	fmeta = xpni_fit_get_XPN_FMETA(fd) ;
-
-	/* alloc buffers */
-	block_per_row = fmeta.servers_count - 1 ;
-
-	len_p = fmeta.block_size ;
-	buf_p = (char *)malloc(len_p) ;
-	if (NULL == buf_p)
+	 len_p = fmeta.block_size ;
+	 buf_p = (char *)malloc(len_p) ;
+	 if (NULL == buf_p)
 		return (-1) ;
 
-	len_d = block_per_row * fmeta.block_size ;
-	buf_d = (char *)malloc(len_d) ;
-	if (NULL == buf_d)
-	{
+	 len_d = block_per_row * fmeta.block_size ;
+	 buf_d = (char *)malloc(len_d) ;
+	 if (NULL == buf_d)
+	 {
 		free(buf_p) ;
 		return (-1) ;
-	}
+	 }
 
-	len_a = block_per_row ;
-	buf_a = (char **)malloc(len_a*sizeof(char *)) ;
-	if (NULL == buf_a)
-	{
+	 len_a = block_per_row ;
+	 buf_a = (char **)malloc(len_a*sizeof(char *)) ;
+	 if (NULL == buf_a)
+	 {
 		free(buf_p) ;
 		free(buf_d) ;
 		return (-1) ;
-	}
+	 }
 
-	/* read data and write associated parity */
-	readed   = len_d ;
-	offset_d = 0 ;
-	while (readed == len_d)
-	{
+	 /* read data and write associated parity */
+	 readed   = len_d ;
+	 offset_d = 0 ;
+	 while (readed == len_d)
+	 {
 	   block_d  = (offset_d / fmeta.block_size) + ( (offset_d % fmeta.block_size) != 0 ) ;
 	   row_d    = (block_d  / block_per_row)    + ( (block_d  % block_per_row) != 0 ) ;
 	   row_p    = row_d / fmeta.servers_count ;
@@ -863,11 +816,13 @@
 
 	   /* go to next data 'row' */
 	   offset_d = offset_d + len_d ;
-	}
+	 }
 
-	/* return ok */
-	return (1) ;
+         /* debugging */
+	 XPN_DEBUG_END_CUSTOM("%d", fd) ;
 
+	 /* return ok */
+	 return (1) ;
       }
 
 

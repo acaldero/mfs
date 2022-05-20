@@ -55,10 +55,7 @@
 
 
          /* debugging */
-	 #if defined(XPNI_DEBUG)
-             printf("[%s:%d] util_log_elog(%p,%p,%s,%d); \n",
-                    __FILE__,__LINE__,t1,t2,action,object);
-	 #endif
+	 XPN_DEBUG_BEGIN_CUSTOM("%p,%p,%s,%d,%d,%d", t1,t2,action,object,offset,size) ;
 
 	 /* get time as msec ... */
          TIME_MISC_DiffTime(t1,t2,&diff);
@@ -96,6 +93,9 @@
 				 object_name) ;
 	 */
 
+         /* debugging */
+	 XPN_DEBUG_END_CUSTOM("%p,%p,%s,%d,%d,%d", t1,t2,action,object,offset,size) ;
+
 	 /* return 'ret' */
          return ret ;
 
@@ -116,10 +116,7 @@
         va_start(vl,einfo) ;
 
         /* debugging */
-	#if defined(XPNI_DEBUG)
-            printf("[%s:%d] util_log_elog(%s); \n",
-                   __FILE__,__LINE__,ename);
-	#endif
+	XPN_DEBUG_BEGIN_CUSTOM("%s", einfo) ;
 
 	/* record event */
 	pthread_mutex_lock(&xpni_log_fastmutex) ;
@@ -137,6 +134,9 @@
 	   }
 
 	pthread_mutex_unlock(&xpni_log_fastmutex) ;
+
+        /* debugging */
+	XPN_DEBUG_END_CUSTOM("%s", einfo) ;
 
 	/* return 'ret' */
         va_end(vl) ;

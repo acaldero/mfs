@@ -16,6 +16,11 @@
       #include "include/stk_fs.h"
 
 
+   /* ... Const / Constantes ............................................ */
+
+      #define FS_TAG_NULL        "stk_mid_null"
+
+
    /* ... Functions / Funciones ......................................... */
 
       // register + unregister
