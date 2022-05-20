@@ -23,30 +23,26 @@
 
    /* ... Functions / Funciones ......................................... */
 
-      // register + unregister
-      int     stk_mid_null_register   ( stk_fs_t *fsi ) ;
-      int     stk_mid_null_unregister ( stk_fs_t *fsi ) ;
-
-      // init + destroy
-      int     stk_mid_null_init    ( void ) ;
-      int     stk_mid_null_destroy ( void ) ;
+      // Init + finalize
+      int     stk_mid_null_init     ( stk_fs_t *fsi, stk_fs_t *low_fsi ) ;
+      int     stk_mid_null_finalize ( stk_fs_t *fsi ) ;
 
       // File API
-      int     stk_mid_null_creat  ( char *path, mode_t mode ) ;
-      int     stk_mid_null_open   ( char *path, int flags, mode_t mode ) ;
-      int     stk_mid_null_close  ( int fd ) ;
-      off_t   stk_mid_null_lseek  ( int fd, off_t offset, int flag ) ;
-      ssize_t stk_mid_null_write  ( int fd, void *buffer, size_t size ) ;
-      ssize_t stk_mid_null_read   ( int fd, void *buffer, size_t size ) ;
+      int     stk_mid_null_creat    ( stk_fs_t *fsi, char *path, mode_t mode ) ;
+      int     stk_mid_null_open     ( stk_fs_t *fsi, char *path, int flags, mode_t mode ) ;
+      int     stk_mid_null_close    ( stk_fs_t *fsi, int fd ) ;
+      off_t   stk_mid_null_lseek    ( stk_fs_t *fsi, int fd, off_t offset, int flag ) ;
+      ssize_t stk_mid_null_write    ( stk_fs_t *fsi, int fd, void *buffer, size_t size ) ;
+      ssize_t stk_mid_null_read     ( stk_fs_t *fsi, int fd, void *buffer, size_t size ) ;
 
       // Directory API
-      long    stk_mid_null_mkdir     ( const char *pathname, int mode ) ;
-      long    stk_mid_null_rmdir     ( const char *pathname ) ;
+      long    stk_mid_null_mkdir          ( stk_fs_t *fsi, const char *pathname, int mode ) ;
+      long    stk_mid_null_rmdir          ( stk_fs_t *fsi, const char *pathname ) ;
 
-      DIR   * stk_mid_null_opendir   ( char *path ) ;
-      int     stk_mid_null_closedir  ( DIR *dirp ) ;
-      struct dirent *stk_mid_null_readdir ( DIR *dirp ) ;
-      void    stk_mid_null_rewinddir ( DIR *dirp ) ;
+      DIR   * stk_mid_null_opendir        ( stk_fs_t *fsi, char *path ) ;
+      int     stk_mid_null_closedir       ( stk_fs_t *fsi, DIR *dirp ) ;
+      struct dirent *stk_mid_null_readdir ( stk_fs_t *fsi, DIR *dirp ) ;
+      void    stk_mid_null_rewinddir      ( stk_fs_t *fsi, DIR *dirp ) ;
 
 
   /* .................................................................... */

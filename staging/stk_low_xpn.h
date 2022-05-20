@@ -20,9 +20,9 @@
       int     stk_low_xpn_register   ( stk_fs_t *fsi ) ;
       int     stk_low_xpn_unregister ( stk_fs_t *fsi ) ;
 
-      // init + destroy
-      int     stk_low_xpn_init    ( void ) ;
-      int     stk_low_xpn_destroy ( void ) ;
+      // init + finalize
+      int     stk_low_xpn_init     ( void ) ;
+      int     stk_low_xpn_finalize ( void ) ;
 
       // File API
       int     stk_low_xpn_creat  ( char *path, mode_t mode ) ;

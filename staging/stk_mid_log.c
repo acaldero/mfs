@@ -45,7 +45,7 @@
 
 	// file API
 	fsi->fsi_init       = stk_mid_log_init ;
-        fsi->fsi_destroy    = stk_mid_log_destroy ;
+        fsi->fsi_finalize   = stk_mid_log_finalize ;
         fsi->fsi_open       = stk_mid_log_open ;
         fsi->fsi_creat      = stk_mid_log_creat ;
         fsi->fsi_close      = stk_mid_log_close ;
@@ -86,7 +86,7 @@
 
 	// file API
 	fsi->fsi_init       = NULL ;
-        fsi->fsi_destroy    = NULL ;
+        fsi->fsi_finalize   = NULL ;
         fsi->fsi_open       = NULL ;
         fsi->fsi_creat      = NULL ;
         fsi->fsi_close      = NULL ;
@@ -112,7 +112,7 @@
 
 
       //
-      // init + destroy
+      // init + finalize
       //
 
       int stk_mid_log_init ( void )
@@ -136,7 +136,7 @@
 	return ret ;
       }
 
-      int stk_mid_log_destroy ( void )
+      int stk_mid_log_finalize ( void )
       {
 	int    ret ;
 	struct timeval t1, t2 ;
@@ -145,11 +145,11 @@
 
         /* passthru... */
 	TIME_MISC_Timer(&t1);
-	ret = xpni_lowfsi_destroy();
+	ret = xpni_lowfsi_finalize();
 	TIME_MISC_Timer(&t2);
 
         /* record event */
-	util_log_elog(&t1,&t2,"xpni_lowfsi_destroy",-1,-1,-1);
+	util_log_elog(&t1,&t2,"xpni_lowfsi_finalize",-1,-1,-1);
 
 	XPN_DEBUG_END();
 

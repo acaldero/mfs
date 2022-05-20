@@ -22,9 +22,9 @@
       int     stk_mid_log_register   ( stk_fs_t *fsi ) ;
       int     stk_mid_log_unregister ( stk_fs_t *fsi ) ;
 
-      // init + destroy
-      int     stk_mid_log_init    ( void ) ;
-      int     stk_mid_log_destroy ( void ) ;
+      // init + finalize
+      int     stk_mid_log_init     ( void ) ;
+      int     stk_mid_log_finalize ( void ) ;
 
       // File API
       int     stk_mid_log_creat  ( char *path, mode_t mode ) ;

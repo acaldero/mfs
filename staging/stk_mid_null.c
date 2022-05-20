@@ -28,222 +28,162 @@
    /* ... Functions / Funciones ......................................... */
 
       //
-      // register + unregister
+      // Init + finalize
       //
 
-      int stk_mid_null_register   ( stk_fs_t *fsi )
+      int stk_mid_null_init ( stk_fs_t *fsi, stk_fs_t *low_fsi )
       {
-	XPN_DEBUG_BEGIN_CUSTOM("%p", fsi) ;
+	  int ret ;
 
-	/* check params */
-	if (NULL == fsi) {
-	    return -1 ;
-	}
+	  /* debug */
+	  XPN_DEBUG_BEGIN_CUSTOM("fsi:%p, low_fsi:%p", fsi, low_fsi) ;
 
-	/* register stk_mid_null interface */
-	fsi->fsi_name   = STRING_MISC_StrDup("stk_mid_null") ;
+	  /* check params */
+	  if (NULL == fsi) {
+	      return -1 ;
+	  }
 
-	// file API
-	fsi->fsi_init       = xpnsi_null_init ;
-        fsi->fsi_destroy    = xpnsi_null_destroy ;
-        fsi->fsi_open       = xpnsi_null_open ;
-        fsi->fsi_creat      = xpnsi_null_creat ;
-        fsi->fsi_close      = xpnsi_null_close ;
-        fsi->fsi_read       = xpnsi_null_read ;
-        fsi->fsi_write      = xpnsi_null_write ;
-        fsi->fsi_lseek      = xpnsi_null_lseek ;
-	// directory API
-        fsi->fsi_opendir    = xpnsi_null_opendir ;
-        fsi->fsi_closedir   = xpnsi_null_closedir ;
-        fsi->fsi_readdir    = xpnsi_null_readdir ;
-        fsi->fsi_mkdir      = xpnsi_null_mkdir ;
-        fsi->fsi_rmdir      = xpnsi_null_rmdir ;
-        fsi->fsi_rewinddir  = xpnsi_null_rewinddir ;
-	// register/unregister API
-        fsi->fsi_register   = xpnsi_null_register ;
-        fsi->fsi_unregister = xpnsi_null_unregister ;
+	  /* register stk_mid_null interface */
+	  fsi->fsi_name       = STRING_MISC_StrDup("stk_mid_null") ;
+	  fsi->low_fsi        = low_fsi ;
 
-	XPN_DEBUG_END_CUSTOM("%p", fsi) ;
+	  // init/finalize
+	  fsi->fsi_init       = xpnsi_null_init ;
+          fsi->fsi_finalize   = xpnsi_null_finalize ;
+	  // file API
+          fsi->fsi_open       = xpnsi_null_open ;
+          fsi->fsi_creat      = xpnsi_null_creat ;
+          fsi->fsi_close      = xpnsi_null_close ;
+          fsi->fsi_read       = xpnsi_null_read ;
+          fsi->fsi_write      = xpnsi_null_write ;
+          fsi->fsi_lseek      = xpnsi_null_lseek ;
+	  // directory API
+          fsi->fsi_opendir    = xpnsi_null_opendir ;
+          fsi->fsi_closedir   = xpnsi_null_closedir ;
+          fsi->fsi_readdir    = xpnsi_null_readdir ;
+          fsi->fsi_mkdir      = xpnsi_null_mkdir ;
+          fsi->fsi_rmdir      = xpnsi_null_rmdir ;
+          fsi->fsi_rewinddir  = xpnsi_null_rewinddir ;
 
-	/* return ok */
-	return (1) ;
+	  // TODO: check if stack builder should do this instead
+	  ret = STK_FS_INIT(fsi->low_fsi, NULL) ;
+
+	  /* debug */
+	  XPN_DEBUG_END_CUSTOM("fsi:%p, low_fsi:%p -> %d", fsi, low_fsi, ret) ;
+
+	  /* return ok|ko */
+	  return ret ;
       }
 
-      int stk_mid_null_unregister ( stk_fs_t *fsi )
+      int stk_mid_null_finalize ( stk_fs_t *fsi )
       {
-	XPN_DEBUG_BEGIN_CUSTOM("%p", fsi) ;
+	  int       ret ;
+          stk_fs_t *low_fsi ;
 
-	/* check params */
-	if (NULL == fsi) {
-	    return -1 ;
-	}
+	  XPN_DEBUG_BEGIN_CUSTOM("fsi:%p", fsi) ;
 
-	/* unregister xpnsi_null interface */
-	if (NULL != fsi->fsi_name) {
-	    free(fsi->fsi_name) ;
-	    fsi->fsi_name   = NULL ;
-	}
+	  // TODO: check if stack builder should do this instead
+          low_fsi = STK_FS_GET_LOWFSI(fsi) ;
+	  if (NULL != low_fsi) {
+              ret = STK_FS_FINALIZE(low_fsi) ;
+	  }
 
-	// file API
-	fsi->fsi_init       = NULL ;
-        fsi->fsi_destroy    = NULL ;
-        fsi->fsi_open       = NULL ;
-        fsi->fsi_creat      = NULL ;
-        fsi->fsi_close      = NULL ;
-        fsi->fsi_read       = NULL ;
-        fsi->fsi_write      = NULL ;
-        fsi->fsi_lseek      = NULL ;
-	// directory API
-        fsi->fsi_opendir    = NULL ;
-        fsi->fsi_closedir   = NULL ;
-        fsi->fsi_readdir    = NULL ;
-        fsi->fsi_mkdir      = NULL ;
-        fsi->fsi_rmdir      = NULL ;
-        fsi->fsi_rewinddir  = NULL ;
-	// register/unregister API
-        fsi->fsi_register   = NULL ;
-        fsi->fsi_unregister = NULL ;
+	  // finalize
+          ret = -1 ;
+	  if (NULL != fsi) {
+              ret = stk_fs_finalize(fsi) ;
+	  }
 
-	XPN_DEBUG_END_CUSTOM("%p", fsi) ;
+	  XPN_DEBUG_END_CUSTOM("%p", fsi) ;
 
-	/* return ok */
-	return (1) ;
+	  /* return ok|ko */
+	  return ret ;
       }
 
 
       //
-      // init + destroy
+      // open + close + read + write
       //
 
-      int stk_mid_null_init ( void )
+      int stk_mid_null_creat ( stk_fs_t *fsi, char *path, mode_t mode )
       {
-	int ret ;
+          int ret ;
 
-	XPN_DEBUG_BEGIN();
-	ret = xpni_lowfsi_init();
-	XPN_DEBUG_END();
+	  XPN_DEBUG_BEGIN_CUSTOM("path:%s, mode:%d", path, (int)mode) ;
 
-	return ret ;
+          /* create file */
+	  ret = -1 ;
+          if (NULL != path) {
+              ret = xpni_lowfsi_creat(path, mode) ;
+	  }
+
+	  XPN_DEBUG_END_CUSTOM("path:%s, mode:%d -> %d", path, (int)mode, ret) ;
+
+          /* return file descriptor */
+          return ret ;
       }
 
-      int stk_mid_null_destroy ( void )
+      int stk_mid_null_open ( stk_fs_t *fsi, char *path, int flags, mode_t mode )
       {
-	int ret ;
+          int ret ;
 
-	XPN_DEBUG_BEGIN();
-	ret = xpni_lowfsi_destroy();
-	XPN_DEBUG_END();
+	  XPN_DEBUG_BEGIN_CUSTOM("path:%s, flags:%d, mode:%d", path, flags, (int)mode) ;
 
-	return ret ;
+          /* open file */
+	  ret = -1 ;
+          if (NULL != path) {
+              ret = xpni_lowfsi_open(path, flags, mode) ;
+	  }
+
+	  XPN_DEBUG_END_CUSTOM("path:%s, flags:%d, mode:%d -> %d", path, flags, (int)mode, ret) ;
+
+          /* return file descriptor */
+          return ret ;
       }
 
-
-      //
-      // open + close + sread + swrite
-      //
-
-      int stk_mid_null_creat ( int fd )
+      int stk_mid_null_close ( stk_fs_t *fsi, int fd )
       {
-        xpni_fi_t *xpni_fi1 ;
-        int ret ;
+	  int ret ;
 
-	XPN_DEBUG_BEGIN_CUSTOM("%d", fd) ;
+	  XPN_DEBUG_BEGIN_CUSTOM("fd:%d", fd) ;
+	  ret = xpni_lowfsi_close(xpni_fit_get_XPN_DATA_FD(fd));
+	    XPN_DEBUG_END_CUSTOM("fd:%d", fd) ;
 
-        /* check params */
-        xpni_fi1 = xpni_fit_get(fd) ;
-        if (NULL == xpni_fi1) {
-	    return -1 ;
-	}
-
-        /* create file */
-        ret = xpni_lowfsi_creat(xpni_fit_get_XPN_FNAME(fd),
-                                xpni_fit_get_XPN_MODE(fd)) ;
-        if (ret < 0) {
-	    return -1 ;
-        }
-
-        /* update file description */
-        xpni_fit_set_XPN_DATA_FD(fd,ret) ;
-
-	XPN_DEBUG_END_CUSTOM("%d", fd) ;
-
-        /* return xpn file descriptor */
-        return ret ;
+	  return ret ;
       }
 
-      int stk_mid_null_open ( int fd )
+      off_t  stk_mid_null_lseek ( stk_fs_t *fsi, int fd, off_t offset, int flag )
       {
-        xpni_fi_t *xpni_fi1 ;
-        int ret ;
+	  int ret ;
 
-	XPN_DEBUG_BEGIN_CUSTOM("%d", fd) ;
+          /* lseek file: data only */
+	  XPN_DEBUG_BEGIN_CUSTOM("fd:%d, offset:%ld, flag:%d", fd, (long)offset, flag) ;
+	  ret = xpni_lowfsi_lseek(xpni_fit_get_XPN_DATA_FD(fd),offset,flag);
+	    XPN_DEBUG_END_CUSTOM("fd:%d, offset:%ld, flag:%d", fd, (long)offset, flag) ;
 
-        /* check params */
-        xpni_fi1 = xpni_fit_get(fd) ;
-        if (NULL == xpni_fi1) {
-	   return -1 ;
-	}
-
-        /* open file */
-        ret = xpni_lowfsi_open(xpni_fit_get_XPN_FNAME(fd),
-                               xpni_fit_get_XPN_FLAG(fd),
-                               xpni_fit_get_XPN_MODE(fd)) ;
-        if (ret < 0) {
-	    return -1 ;
-        }
-
-        /* update file description */
-        xpni_fit_set_XPN_DATA_FD(fd,ret) ;
-
-	XPN_DEBUG_END_CUSTOM("%d", fd) ;
-
-        /* return xpn file descriptor */
-        return ret ;
+	  return ret ;
       }
 
-      int stk_mid_null_close ( int fd )
+      ssize_t stk_mid_null_write ( stk_fs_t *fsi, int fd, void *buffer, size_t size )
       {
-	int ret ;
+	  int ret ;
 
-	XPN_DEBUG_BEGIN_CUSTOM("%d", fd) ;
-	ret = xpni_lowfsi_close(xpni_fit_get_XPN_DATA_FD(fd));
-	XPN_DEBUG_END_CUSTOM("%d", fd) ;
+	  XPN_DEBUG_BEGIN_CUSTOM("fd:%d, buffer:%p, size:%d", fd, buffer, size) ;
+	  ret = xpni_lowfsi_write(xpni_fit_get_XPN_DATA_FD(fd), buffer, size);
+	    XPN_DEBUG_END_CUSTOM("fd:%d, buffer:%p, size:%d", fd, buffer, size) ;
 
-	return ret ;
+	  return ret ;
       }
 
-      off_t  stk_mid_null_lseek ( int fd, off_t offset, int flag )
+      ssize_t stk_mid_null_read ( stk_fs_t *fsi, int fd, void *buffer, size_t size )
       {
-	int ret ;
+	  int ret ;
 
-        /* lseek file: data only */
-	XPN_DEBUG_BEGIN_CUSTOM("%d %d %d", fd, offset, flag) ;
-	ret = xpni_lowfsi_lseek(xpni_fit_get_XPN_DATA_FD(fd),offset,flag);
-	XPN_DEBUG_END_CUSTOM("%d %d %d", fd, offset, flag) ;
+	  XPN_DEBUG_BEGIN_CUSTOM("fd:%d, buffer:%p, size:%d", fd, buffer, size) ;
+	  ret = xpni_lowfsi_read(xpni_fit_get_XPN_DATA_FD(fd), buffer, size);
+	    XPN_DEBUG_END_CUSTOM("fd:%d, buffer:%p, size:%d", fd, buffer, size) ;
 
-	return ret ;
-      }
-
-      ssize_t stk_mid_null_write ( int fd, void *buffer, size_t size )
-      {
-	int ret ;
-
-	XPN_DEBUG_BEGIN_CUSTOM("%d %p %d", fd, buffer, size) ;
-	ret = xpni_lowfsi_write(xpni_fit_get_XPN_DATA_FD(fd), buffer, size);
-	XPN_DEBUG_END_CUSTOM("%d %p %d", fd, buffer, size) ;
-
-	return ret ;
-      }
-
-      ssize_t stk_mid_null_read ( int fd, void *buffer, size_t size )
-      {
-	int ret ;
-
-	XPN_DEBUG_BEGIN_CUSTOM("%d %p %d", fd, buffer, size) ;
-	ret = xpni_lowfsi_read(xpni_fit_get_XPN_DATA_FD(fd), buffer, size);
-	XPN_DEBUG_END_CUSTOM("%d %p %d", fd, buffer, size) ;
-
-	return ret ;
+	  return ret ;
       }
 
 
@@ -251,67 +191,67 @@
       // opendir + closedir + readdir + rewind
       //
 
-      DIR * stk_mid_null_opendir ( char * path )
+      DIR * stk_mid_null_opendir ( stk_fs_t *fsi, char * path )
       {
-        DIR  *ret;
+          DIR  *ret;
 
-	XPN_DEBUG_BEGIN_CUSTOM("%s", path) ;
-	ret = xpni_lowfsi_opendir(xpni_fit_get_XPN_FNAME(path));
-	XPN_DEBUG_END_CUSTOM("%s", path) ;
+	  XPN_DEBUG_BEGIN_CUSTOM("path:%s", path) ;
+	  ret = xpni_lowfsi_opendir(xpni_fit_get_XPN_FNAME(path));
+	    XPN_DEBUG_END_CUSTOM("path:%s", path) ;
 
-	return ret;
+	  return ret;
       }
 
-      int     xpnsi_null_closedir  ( DIR *dirp )
+      int     xpnsi_null_closedir  ( stk_fs_t *fsi, DIR *dirp )
       {
-        int  ret;
+          int  ret;
 
-	XPN_DEBUG_BEGIN_CUSTOM("%p", dirp) ;
-	ret = xpni_lowfsi_closedir(dirp);
-	XPN_DEBUG_END_CUSTOM("%p", dirp) ;
+	  XPN_DEBUG_BEGIN_CUSTOM("dirp:%p", dirp) ;
+	  ret = xpni_lowfsi_closedir(dirp);
+	    XPN_DEBUG_END_CUSTOM("dirp:%p", dirp) ;
 
-	return ret;
+	  return ret;
       }
 
-      struct dirent *xpnsi_null_readdir ( DIR *dirp )
+      struct dirent *xpnsi_null_readdir ( stk_fs_t *fsi, DIR *dirp )
       {
-        struct dirent *ret;
+          struct dirent *ret;
 
-	XPN_DEBUG_BEGIN_CUSTOM("%p", dirp) ;
-	ret = xpni_lowfsi_readdir(dirp);
-	XPN_DEBUG_END_CUSTOM("%p", dirp) ;
+	  XPN_DEBUG_BEGIN_CUSTOM("dirp:%p", dirp) ;
+	  ret = xpni_lowfsi_readdir(dirp);
+	    XPN_DEBUG_END_CUSTOM("dirp:%p", dirp) ;
 
-	return ret;
+	  return ret;
       }
 
-      void    xpnsi_null_rewinddir ( DIR *dirp )
+      void    xpnsi_null_rewinddir ( stk_fs_t *fsi, DIR *dirp )
       {
-	XPN_DEBUG_BEGIN_CUSTOM("%p", dirp) ;
-	xpni_lowfsi_readdir(dirp);
-	XPN_DEBUG_END_CUSTOM("%p", dirp) ;
+	  XPN_DEBUG_BEGIN_CUSTOM("dirp:%p", dirp) ;
+	  xpni_lowfsi_readdir(dirp);
+	    XPN_DEBUG_END_CUSTOM("dirp:%p", dirp) ;
       }
 
 
-      long    xpnsi_null_mkdir     ( const char *pathname, int mode )
+      long    xpnsi_null_mkdir     ( stk_fs_t *fsi, const char *pathname, int mode )
       {
-        long  ret;
+          long  ret;
 
-	XPN_DEBUG_BEGIN_CUSTOM("%s %d", pathname, mode) ;
-	ret = xpni_lowfsi_mkdir(pathname, mode);
-	XPN_DEBUG_END_CUSTOM("%s %d", pathname, mode) ;
+	  XPN_DEBUG_BEGIN_CUSTOM("pathname:%s, mode:%d", pathname, mode) ;
+	  ret = xpni_lowfsi_mkdir(pathname, mode);
+	    XPN_DEBUG_END_CUSTOM("pathname:%s, mode:%d", pathname, mode) ;
 
-	return ret;
+	  return ret;
       }
 
-      long    xpnsi_null_rmdir     ( const char *pathname )
+      long    xpnsi_null_rmdir     ( stk_fs_t *fsi, const char *pathname )
       {
-        long  ret;
+          long  ret;
 
-	XPN_DEBUG_BEGIN_CUSTOM("%s", pathname) ;
-	ret = xpni_lowfsi_rmdir(pathname);
-	XPN_DEBUG_END_CUSTOM("%s", pathname) ;
+	  XPN_DEBUG_BEGIN_CUSTOM("pathname:%s", pathname) ;
+	  ret = xpni_lowfsi_rmdir(pathname);
+	    XPN_DEBUG_END_CUSTOM("pathname:%s", pathname) ;
 
-	return ret;
+	  return ret;
       }
 
 

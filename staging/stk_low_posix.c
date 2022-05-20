@@ -43,7 +43,7 @@
 
 	// file API
 	fsi->fsi_init       = stk_low_posix_init ;
-        fsi->fsi_destroy    = stk_low_posix_destroy ;
+        fsi->fsi_finalize   = stk_low_posix_finalize ;
         fsi->fsi_open       = stk_low_posix_open ;
         fsi->fsi_creat      = stk_low_posix_creat ;
         fsi->fsi_close      = stk_low_posix_close ;
@@ -80,7 +80,7 @@
 
 	// file API
 	fsi->fsi_init       = NULL ;
-        fsi->fsi_destroy    = NULL ;
+        fsi->fsi_finalize   = NULL ;
         fsi->fsi_open       = NULL ;
         fsi->fsi_creat      = NULL ;
         fsi->fsi_close      = NULL ;
@@ -104,7 +104,7 @@
 
 
       //
-      // init + destroy
+      // init + finalize
       //
 
       int stk_low_posix_init ( void )
@@ -112,7 +112,7 @@
 	  return 1 ;
       }
 
-      int stk_low_posix_destroy ( void )
+      int stk_low_posix_finalize ( void )
       {
 	  return 1 ;
       }

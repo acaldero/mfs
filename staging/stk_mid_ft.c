@@ -839,7 +839,7 @@
 
 	// file API
 	fsi->fsi_init       = stk_mid_ft_init ;
-        fsi->fsi_destroy    = stk_mid_ft_destroy ;
+        fsi->fsi_finalize   = stk_mid_ft_finalize ;
         fsi->fsi_open       = stk_mid_ft_open ;
         fsi->fsi_creat      = stk_mid_ft_creat ;
         fsi->fsi_close      = stk_mid_ft_close ;
@@ -876,7 +876,7 @@
 
 	// file API
 	fsi->fsi_init       = NULL ;
-        fsi->fsi_destroy    = NULL ;
+        fsi->fsi_finalize   = NULL ;
         fsi->fsi_open       = NULL ;
         fsi->fsi_creat      = NULL ;
         fsi->fsi_close      = NULL ;
@@ -900,7 +900,7 @@
 
 
       //
-      // init + destroy
+      // init + finalize
       //
 
       int stk_mid_ft_init ( void )
@@ -914,12 +914,12 @@
 	return ret ;
       }
 
-      int stk_mid_ft_destroy ( void )
+      int stk_mid_ft_finalize ( void )
       {
 	int ret ;
 
 	XPN_DEBUG_BEGIN();
-	ret = xpni_lowfsi_destroy();
+	ret = xpni_lowfsi_finalize();
 	XPN_DEBUG_END();
 
 	return ret ;

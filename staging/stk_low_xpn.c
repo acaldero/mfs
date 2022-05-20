@@ -43,7 +43,7 @@
 
 	// file API
 	fsi->fsi_init       = stk_low_xpn_init ;
-        fsi->fsi_destroy    = stk_low_xpn_destroy ;
+        fsi->fsi_finalize   = stk_low_xpn_finalize ;
         fsi->fsi_open       = stk_low_xpn_open ;
         fsi->fsi_creat      = stk_low_xpn_creat ;
         fsi->fsi_close      = stk_low_xpn_close ;
@@ -78,7 +78,7 @@
 
 	// file API
 	fsi->fsi_init       = NULL ;
-        fsi->fsi_destroy    = NULL ;
+        fsi->fsi_finalize   = NULL ;
         fsi->fsi_open       = NULL ;
         fsi->fsi_creat      = NULL ;
         fsi->fsi_close      = NULL ;
@@ -102,7 +102,7 @@
 
 
       //
-      // init + destroy
+      // init + finalize
       //
 
       int stk_low_xpn_init ( void )
@@ -110,9 +110,9 @@
 	  return xpn_init() ;
       }
 
-      int stk_low_xpn_destroy ( void )
+      int stk_low_xpn_finalize ( void )
       {
-	  return xpn_destroy() ;
+	  return xpn_finalize() ;
       }
 
 

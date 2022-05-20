@@ -20,9 +20,9 @@
       int     stk_low_posix_register   ( stk_fs_t *fsi ) ;
       int     stk_low_posix_unregister ( stk_fs_t *fsi ) ;
 
-      // init + destroy
-      int     stk_low_posix_init    ( void ) ;
-      int     stk_low_posix_destroy ( void ) ;
+      // init + finalize
+      int     stk_low_posix_init     ( void ) ;
+      int     stk_low_posix_finalize ( void ) ;
 
       // File API
       int     stk_low_posix_creat  ( char *path, mode_t mode ) ;

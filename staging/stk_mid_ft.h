@@ -27,9 +27,9 @@
       int     stk_mid_ft_register   ( stk_fs_t *fsi ) ;
       int     stk_mid_ft_unregister ( stk_fs_t *fsi ) ;
 
-      // init + destroy
-      int     stk_mid_ft_init    ( void ) ;
-      int     stk_mid_ft_destroy ( void ) ;
+      // init + finalize
+      int     stk_mid_ft_init     ( void ) ;
+      int     stk_mid_ft_finalize ( void ) ;
 
       // File API
       int     stk_mid_ft_creat  ( char *path, mode_t mode ) ;

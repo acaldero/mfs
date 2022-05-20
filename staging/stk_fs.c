@@ -27,6 +27,86 @@
 
    /* ... Functions / Funciones ......................................... */
 
+      int stk_fs_init ( stk_fs_t *fsi, stk_fs_t *low_fsi )
+      {
+	  int ret ;
+
+	  /* check params */
+	  if (NULL == fsi) {
+	      return -1 ;
+	  }
+
+	  XPN_DEBUG_BEGIN_CUSTOM("fsi:%p, low_fsi:%p", fsi, low_fsi) ;
+
+	  /* initialize interface */
+	  fsi->fsi_name       = NULL ;
+	  fsi->low_fsi        = low_fsi ;
+
+	  // init/finalize
+	  fsi->fsi_init       = NULL ;
+          fsi->fsi_finalize   = NULL ;
+	  // file API
+          fsi->fsi_open       = NULL ;
+          fsi->fsi_creat      = NULL ;
+          fsi->fsi_close      = NULL ;
+          fsi->fsi_read       = NULL ;
+          fsi->fsi_write      = NULL ;
+          fsi->fsi_lseek      = NULL ;
+	  // directory API
+          fsi->fsi_opendir    = NULL ;
+          fsi->fsi_closedir   = NULL ;
+          fsi->fsi_readdir    = NULL ;
+          fsi->fsi_mkdir      = NULL ;
+          fsi->fsi_rmdir      = NULL ;
+          fsi->fsi_rewinddir  = NULL ;
+
+	  XPN_DEBUG_END_CUSTOM("fsi:%p, low_fsi:%p -> %d", fsi, low_fsi, ret) ;
+
+	  /* return ok|ko */
+	  return ret ;
+      }
+
+      int stk_fs_finalize ( stk_fs_t *fsi )
+      {
+	  int ret ;
+
+	  /* check params */
+	  if (NULL == fsi) {
+	      return -1 ;
+	  }
+
+	  XPN_DEBUG_BEGIN_CUSTOM("fsi:%p", fsi) ;
+
+	  /* unregister xpnsi_null interface */
+	  if (NULL != fsi->fsi_name) {
+	      free(fsi->fsi_name) ;
+	      fsi->fsi_name   = NULL ;
+	  }
+
+	  // init/destroy
+	  fsi->fsi_init       = NULL ;
+          fsi->fsi_finalize   = NULL ;
+	  // file API
+          fsi->fsi_open       = NULL ;
+          fsi->fsi_creat      = NULL ;
+          fsi->fsi_close      = NULL ;
+          fsi->fsi_read       = NULL ;
+          fsi->fsi_write      = NULL ;
+          fsi->fsi_lseek      = NULL ;
+	  // directory API
+          fsi->fsi_opendir    = NULL ;
+          fsi->fsi_closedir   = NULL ;
+          fsi->fsi_readdir    = NULL ;
+          fsi->fsi_mkdir      = NULL ;
+          fsi->fsi_rmdir      = NULL ;
+          fsi->fsi_rewinddir  = NULL ;
+
+	  XPN_DEBUG_END_CUSTOM("%p", fsi) ;
+
+	  /* return ok|ko */
+	  return ret ;
+      }
+
       stk_fs_t  *stk_fs_new ( void )
       {
 	  stk_fs_t *stk_fs_aux ;
@@ -38,7 +118,7 @@
 
 	  /* set to default values */
 	  if (NULL != stk_fs_aux) {
-	      memset(stk_fs_aux,0,sizeof(stk_fs_t));
+              stk_fs_init(stk_fs_aux, NULL) ;
 	  }
 
 	  XPN_DEBUG_END();
@@ -51,7 +131,12 @@
       {
 	  XPN_DEBUG_BEGIN();
 
-	  if (*fsi != NULL) {
+	  if (*fsi != NULL)
+	  {
+	      // free fsi fields...
+              stk_fs_finalize(*fsi) ;
+
+	      // free fsi itself...
 	      free(*fsi) ;
 	      *fsi = NULL ;
 	  }

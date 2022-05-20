@@ -19,15 +19,14 @@
 
       struct struct_stk_fs_t
       {
+
 	 // internal data
          char     *fs_name ;
+         stk_fs_t *low_fsi ;
 
 	 // API
-         int     (*stk_register)   ( stk_fs_t *fsi ) ;
-         int     (*stk_unregister) ( stk_fs_t *fsi ) ;
-
-         int     (*stk_init)       ( void ) ;
-         int     (*stk_destroy)    ( void ) ;
+         int     (*stk_init)       ( stk_fs_t *fsi, stk_fs_t *low_fsi ) ;
+         int     (*stk_finalize)   ( stk_fs_t *fsi ) ;
 
          int     (*stk_creat)      ( char *path, mode_t mode ) ;
          int     (*stk_open)       ( char *path, int flags, mode_t mode ) ;
@@ -48,8 +47,65 @@
 
    /* ... Functions / Funciones ......................................... */
 
-      stk_fs_t  *stk_fs_new      ( void )
-      int        stk_fs_destroy  ( stk_fs_t **fsi )
+      int       stk_fs_init     ( stk_fs_t *fsi, stk_fs_t *low_fsi ) ;
+      int       stk_fs_finalize ( stk_fs_t *fsi ) ;
+
+      stk_fs_t *stk_fs_new      ( void ) ;
+      int       stk_fs_destroy  ( stk_fs_t **fsi ) ;
+
+
+   /* ... Macros / Macros ............................................... */
+
+      #define STK_FS_GET_FSNAME(fd) \
+              ((fsi) == NULL) ? NULL : ((fsi)->fs_name)
+
+      #define STK_FS_GET_LOWFSI(fsi) \
+              ((fsi) == NULL) ? NULL : ((fsi)->low_fsi)
+
+
+      #define STK_FS_INIT(fsi,low_fsi) \
+              ((fsi) == NULL) ? -1 : ((fsi)->stk_init)((fsi),(low_fsi))
+
+      #define STK_FS_FINALIZE(fsi) \
+              ((fsi) == NULL) ? -1 : ((fsi)->stk_finalize)((fsi))
+
+
+      #define STK_FS_CREAT(fsi,path,mode) \
+              ((fsi) == NULL) ? -1 : ((fsi)->stk_creat)((path),(mode))
+
+      #define STK_FS_OPEN(fsi,path,flags,mode) \
+              ((fsi) == NULL) ? -1 : ((fsi)->stk_open)((path),(flags),(mode))
+
+      #define STK_FS_CLOSE(fsi,fd) \
+              ((fsi) == NULL) ? -1 : ((fsi)->stk_close)((fd))
+
+      #define STK_FS_LSEEK(fsi,fd,offset,flag) \
+              ((fsi) == NULL) ? -1 : ((fsi)->stk_lseek)((fd),(offset),(flag))
+
+      #define STK_FS_WRITE(fsi,fd,buffer,size) \
+              ((fsi) == NULL) ? -1 : ((fsi)->stk_write)((fd),(buffer),(size))
+
+      #define STK_FS_READ(fsi,fd,buffer,size) \
+              ((fsi) == NULL) ? -1 : ((fsi)->stk_read)((fd),(buffer),(size))
+
+
+      #define STK_FS_MKDIR(fsi,pathname,mode) \
+              ((fsi) == NULL) ? -1 : ((fsi)->stk_mkdir)((pathname),(mode))
+
+      #define STK_FS_RMDIR(fsi,pathname) \
+              ((fsi) == NULL) ? -1 : ((fsi)->stk_rmdir)((pathname))
+
+      #define STK_FS_OPENDIR(fsi,path) \
+              ((fsi) == NULL) ? -1 : ((fsi)->stk_opendir)((path))
+
+      #define STK_FS_CLOSEDIR(fsi,dirp) \
+              ((fsi) == NULL) ? -1 : ((fsi)->stk_closedir)((dirp))
+
+      #define STK_FS_READDIR(fsi,dirp) \
+              ((fsi) == NULL) ? NULL : ((fsi)->stk_readdir)((dirp))
+
+      #define STK_FS_REWINDDIR(fsi,dirp) \
+              ((fsi) == NULL) ? -1 : ((fsi)->stk_rewinddir)((dirp))
 
 
    /* ................................................................... */
