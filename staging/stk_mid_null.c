@@ -35,7 +35,6 @@
       {
 	  int ret ;
 
-	  /* debug */
 	  XPN_DEBUG_BEGIN_CUSTOM("fsi:%p, low_fsi:%p", fsi, low_fsi) ;
 
 	  /* check params */
@@ -68,7 +67,6 @@
 	  // TODO: check if stack builder should do this instead
 	  ret = STK_FS_INIT(fsi->low_fsi, NULL) ;
 
-	  /* debug */
 	  XPN_DEBUG_END_CUSTOM("fsi:%p, low_fsi:%p -> %d", fsi, low_fsi, ret) ;
 
 	  /* return ok|ko */
@@ -114,7 +112,7 @@
           /* create file */
 	  ret = -1 ;
           if (NULL != path) {
-              ret = xpni_lowfsi_creat(path, mode) ;
+              ret = STK_FS_CREAT(path, mode) ;
 	  }
 
 	  XPN_DEBUG_END_CUSTOM("path:%s, mode:%d -> %d", path, (int)mode, ret) ;
@@ -132,7 +130,7 @@
           /* open file */
 	  ret = -1 ;
           if (NULL != path) {
-              ret = xpni_lowfsi_open(path, flags, mode) ;
+              ret = STK_FS_OPEN(path, flags, mode) ;
 	  }
 
 	  XPN_DEBUG_END_CUSTOM("path:%s, flags:%d, mode:%d -> %d", path, flags, (int)mode, ret) ;
@@ -146,7 +144,7 @@
 	  int ret ;
 
 	  XPN_DEBUG_BEGIN_CUSTOM("fd:%d", fd) ;
-	  ret = xpni_lowfsi_close(xpni_fit_get_XPN_DATA_FD(fd));
+	  ret = STK_FS_CLOSE(xpni_fit_get_XPN_DATA_FD(fd));
 	    XPN_DEBUG_END_CUSTOM("fd:%d", fd) ;
 
 	  return ret ;
@@ -158,7 +156,7 @@
 
           /* lseek file: data only */
 	  XPN_DEBUG_BEGIN_CUSTOM("fd:%d, offset:%ld, flag:%d", fd, (long)offset, flag) ;
-	  ret = xpni_lowfsi_lseek(xpni_fit_get_XPN_DATA_FD(fd),offset,flag);
+	  ret = STK_FS_LSEEK(xpni_fit_get_XPN_DATA_FD(fd),offset,flag);
 	    XPN_DEBUG_END_CUSTOM("fd:%d, offset:%ld, flag:%d", fd, (long)offset, flag) ;
 
 	  return ret ;
@@ -169,7 +167,7 @@
 	  int ret ;
 
 	  XPN_DEBUG_BEGIN_CUSTOM("fd:%d, buffer:%p, size:%d", fd, buffer, size) ;
-	  ret = xpni_lowfsi_write(xpni_fit_get_XPN_DATA_FD(fd), buffer, size);
+	  ret = STK_FS_WRITE(xpni_fit_get_XPN_DATA_FD(fd), buffer, size);
 	    XPN_DEBUG_END_CUSTOM("fd:%d, buffer:%p, size:%d", fd, buffer, size) ;
 
 	  return ret ;
@@ -180,7 +178,7 @@
 	  int ret ;
 
 	  XPN_DEBUG_BEGIN_CUSTOM("fd:%d, buffer:%p, size:%d", fd, buffer, size) ;
-	  ret = xpni_lowfsi_read(xpni_fit_get_XPN_DATA_FD(fd), buffer, size);
+	  ret = STK_FS_READ(xpni_fit_get_XPN_DATA_FD(fd), buffer, size);
 	    XPN_DEBUG_END_CUSTOM("fd:%d, buffer:%p, size:%d", fd, buffer, size) ;
 
 	  return ret ;
@@ -196,7 +194,7 @@
           DIR  *ret;
 
 	  XPN_DEBUG_BEGIN_CUSTOM("path:%s", path) ;
-	  ret = xpni_lowfsi_opendir(xpni_fit_get_XPN_FNAME(path));
+	  ret = STK_FS_OPENDIR(xpni_fit_get_XPN_FNAME(path));
 	    XPN_DEBUG_END_CUSTOM("path:%s", path) ;
 
 	  return ret;
@@ -207,7 +205,7 @@
           int  ret;
 
 	  XPN_DEBUG_BEGIN_CUSTOM("dirp:%p", dirp) ;
-	  ret = xpni_lowfsi_closedir(dirp);
+	  ret = STK_FS_CLOSEDIR(dirp);
 	    XPN_DEBUG_END_CUSTOM("dirp:%p", dirp) ;
 
 	  return ret;
@@ -218,7 +216,7 @@
           struct dirent *ret;
 
 	  XPN_DEBUG_BEGIN_CUSTOM("dirp:%p", dirp) ;
-	  ret = xpni_lowfsi_readdir(dirp);
+	  ret = STK_FS_READDIR(dirp);
 	    XPN_DEBUG_END_CUSTOM("dirp:%p", dirp) ;
 
 	  return ret;
@@ -227,7 +225,7 @@
       void    xpnsi_null_rewinddir ( stk_fs_t *fsi, DIR *dirp )
       {
 	  XPN_DEBUG_BEGIN_CUSTOM("dirp:%p", dirp) ;
-	  xpni_lowfsi_readdir(dirp);
+	  STK_FS_REWINDDIR(dirp);
 	    XPN_DEBUG_END_CUSTOM("dirp:%p", dirp) ;
       }
 
@@ -237,7 +235,7 @@
           long  ret;
 
 	  XPN_DEBUG_BEGIN_CUSTOM("pathname:%s, mode:%d", pathname, mode) ;
-	  ret = xpni_lowfsi_mkdir(pathname, mode);
+	  ret = STK_FS_MKDIR(pathname, mode);
 	    XPN_DEBUG_END_CUSTOM("pathname:%s, mode:%d", pathname, mode) ;
 
 	  return ret;
@@ -248,7 +246,7 @@
           long  ret;
 
 	  XPN_DEBUG_BEGIN_CUSTOM("pathname:%s", pathname) ;
-	  ret = xpni_lowfsi_rmdir(pathname);
+	  ret = STK_FS_RMDIR(pathname);
 	    XPN_DEBUG_END_CUSTOM("pathname:%s", pathname) ;
 
 	  return ret;

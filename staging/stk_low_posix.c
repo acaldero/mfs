@@ -28,44 +28,49 @@
    /* ... Functions / Funciones ......................................... */
 
       //
-      // register + unregister
+      // Init + finalize
       //
 
-      int stk_low_posix_register   ( stk_fs_t *fsi )
+      int stk_low_posix_init ( stk_fs_t *fsi, stk_fs_t *low_fsi )
       {
-	/* check params */
-	if (NULL == fsi) {
-	    return -1 ;
-	}
+	  int ret ;
 
-	/* register stk_low_posix interface */
-	fsi->fsi_name   = STRING_MISC_StrDup("stk_low_posix") ;
+	  XPN_DEBUG_BEGIN_CUSTOM("fsi:%p, low_fsi:%p", fsi, low_fsi) ;
 
-	// file API
-	fsi->fsi_init       = stk_low_posix_init ;
-        fsi->fsi_finalize   = stk_low_posix_finalize ;
-        fsi->fsi_open       = stk_low_posix_open ;
-        fsi->fsi_creat      = stk_low_posix_creat ;
-        fsi->fsi_close      = stk_low_posix_close ;
-        fsi->fsi_read       = stk_low_posix_read ;
-        fsi->fsi_write      = stk_low_posix_write ;
-        fsi->fsi_lseek      = stk_low_posix_lseek ;
-	// directory API
-        fsi->fsi_opendir    = stk_low_posix_opendir ;
-        fsi->fsi_closedir   = stk_low_posix_closedir ;
-        fsi->fsi_readdir    = stk_low_posix_readdir ;
-        fsi->fsi_mkdir      = stk_low_posix_mkdir ;
-        fsi->fsi_rmdir      = stk_low_posix_rmdir ;
-        fsi->fsi_rewinddir  = stk_low_posix_rewinddir ;
-	// register/unregister API
-        fsi->fsi_register   = stk_low_posix_register ;
-        fsi->fsi_unregister = stk_low_posix_unregister ;
+	  /* check params */
+	  if (NULL == fsi) {
+	      return -1 ;
+	  }
 
-	/* return ok */
-	return (1) ;
+	  /* register stk_low_posix interface */
+	  fsi->fsi_name   = STRING_MISC_StrDup("stk_low_posix") ;
+	  fsi->low_fsi    = low_fsi ;
+
+	  // init/finalize
+	  fsi->fsi_init       = stk_low_posix_init ;
+          fsi->fsi_finalize   = stk_low_posix_finalize ;
+	  // file API
+          fsi->fsi_open       = stk_low_posix_open ;
+          fsi->fsi_creat      = stk_low_posix_creat ;
+          fsi->fsi_close      = stk_low_posix_close ;
+          fsi->fsi_read       = stk_low_posix_read ;
+          fsi->fsi_write      = stk_low_posix_write ;
+          fsi->fsi_lseek      = stk_low_posix_lseek ;
+	  // directory API
+          fsi->fsi_opendir    = stk_low_posix_opendir ;
+          fsi->fsi_closedir   = stk_low_posix_closedir ;
+          fsi->fsi_readdir    = stk_low_posix_readdir ;
+          fsi->fsi_mkdir      = stk_low_posix_mkdir ;
+          fsi->fsi_rmdir      = stk_low_posix_rmdir ;
+          fsi->fsi_rewinddir  = stk_low_posix_rewinddir ;
+
+	  XPN_DEBUG_END_CUSTOM("fsi:%p, low_fsi:%p -> %d", fsi, low_fsi, ret) ;
+
+	  /* return ok */
+	  return 1 ;
       }
 
-      int stk_low_posix_unregister ( stk_fs_t *fsi )
+      int stk_low_posix_finalize ( stk_fs_t *fsi )
       {
 	/* check params */
 	if (NULL == fsi) {
@@ -78,9 +83,10 @@
 	    fsi->fsi_name   = NULL ;
 	}
 
-	// file API
+	// init/finalize
 	fsi->fsi_init       = NULL ;
         fsi->fsi_finalize   = NULL ;
+	// file API
         fsi->fsi_open       = NULL ;
         fsi->fsi_creat      = NULL ;
         fsi->fsi_close      = NULL ;
@@ -94,27 +100,9 @@
         fsi->fsi_mkdir      = NULL ;
         fsi->fsi_rmdir      = NULL ;
         fsi->fsi_rewinddir  = NULL ;
-	// register/unregister API
-        fsi->fsi_register   = NULL ;
-        fsi->fsi_unregister = NULL ;
 
 	/* return ok */
 	return (1) ;
-      }
-
-
-      //
-      // init + finalize
-      //
-
-      int stk_low_posix_init ( void )
-      {
-	  return 1 ;
-      }
-
-      int stk_low_posix_finalize ( void )
-      {
-	  return 1 ;
       }
 
 

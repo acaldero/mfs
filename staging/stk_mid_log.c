@@ -28,271 +28,201 @@
    /* ... Functions / Funciones ......................................... */
 
       //
-      // register + unregister
+      // Init + finalize
       //
 
-      int stk_mid_log_register   ( stk_fs_t *fsi )
+      int stk_mid_log_init ( stk_fs_t *fsi, stk_fs_t *low_fsi )
       {
-	XPN_DEBUG_BEGIN_CUSTOM("%p", fsi) ;
+	  int ret ;
+	  struct timeval t1, t2 ;
 
-	/* check params */
-	if (NULL == fsi) {
-	    return -1 ;
-	}
+	  XPN_DEBUG_BEGIN_CUSTOM("fsi:%p, low_fsi:%p", fsi, low_fsi) ;
 
-	/* register stk_mid_log interface */
-	fsi->fsi_name   = STRING_MISC_StrDup("stk_mid_log") ;
+	  /* check params */
+	  if (NULL == fsi) {
+	      return -1 ;
+	  }
 
-	// file API
-	fsi->fsi_init       = stk_mid_log_init ;
-        fsi->fsi_finalize   = stk_mid_log_finalize ;
-        fsi->fsi_open       = stk_mid_log_open ;
-        fsi->fsi_creat      = stk_mid_log_creat ;
-        fsi->fsi_close      = stk_mid_log_close ;
-        fsi->fsi_read       = stk_mid_log_read ;
-        fsi->fsi_write      = stk_mid_log_write ;
-        fsi->fsi_lseek      = stk_mid_log_lseek ;
-	// directory API
-        fsi->fsi_opendir    = stk_mid_log_opendir ;
-        fsi->fsi_closedir   = stk_mid_log_closedir ;
-        fsi->fsi_readdir    = stk_mid_log_readdir ;
-        fsi->fsi_mkdir      = stk_mid_log_mkdir ;
-        fsi->fsi_rmdir      = stk_mid_log_rmdir ;
-        fsi->fsi_rewinddir  = stk_mid_log_rewinddir ;
-	// register/unregister API
-        fsi->fsi_register   = stk_mid_log_register ;
-        fsi->fsi_unregister = stk_mid_log_unregister ;
+	  /* register stk_mid_log interface */
+	  fsi->fsi_name       = STRING_MISC_StrDup("stk_mid_log") ;
+	  fsi->low_fsi        = low_fsi ;
 
-	XPN_DEBUG_END_CUSTOM("%p", fsi) ;
+	  // init/finalize
+	  fsi->fsi_init       = stk_mid_log_init ;
+          fsi->fsi_finalize   = stk_mid_log_finalize ;
+	  // file API
+          fsi->fsi_open       = stk_mid_log_open ;
+          fsi->fsi_creat      = stk_mid_log_creat ;
+          fsi->fsi_close      = stk_mid_log_close ;
+          fsi->fsi_read       = stk_mid_log_read ;
+          fsi->fsi_write      = stk_mid_log_write ;
+          fsi->fsi_lseek      = stk_mid_log_lseek ;
+	  // directory API
+          fsi->fsi_opendir    = stk_mid_log_opendir ;
+          fsi->fsi_closedir   = stk_mid_log_closedir ;
+          fsi->fsi_readdir    = stk_mid_log_readdir ;
+          fsi->fsi_mkdir      = stk_mid_log_mkdir ;
+          fsi->fsi_rmdir      = stk_mid_log_rmdir ;
+          fsi->fsi_rewinddir  = stk_mid_log_rewinddir ;
 
-	/* return ok */
-	return (1) ;
+	  // TODO: check if stack builder should do this instead
+	  TIME_MISC_Timer(&t1);
+	  ret = STK_FS_INIT(fsi->low_fsi, NULL) ;
+	  TIME_MISC_Timer(&t2);
+
+          /* record event */
+	  util_log_elog(&t1,&t2,"lowfsi_init",-1,-1,-1);
+
+	  XPN_DEBUG_END_CUSTOM("fsi:%p, low_fsi:%p -> %d", fsi, low_fsi, ret) ;
+
+	  /* return ok */
+	  return (1) ;
       }
 
-      int stk_mid_log_unregister ( stk_fs_t *fsi )
+      int stk_mid_log_finalize ( stk_fs_t *fsi )
       {
-	XPN_DEBUG_BEGIN_CUSTOM("%p", fsi) ;
+	  int       ret ;
+          stk_fs_t *low_fsi ;
+	  struct timeval t1, t2 ;
 
-	/* check params */
-	if (NULL == fsi) {
-	    return -1 ;
-	}
+	  XPN_DEBUG_BEGIN_CUSTOM("fsi:%p", fsi) ;
 
-	/* unregister stk_mid_log interface */
-	if (NULL != fsi->fsi_name) {
-	    free(fsi->fsi_name) ;
-	    fsi->fsi_name   = NULL ;
-	}
+	  // TODO: check if stack builder should do this instead
+	  TIME_MISC_Timer(&t1);
+          low_fsi = STK_FS_GET_LOWFSI(fsi) ;
+	  if (NULL != low_fsi) {
+              ret = STK_FS_FINALIZE(low_fsi) ;
+	  }
+	  TIME_MISC_Timer(&t2);
 
-	// file API
-	fsi->fsi_init       = NULL ;
-        fsi->fsi_finalize   = NULL ;
-        fsi->fsi_open       = NULL ;
-        fsi->fsi_creat      = NULL ;
-        fsi->fsi_close      = NULL ;
-        fsi->fsi_read       = NULL ;
-        fsi->fsi_write      = NULL ;
-        fsi->fsi_lseek      = NULL ;
-	// directory API
-        fsi->fsi_opendir    = NULL ;
-        fsi->fsi_closedir   = NULL ;
-        fsi->fsi_readdir    = NULL ;
-        fsi->fsi_mkdir      = NULL ;
-        fsi->fsi_rmdir      = NULL ;
-        fsi->fsi_rewinddir  = NULL ;
-	// register/unregister API
-        fsi->fsi_register   = NULL ;
-        fsi->fsi_unregister = NULL ;
+          /* record event */
+	  util_log_elog(&t1,&t2,"lowfsi_finalize",-1,-1,-1);
 
-	XPN_DEBUG_END_CUSTOM("%p", fsi) ;
+	  // finalize
+          ret = -1 ;
+	  if (NULL != fsi) {
+              ret = stk_fs_finalize(fsi) ;
+	  }
 
-	/* return ok */
-	return (1) ;
+	  XPN_DEBUG_END_CUSTOM("%p", fsi) ;
+
+	  /* return ok|ko */
+	  return ret ;
       }
-
-
-      //
-      // init + finalize
-      //
-
-      int stk_mid_log_init ( void )
-      {
-	int    ret ;
-	struct timeval t1, t2 ;
-
-	XPN_DEBUG_BEGIN();
-
-	/* passthru... */
-	TIME_MISC_Timer(&t1);
-	ret = xpni_lowfsi_init();
-	TIME_MISC_Timer(&t2);
-
-        /* record event */
-	util_log_elog(&t1,&t2,"xpni_lowfsi_init",-1,-1,-1);
-
-	XPN_DEBUG_END();
-
-        /* return 'ret' */
-	return ret ;
-      }
-
-      int stk_mid_log_finalize ( void )
-      {
-	int    ret ;
-	struct timeval t1, t2 ;
-
-	XPN_DEBUG_BEGIN();
-
-        /* passthru... */
-	TIME_MISC_Timer(&t1);
-	ret = xpni_lowfsi_finalize();
-	TIME_MISC_Timer(&t2);
-
-        /* record event */
-	util_log_elog(&t1,&t2,"xpni_lowfsi_finalize",-1,-1,-1);
-
-	XPN_DEBUG_END();
-
-        /* return 'ret' */
-	return ret ;
-      }
-
 
 
       //
       // open + close + sread + swrite
       //
 
-      int stk_mid_log_creat ( int fd )
+      int stk_mid_log_creat ( stk_fs_t *fsi, char *path, mode_t mode )
       {
-        int             ret ;
-	struct timeval  t1, t2 ;
-        xpni_fi_t *xpni_fi1 ;
+          int             ret ;
+  	  struct timeval  t1, t2 ;
 
-	XPN_DEBUG_BEGIN_CUSTOM("%d", fd) ;
+	  XPN_DEBUG_BEGIN_CUSTOM("path:%s, mode:%d", path, (int)mode) ;
 
-        /* check params */
-        xpni_fi1 = xpni_fit_get(fd) ;
-        if (NULL == xpni_fi1)
-	    return (-1) ;
+          /* create file */
+	  ret = -1 ;
+          if (NULL != path)
+	  {
+	      /* passthru... */
+	      TIME_MISC_Timer(&t1);
+              ret = STK_FS_CREAT(path, mode) ;
+	      TIME_MISC_Timer(&t2);
 
-	/* passthru... */
-	TIME_MISC_Timer(&t1);
-        ret = xpni_lowfsi_creat(xpni_fit_get_XPN_FNAME(fd),
-                                xpni_fit_get_XPN_MODE(fd)) ;
-	TIME_MISC_Timer(&t2);
+              /* record event */
+	      util_log_elog(&t1,&t2,"STK_FS_CREAT",fd,-1,-1);
+	  }
 
-        /* record event */
-	util_log_elog(&t1,&t2,"xpn_creat",fd,-1,-1);
+	  XPN_DEBUG_END_CUSTOM("path:%s, mode:%d -> %d", path, (int)mode, ret) ;
 
-        /* update file description */
-        if (ret >= 0) {
-            xpni_fit_set_XPN_DATA_FD(fd,ret) ;
-	}
-
-	XPN_DEBUG_END_CUSTOM("%d", fd) ;
-
-        /* return xpn file descriptor */
-        return ret ;
+          /* return xpn file descriptor */
+          return ret ;
       }
 
-      int stk_mid_log_open ( int fd )
+      int stk_mid_log_open ( stk_fs_t *fsi, char *path, int flags, mode_t mode )
       {
-	int             ret ;
-	struct timeval  t1, t2 ;
-        xpni_fi_t      *xpni_fi1 ;
+	  int             ret ;
+	  struct timeval  t1, t2 ;
 
-	XPN_DEBUG_BEGIN_CUSTOM("%d", fd) ;
+	  XPN_DEBUG_BEGIN_CUSTOM("path:%s, flags:%d, mode:%d", path, flags, (int)mode) ;
 
-        /* check params */
-        xpni_fi1 = xpni_fit_get(fd) ;
-        if (NULL == xpni_fi1) {
-	    return (-1) ;
-	}
+          /* open file */
+	  ret = -1 ;
+          if (NULL != path)
+	  {
+	      /* passthru... */
+	      TIME_MISC_Timer(&t1);
+              ret = STK_FS_OPEN(path, flags, mode) ;
+	      TIME_MISC_Timer(&t2);
 
-	/* passthru... */
-	TIME_MISC_Timer(&t1);
-        ret = xpni_lowfsi_open(xpni_fit_get_XPN_FNAME(fd),
-                               xpni_fit_get_XPN_FLAG(fd),
-                               xpni_fit_get_XPN_MODE(fd)) ;
-	TIME_MISC_Timer(&t2);
+              /* record event */
+	      util_log_elog(&t1,&t2,"STK_FS_OPEN",fd,-1,-1);
+	  }
 
-        /* record event */
-	util_log_elog(&t1,&t2,"xpni_lowfsi_open",fd,-1,-1);
+	  XPN_DEBUG_END_CUSTOM("path:%s, flags:%d, mode:%d", path, flags, (int)mode) ;
 
-        /* update file description */
-        if (ret >= 0) {
-            xpni_fit_set_XPN_DATA_FD(fd,ret) ;
-	}
-
-	XPN_DEBUG_END_CUSTOM("%d", fd) ;
-
-        /* return xpn file descriptor */
-        return ret ;
+          /* return xpn file descriptor */
+          return ret ;
       }
 
-      int stk_mid_log_close ( int fd )
+      int stk_mid_log_close ( stk_fs_t *fsi, int fd )
       {
-	int    data_fd ;
-	int    ret ;
-	struct timeval t1, t2 ;
+	  int    ret ;
+	  struct timeval t1, t2 ;
 
-	XPN_DEBUG_BEGIN_CUSTOM("%d", fd) ;
+	  XPN_DEBUG_BEGIN_CUSTOM("%d", fd) ;
 
-        /* passthru... */
-	data_fd = xpni_fit_get_XPN_DATA_FD(fd);
-	TIME_MISC_Timer(&t1);
-	ret = xpni_lowfsi_close(data_fd);
-	TIME_MISC_Timer(&t2);
+          /* passthru... */
+	  TIME_MISC_Timer(&t1);
+	  ret = STK_FS_CLOSE(fd);
+	  TIME_MISC_Timer(&t2);
 
-        /* record event */
-	util_log_elog(&t1,&t2,"xpni_lowfsi_close",fd,-1,-1);
+          /* record event */
+	  util_log_elog(&t1,&t2,"STK_FS_CLOSE",fd,-1,-1);
 
-	XPN_DEBUG_END_CUSTOM("%d", fd) ;
+	  XPN_DEBUG_END_CUSTOM("%d", fd) ;
 
-        /* return 'ret' */
-	return ret ;
+          /* return 'ret' */
+	  return ret ;
       }
 
-      off_t  stk_mid_log_lseek ( int fd, off_t offset, int flag )
+      off_t  stk_mid_log_lseek ( stk_fs_t *fsi, int fd, off_t offset, int flag )
       {
-	int    data_fd ;
-	int    ret ;
-	struct timeval t1, t2 ;
+	  int    ret ;
+	  struct timeval t1, t2 ;
 
-	XPN_DEBUG_BEGIN_CUSTOM("%d %d %d", fd, offset, flag) ;
+	  XPN_DEBUG_BEGIN_CUSTOM("%d %d %d", fd, offset, flag) ;
 
-	/* passthru... */
-	data_fd = xpni_fit_get_XPN_DATA_FD(fd);
-	TIME_MISC_Timer(&t1);
-	ret = xpni_lowfsi_lseek(data_fd,offset,flag);
-	TIME_MISC_Timer(&t2);
+	  /* passthru... */
+	  TIME_MISC_Timer(&t1);
+	  ret = STK_FS_LSEEK(fd,offset,flag);
+	  TIME_MISC_Timer(&t2);
 
-        /* record event */
-	util_log_elog(&t1,&t2,"xpni_lowfsi_lseek",fd,-1,-1);
+          /* record event */
+	  util_log_elog(&t1,&t2,"STK_FS_LSEEK",fd,-1,-1);
 
-	XPN_DEBUG_END_CUSTOM("%d %d %d", fd, offset, flag) ;
+	  XPN_DEBUG_END_CUSTOM("%d %d %d", fd, offset, flag) ;
 
-        /* return 'ret' */
-	return ret ;
+          /* return 'ret' */
+	  return ret ;
       }
 
-      ssize_t stk_mid_log_read ( int fd, void *buffer, size_t size )
+      ssize_t stk_mid_log_write ( stk_fs_t *fsi, int fd, void *buffer, size_t size )
       {
-	int             data_fd ;
 	int             ret ;
 	struct timeval  t1, t2 ;
 
 	XPN_DEBUG_BEGIN_CUSTOM("%d %p %d", fd, buffer, size) ;
 
         /* passthru... */
-	data_fd = xpni_fit_get_XPN_DATA_FD(fd);
 	TIME_MISC_Timer(&t1);
-	ret = xpni_lowfsi_read(data_fd, buffer, size);
+	ret = STK_FS_WRITE(fd, buffer, size);
 	TIME_MISC_Timer(&t2);
 
         /* record event */
-	util_log_elog(&t1,&t2,"xpni_lowfsi_read",fd,size,-1);
+	util_log_elog(&t1,&t2,"STK_FS_WRITE",fd,size,-1);
 
 	XPN_DEBUG_END_CUSTOM("%d %p %d", fd, buffer, size) ;
 
@@ -300,22 +230,20 @@
 	return ret;
       }
 
-      ssize_t stk_mid_log_swrite ( int  fd, void *buffer, size_t  size )
+      ssize_t stk_mid_log_read ( stk_fs_t *fsi, int fd, void *buffer, size_t size )
       {
-	int             data_fd ;
 	int             ret ;
 	struct timeval  t1, t2 ;
 
 	XPN_DEBUG_BEGIN_CUSTOM("%d %p %d", fd, buffer, size) ;
 
         /* passthru... */
-	data_fd = xpni_fit_get_XPN_DATA_FD(fd);
 	TIME_MISC_Timer(&t1);
-	ret = xpni_lowfsi_write(data_fd, buffer, size);
+	ret = STK_FS_READ(fd, buffer, size);
 	TIME_MISC_Timer(&t2);
 
         /* record event */
-	util_log_elog(&t1,&t2,"xpni_lowfsi_write",fd,size,-1);
+	util_log_elog(&t1,&t2,"STK_FS_READ",fd,size,-1);
 
 	XPN_DEBUG_END_CUSTOM("%d %p %d", fd, buffer, size) ;
 
@@ -328,7 +256,7 @@
       // opendir + closedir + readdir + rewind
       //
 
-      DIR * stk_mid_log_opendir ( int dd )
+      DIR * stk_mid_log_opendir ( stk_fs_t *fsi, int dd )
       {
         DIR  *ret;
 	struct timeval  t1, t2 ;
@@ -337,11 +265,11 @@
 
         /* passthru... */
 	TIME_MISC_Timer(&t1);
-	ret = xpni_lowfsi_opendir(xpni_fit_get_XPN_FNAME(dd));
+	ret = STK_FS_OPENDIR(xpni_fit_get_XPN_FNAME(dd));
 	TIME_MISC_Timer(&t2);
 
         /* record event */
-	util_log_elog(&t1,&t2,"xpni_lowfsi_opendir",dd,-1,-1);
+	util_log_elog(&t1,&t2,"STK_FS_OPENDIR",dd,-1,-1);
 
         /* update directory description */
         if ((long)ret >= 0) {
@@ -354,7 +282,7 @@
 	return ret;
       }
 
-      int     stk_mid_log_closedir  ( DIR *dirp )
+      int     stk_mid_log_closedir  ( stk_fs_t *fsi, DIR *dirp )
       {
         int ret;
 	struct timeval  t1, t2 ;
@@ -363,11 +291,11 @@
 
         /* passthru... */
 	TIME_MISC_Timer(&t1);
-	ret = xpni_lowfsi_closedir(dirp);
+	ret = STK_FS_CLOSEDIR(dirp);
 	TIME_MISC_Timer(&t2);
 
         /* record event */
-	util_log_elog(&t1,&t2,"xpni_lowfsi_closedir",dirp,-1,-1);
+	util_log_elog(&t1,&t2,"STK_FS_CLOSEDIR",dirp,-1,-1);
 
 	XPN_DEBUG_END_CUSTOM("%p", dirp) ;
 
@@ -375,7 +303,7 @@
 	return ret;
       }
 
-      struct dirent *stk_mid_log_readdir ( DIR *dirp )
+      struct dirent *stk_mid_log_readdir ( stk_fs_t *fsi, DIR *dirp )
       {
         struct dirent * ret;
 	struct timeval  t1, t2 ;
@@ -384,11 +312,11 @@
 
         /* passthru... */
 	TIME_MISC_Timer(&t1);
-	ret = xpni_lowfsi_readdir(dirp);
+	ret = STK_FS_READDIR(dirp);
 	TIME_MISC_Timer(&t2);
 
         /* record event */
-	util_log_elog(&t1,&t2,"xpni_lowfsi_readdir",dirp,-1,-1);
+	util_log_elog(&t1,&t2,"STK_FS_READDIR",dirp,-1,-1);
 
 	XPN_DEBUG_END_CUSTOM("%p", dirp) ;
 
@@ -396,7 +324,7 @@
 	return ret;
       }
 
-      void    stk_mid_log_rewinddir ( DIR *dirp )
+      void    stk_mid_log_rewinddir ( stk_fs_t *fsi, DIR *dirp )
       {
 	struct timeval  t1, t2 ;
 
@@ -404,17 +332,17 @@
 
         /* passthru... */
 	TIME_MISC_Timer(&t1);
-	xpni_lowfsi_rewinddir(dirp);
+	STK_FS_REWINDDIR(dirp);
 	TIME_MISC_Timer(&t2);
 
         /* record event */
-	util_log_elog(&t1,&t2,"xpni_lowfsi_rewinddir",dirp,-1,-1);
+	util_log_elog(&t1,&t2,"STK_FS_REWINDDIR",dirp,-1,-1);
 
 	XPN_DEBUG_END_CUSTOM("%p", dirp) ;
       }
 
 
-      long    stk_mid_log_mkdir     ( const char *pathname, int mode )
+      long    stk_mid_log_mkdir     ( stk_fs_t *fsi, const char *pathname, int mode )
       {
         long ret;
 	struct timeval  t1, t2 ;
@@ -423,11 +351,11 @@
 
         /* passthru... */
 	TIME_MISC_Timer(&t1);
-	ret = xpni_lowfsi_mkdir(pathname, mode);
+	ret = STK_FS_MKDIR(pathname, mode);
 	TIME_MISC_Timer(&t2);
 
         /* record event */
-	util_log_elog(&t1,&t2,"xpni_lowfsi_mkdir",pathname,mode,-1);
+	util_log_elog(&t1,&t2,"STK_FS_MKDIR",pathname,mode,-1);
 
 	XPN_DEBUG_END_CUSTOM("%s %d", pathname, mode) ;
 
@@ -435,7 +363,7 @@
 	return ret;
       }
 
-      long    stk_mid_log_rmdir     ( const char *pathname )
+      long    stk_mid_log_rmdir     ( stk_fs_t *fsi, const char *pathname )
       {
         long ret;
 	struct timeval  t1, t2 ;
@@ -444,11 +372,11 @@
 
         /* passthru... */
 	TIME_MISC_Timer(&t1);
-	ret = xpni_lowfsi_rmdir(pathname);
+	ret = STK_FS_RMDIR(pathname);
 	TIME_MISC_Timer(&t2);
 
         /* record event */
-	util_log_elog(&t1,&t2,"xpni_lowfsi_rmdir",pathname,mode,-1);
+	util_log_elog(&t1,&t2,"STK_FS_RMDIR",pathname,mode,-1);
 
 	XPN_DEBUG_END_CUSTOM("%s", pathname) ;
 

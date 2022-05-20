@@ -31,87 +31,75 @@
       // register + unregister
       //
 
-      int stk_low_xpn_register   ( stk_fs_t *fsi )
+      int stk_low_xpn_init ( stk_fs_t *fsi, stk_fs_t *low_fsi )
       {
-	/* check params */
-	if (NULL == fsi) {
-	    return -1 ;
-	}
+	  XPN_DEBUG_BEGIN_CUSTOM("fsi:%p, low_fsi:%p", fsi, low_fsi) ;
 
-	/* register stk_low_xpn interface */
-	fsi->fsi_name   = STRING_MISC_StrDup("stk_low_xpn") ;
+	  /* check params */
+	  if (NULL == fsi) {
+	      return -1 ;
+	  }
 
-	// file API
-	fsi->fsi_init       = stk_low_xpn_init ;
-        fsi->fsi_finalize   = stk_low_xpn_finalize ;
-        fsi->fsi_open       = stk_low_xpn_open ;
-        fsi->fsi_creat      = stk_low_xpn_creat ;
-        fsi->fsi_close      = stk_low_xpn_close ;
-        fsi->fsi_read       = stk_low_xpn_read ;
-        fsi->fsi_write      = stk_low_xpn_write ;
-        fsi->fsi_lseek      = stk_low_xpn_lseek ;
-	// directory API
-        fsi->fsi_opendir    = stk_low_xpn_opendir ;
-        fsi->fsi_closedir   = stk_low_xpn_closedir ;
-        fsi->fsi_readdir    = stk_low_xpn_readdir ;
-        fsi->fsi_mkdir      = stk_low_xpn_mkdir ;
-        fsi->fsi_rmdir      = stk_low_xpn_rmdir ;
-        fsi->fsi_rewinddir  = stk_low_xpn_rewinddir ;
-	// register/unregister API
-        fsi->fsi_register   = stk_low_xpn_register ;
-        fsi->fsi_unregister = stk_low_xpn_unregister ;
+	  /* register stk_low_xpn interface */
+	  fsi->fsi_name   = STRING_MISC_StrDup("stk_low_xpn") ;
+	  fsi->low_fsi    = low_fsi ;
 
-	/* return ok */
-	return (1) ;
-      }
+	  // init/finalize
+	  fsi->fsi_init       = stk_low_xpn_init ;
+          fsi->fsi_finalize   = stk_low_xpn_finalize ;
+	  // file API
+          fsi->fsi_open       = stk_low_xpn_open ;
+          fsi->fsi_creat      = stk_low_xpn_creat ;
+          fsi->fsi_close      = stk_low_xpn_close ;
+          fsi->fsi_read       = stk_low_xpn_read ;
+          fsi->fsi_write      = stk_low_xpn_write ;
+          fsi->fsi_lseek      = stk_low_xpn_lseek ;
+	  // directory API
+          fsi->fsi_opendir    = stk_low_xpn_opendir ;
+          fsi->fsi_closedir   = stk_low_xpn_closedir ;
+          fsi->fsi_readdir    = stk_low_xpn_readdir ;
+          fsi->fsi_mkdir      = stk_low_xpn_mkdir ;
+          fsi->fsi_rmdir      = stk_low_xpn_rmdir ;
+          fsi->fsi_rewinddir  = stk_low_xpn_rewinddir ;
 
-      int stk_low_xpn_unregister ( stk_fs_t *fsi )
-      {
-	/* check params */
-	if (NULL == fsi) {
-	    return -1 ;
-	}
+	  XPN_DEBUG_END_CUSTOM("fsi:%p, low_fsi:%p -> %d", fsi, low_fsi, ret) ;
 
-	/* unregister stk_low_xpn interface */
-	free(fsi->fsi_name) ;
-	fsi->fsi_name = NULL ;
-
-	// file API
-	fsi->fsi_init       = NULL ;
-        fsi->fsi_finalize   = NULL ;
-        fsi->fsi_open       = NULL ;
-        fsi->fsi_creat      = NULL ;
-        fsi->fsi_close      = NULL ;
-        fsi->fsi_read       = NULL ;
-        fsi->fsi_write      = NULL ;
-        fsi->fsi_lseek      = NULL ;
-	// directory API
-        fsi->fsi_opendir    = NULL ;
-        fsi->fsi_closedir   = NULL ;
-        fsi->fsi_readdir    = NULL ;
-        fsi->fsi_mkdir      = NULL ;
-        fsi->fsi_rmdir      = NULL ;
-        fsi->fsi_rewinddir  = NULL ;
-	// register/unregister API
-        fsi->fsi_register   = NULL ;
-        fsi->fsi_unregister = NULL ;
-
-	/* return ok */
-	return (1) ;
-      }
-
-
-      //
-      // init + finalize
-      //
-
-      int stk_low_xpn_init ( void )
-      {
+	  /* return ok */
 	  return xpn_init() ;
       }
 
-      int stk_low_xpn_finalize ( void )
+      int stk_low_xpn_finalize ( stk_fs_t *fsi )
       {
+	  /* check params */
+	  if (NULL == fsi) {
+	      return -1 ;
+	  }
+
+	  /* unregister stk_low_xpn interface */
+	  if (NULL != fsi->fsi_name) {
+	      free(fsi->fsi_name) ;
+	      fsi->fsi_name   = NULL ;
+	  }
+
+	  // init/finalize
+	  fsi->fsi_init       = NULL ;
+          fsi->fsi_finalize   = NULL ;
+	  // file API
+          fsi->fsi_open       = NULL ;
+          fsi->fsi_creat      = NULL ;
+          fsi->fsi_close      = NULL ;
+          fsi->fsi_read       = NULL ;
+          fsi->fsi_write      = NULL ;
+          fsi->fsi_lseek      = NULL ;
+	  // directory API
+          fsi->fsi_opendir    = NULL ;
+          fsi->fsi_closedir   = NULL ;
+          fsi->fsi_readdir    = NULL ;
+          fsi->fsi_mkdir      = NULL ;
+          fsi->fsi_rmdir      = NULL ;
+          fsi->fsi_rewinddir  = NULL ;
+
+	  /* return ok */
 	  return xpn_finalize() ;
       }
 

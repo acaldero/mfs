@@ -743,7 +743,7 @@
  	     return (-1) ;
 
          /* open parity file */
-         ret = xpni_lowfsi_open(pfname, O_CREAT|O_RDWR, S_IRWXU);
+         ret = STK_FS_OPEN(pfname, O_CREAT|O_RDWR, S_IRWXU);
          if (ret < 0)
 	     return (-1) ;
 
@@ -829,100 +829,74 @@
    /* ... Functions / Funciones ......................................... */
 
       //
-      // register + unregister
+      // Init + finalize
       //
 
-      int stk_mid_ft_register   ( stk_fs_t *fsi )
+      int stk_mid_ft_init ( stk_fs_t *fsi, stk_fs_t *low_fsi )
       {
-	/* register stk_mid_ft interface */
-	fsi->fsi_name   = STRING_MISC_StrDup("stk_mid_ft") ;
+	  int ret ;
 
-	// file API
-	fsi->fsi_init       = stk_mid_ft_init ;
-        fsi->fsi_finalize   = stk_mid_ft_finalize ;
-        fsi->fsi_open       = stk_mid_ft_open ;
-        fsi->fsi_creat      = stk_mid_ft_creat ;
-        fsi->fsi_close      = stk_mid_ft_close ;
-        fsi->fsi_read       = stk_mid_ft_read ;
-        fsi->fsi_write      = stk_mid_ft_write ;
-        fsi->fsi_lseek      = stk_mid_ft_lseek ;
-	// directory API
-        fsi->fsi_opendir    = stk_mid_ft_opendir ;
-        fsi->fsi_closedir   = stk_mid_ft_closedir ;
-        fsi->fsi_readdir    = stk_mid_ft_readdir ;
-        fsi->fsi_mkdir      = stk_mid_ft_mkdir ;
-        fsi->fsi_rmdir      = stk_mid_ft_rmdir ;
-        fsi->fsi_rewinddir  = stk_mid_ft_rewinddir ;
-	// register/unregister API
-        fsi->fsi_register   = stk_mid_ft_register ;
-        fsi->fsi_unregister = stk_mid_ft_unregister ;
+	  XPN_DEBUG_BEGIN_CUSTOM("fsi:%p, low_fsi:%p", fsi, low_fsi) ;
 
-	/* return ok */
-	return (1) ;
+	  /* check params */
+	  if (NULL == fsi) {
+	      return -1 ;
+	  }
+
+	  /* register stk_mid_ft interface */
+	  fsi->fsi_name       = STRING_MISC_StrDup("stk_mid_ft") ;
+	  fsi->low_fsi        = low_fsi ;
+
+	  // init/finalize
+	  fsi->fsi_init       = stk_mid_ft_init ;
+          fsi->fsi_finalize   = stk_mid_ft_finalize ;
+	  // file API
+          fsi->fsi_open       = stk_mid_ft_open ;
+          fsi->fsi_creat      = stk_mid_ft_creat ;
+          fsi->fsi_close      = stk_mid_ft_close ;
+          fsi->fsi_read       = stk_mid_ft_read ;
+          fsi->fsi_write      = stk_mid_ft_write ;
+          fsi->fsi_lseek      = stk_mid_ft_lseek ;
+	  // directory API
+          fsi->fsi_opendir    = stk_mid_ft_opendir ;
+          fsi->fsi_closedir   = stk_mid_ft_closedir ;
+          fsi->fsi_readdir    = stk_mid_ft_readdir ;
+          fsi->fsi_mkdir      = stk_mid_ft_mkdir ;
+          fsi->fsi_rmdir      = stk_mid_ft_rmdir ;
+          fsi->fsi_rewinddir  = stk_mid_ft_rewinddir ;
+
+	  // TODO: check if stack builder should do this instead
+	  ret = STK_FS_INIT(fsi->low_fsi, NULL) ;
+
+	  XPN_DEBUG_END_CUSTOM("fsi:%p, low_fsi:%p -> %d", fsi, low_fsi, ret) ;
+
+	  /* return ok */
+	  return (1) ;
       }
 
-      int stk_mid_ft_unregister ( stk_fs_t *fsi )
+      int stk_mid_ft_finalize ( stk_fs_t *fsi )
       {
-	/* check params */
-	if (NULL == fsi) {
-	    return -1 ;
-	}
+	  int       ret ;
+          stk_fs_t *low_fsi ;
 
-	/* unregister xpnsb_posix interface */
-	if (NULL != fsi->fsi_name) {
-	    free(fsi->fsi_name) ;
-	    fsi->fsi_name   = NULL ;
-	}
+	  XPN_DEBUG_BEGIN_CUSTOM("fsi:%p", fsi) ;
 
-	// file API
-	fsi->fsi_init       = NULL ;
-        fsi->fsi_finalize   = NULL ;
-        fsi->fsi_open       = NULL ;
-        fsi->fsi_creat      = NULL ;
-        fsi->fsi_close      = NULL ;
-        fsi->fsi_read       = NULL ;
-        fsi->fsi_write      = NULL ;
-        fsi->fsi_lseek      = NULL ;
-	// directory API
-        fsi->fsi_opendir    = NULL ;
-        fsi->fsi_closedir   = NULL ;
-        fsi->fsi_readdir    = NULL ;
-        fsi->fsi_mkdir      = NULL ;
-        fsi->fsi_rmdir      = NULL ;
-        fsi->fsi_rewinddir  = NULL ;
-	// register/unregister API
-        fsi->fsi_register   = NULL ;
-        fsi->fsi_unregister = NULL ;
+	  // TODO: check if stack builder should do this instead
+          low_fsi = STK_FS_GET_LOWFSI(fsi) ;
+	  if (NULL != low_fsi) {
+              ret = STK_FS_FINALIZE(low_fsi) ;
+	  }
 
-	/* return ok */
-	return (1) ;
-      }
+	  // finalize
+          ret = -1 ;
+	  if (NULL != fsi) {
+              ret = stk_fs_finalize(fsi) ;
+	  }
 
+	  XPN_DEBUG_END_CUSTOM("%p", fsi) ;
 
-      //
-      // init + finalize
-      //
-
-      int stk_mid_ft_init ( void )
-      {
-	int ret ;
-
-	XPN_DEBUG_BEGIN();
-	ret = xpni_lowfsi_init();
-	XPN_DEBUG_END();
-
-	return ret ;
-      }
-
-      int stk_mid_ft_finalize ( void )
-      {
-	int ret ;
-
-	XPN_DEBUG_BEGIN();
-	ret = xpni_lowfsi_finalize();
-	XPN_DEBUG_END();
-
-	return ret ;
+	  /* return ok|ko */
+	  return ret ;
       }
 
 
@@ -930,25 +904,21 @@
       // open + close + sread + swrite
       //
 
-      int stk_mid_ft_creat ( int fd )
+      int stk_mid_ft_creat ( stk_fs_t *fsi, char *path, mode_t mode )
       {
-          char      *pfname ;
-          int        ret ;
+          char   *pfname ;
+          int     ret ;
 
-	  XPN_DEBUG_BEGIN_CUSTOM("%d", fd) ;
+	  XPN_DEBUG_BEGIN_CUSTOM("path:%s, mode:%d", path, (int)mode) ;
 
           /* check params */
-          if ( ! xpni_fit_is_correct(fd) ) {
-               return (-1) ;
+          if (NULL == path) {
+               return -1 ;
 	  }
 
           /* parity file name */
-          if ( ! strcmp
-              (
-                (xpni_fit_get_XPN_FMETA(fd)).filesystem_tag,
-		FS_TAG_RAID5OUTER
-              )
-          )
+	  pfname = (xpni_fit_get_XPN_FMETA(fd)).filesystem_tag ;
+          if ( ! strcmp(pfname, FS_TAG_RAID5OUTER) )
           {
 	       /* parity file name */
                pfname = stk_mid_ft_metaData_getMetaDataFileName(fd) ;
@@ -956,7 +926,7 @@
 		   return (-1) ;
 
 	       /* open parity file */
-	       ret = xpni_lowfsi_open(pfname, O_CREAT|O_RDWR, S_IRWXU);
+	       ret = STK_FS_OPEN(pfname, O_CREAT|O_RDWR, S_IRWXU);
 	       if (ret < 0)
 		   return (-1) ;
 
@@ -978,22 +948,23 @@
           /* update file description */
           xpni_fit_set_XPN_DATA_FD(fd, ret) ;
 
-	  XPN_DEBUG_END_CUSTOM("%d", fd) ;
+	  XPN_DEBUG_END_CUSTOM("path:%s, mode:%d -> %d", path, (int)mode, ret) ;
 
           /* return xpn file descriptor */
           return ret ;
       }
 
-      int stk_mid_ft_open ( int fd )
+      int stk_mid_ft_open ( stk_fs_t *fsi, int fd )
       {
           char      *pfname ;
           int        ret ;
 
-	  XPN_DEBUG_BEGIN_CUSTOM("%d", fd) ;
+	  XPN_DEBUG_BEGIN_CUSTOM("path:%s, flags:%d, mode:%d", path, flags, (int)mode) ;
 
           /* check params */
-          if ( ! xpni_fit_is_correct(fd) )
+          if ( ! xpni_fit_is_correct(fd) ) {
                return (-1) ;
+	  }
 
           /* parity file name */
           if ( ! strcmp
@@ -1008,7 +979,7 @@
 		   return (-1) ;
 
 	       /* open parity file */
-	       ret = xpni_lowfsi_open(pfname,
+	       ret = STK_FS_OPEN(pfname,
                                       O_CREAT|O_RDWR,
                                       S_IRWXU);
 	       if (ret < 0)
@@ -1022,7 +993,7 @@
           }
 
           /* open data file */
-          ret = xpni_lowfsi_open(xpni_fit_get_XPN_FNAME(fd),
+          ret = STK_FS_OPEN(xpni_fit_get_XPN_FNAME(fd),
 			         xpni_fit_get_XPN_FLAG(fd),
 			         xpni_fit_get_XPN_MODE(fd)) ;
           if (ret < 0)
@@ -1034,13 +1005,13 @@
           /* update file description */
           xpni_fit_set_XPN_DATA_FD(fd,ret) ;
 
-	  XPN_DEBUG_END_CUSTOM("%d", fd) ;
+	  XPN_DEBUG_END_CUSTOM("path:%s, flags:%d, mode:%d", path, flags, (int)mode) ;
 
           /* return xpn file descriptor */
           return ret ;
       }
 
-      int stk_mid_ft_close ( int fd )
+      int stk_mid_ft_close ( stk_fs_t *fsi, int fd )
       {
 	  int ret ;
 
@@ -1064,7 +1035,7 @@
           return ret ;
       }
 
-      off_t   stk_mid_ft_lseek   ( int fd, off_t offset, int flag )
+      off_t   stk_mid_ft_lseek   ( stk_fs_t *fsi, int fd, off_t offset, int flag )
       {
 	  int ret ;
 
@@ -1083,7 +1054,7 @@
           return ret ;
       }
 
-      ssize_t stk_mid_ft_write ( int fd, void *buffer, size_t size )
+      ssize_t stk_mid_ft_write ( stk_fs_t *fsi, int fd, void *buffer, size_t size )
       {
           char *fmeta_fsTag;     /* File metadata (file system tag) */
           int   fmeta_nerrors;   /* File metadata (number of errors) */
@@ -1125,7 +1096,7 @@
           return ret ;
       }
 
-      ssize_t stk_mid_ft_read ( int fd, void *buffer, size_t size )
+      ssize_t stk_mid_ft_read ( stk_fs_t *fsi, int fd, void *buffer, size_t size )
       {
           char *fmeta_fsTag;     /* File metadata (file system tag) */
           int   fmeta_nerrors;   /* File metadata (number of errors) */
@@ -1227,30 +1198,30 @@
       // opendir + closedir + readdir + rewind
       //
 
-      DIR   *stk_mid_ft_opendir ( char * path )
+      DIR   *stk_mid_ft_opendir ( stk_fs_t *fsi, char * path )
       {
           DIR  *ret;
 
 	  XPN_DEBUG_BEGIN_CUSTOM("%s", path) ;
-	  ret = xpni_lowfsi_opendir(path);
+	  ret = STK_FS_OPENDIR(path);
        // !! xpni_fit_set_XPN_DATA_FD(dd, (long)ret) ; /* sizeof(int) === sizeof(DIR *) */
 	  XPN_DEBUG_END_CUSTOM("%s", path) ;
 
 	  return ret;
       }
 
-      int     stk_mid_ft_closedir  ( DIR *dirp )
+      int     stk_mid_ft_closedir  ( stk_fs_t *fsi, DIR *dirp )
       {
           int  ret;
 
 	  XPN_DEBUG_BEGIN_CUSTOM("%p", dirp) ;
-	  ret = xpni_lowfsi_closedir(dirp);
+	  ret = STK_FS_CLOSEDIR(dirp);
 	  XPN_DEBUG_END_CUSTOM("%p", dirp) ;
 
 	  return ret;
       }
 
-      struct dirent *stk_mid_ft_readdir ( DIR *dirp )
+      struct dirent *stk_mid_ft_readdir ( stk_fs_t *fsi, DIR *dirp )
       {
           struct dirent *ret;
 
@@ -1261,7 +1232,7 @@
 	  return ret;
       }
 
-      void    stk_mid_ft_rewinddir ( DIR *dirp )
+      void    stk_mid_ft_rewinddir ( stk_fs_t *fsi, DIR *dirp )
       {
 	  XPN_DEBUG_BEGIN_CUSTOM("%p", dirp) ;
 	  xpni_lowfsi_readdir(dirp);
@@ -1269,7 +1240,7 @@
       }
 
 
-      long    stk_mid_ft_mkdir     ( const char *pathname, int mode )
+      long    stk_mid_ft_mkdir     ( stk_fs_t *fsi, const char *pathname, int mode )
       {
           long  ret;
 
@@ -1280,7 +1251,7 @@
 	  return ret;
       }
 
-      long    stk_mid_ft_rmdir     ( const char *pathname )
+      long    stk_mid_ft_rmdir     ( stk_fs_t *fsi, const char *pathname )
       {
           long  ret;
 

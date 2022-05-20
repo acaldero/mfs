@@ -18,31 +18,31 @@
 
    /* ... Const / Constantes ............................................ */
 
-      #define FS_TAG_NULL        "stk_mid_log"
+      #define FS_TAG_LOG         "stk_mid_log"
 
 
    /* ... Functions / Funciones ......................................... */
 
       // Init + finalize
-      int     stk_mid_null_init     ( stk_fs_t *fsi, stk_fs_t *low_fsi ) ;
-      int     stk_mid_null_finalize ( stk_fs_t *fsi ) ;
+      int     stk_mid_log_init      ( stk_fs_t *fsi, stk_fs_t *low_fsi ) ;
+      int     stk_mid_log_finalize  ( stk_fs_t *fsi ) ;
 
       // File API
-      int     stk_mid_log_creat  ( char *path, mode_t mode ) ;
-      int     stk_mid_log_open   ( char *path, int flags, mode_t mode ) ;
-      int     stk_mid_log_close  ( int fd ) ;
-      off_t   stk_mid_log_lseek  ( int fd, off_t offset, int flag ) ;
-      ssize_t stk_mid_log_write  ( int fd, void *buffer, size_t size ) ;
-      ssize_t stk_mid_log_read   ( int fd, void *buffer, size_t size ) ;
+      int     stk_mid_log_creat     ( stk_fs_t *fsi, char *path, mode_t mode ) ;
+      int     stk_mid_log_open      ( stk_fs_t *fsi, char *path, int flags, mode_t mode ) ;
+      int     stk_mid_log_close     ( stk_fs_t *fsi, int fd ) ;
+      off_t   stk_mid_log_lseek     ( stk_fs_t *fsi, int fd, off_t offset, int flag ) ;
+      ssize_t stk_mid_log_write     ( stk_fs_t *fsi, int fd, void *buffer, size_t size ) ;
+      ssize_t stk_mid_log_read      ( stk_fs_t *fsi, int fd, void *buffer, size_t size ) ;
 
       // Directory API
-      long    stk_mid_log_mkdir     ( const char *pathname, int mode ) ;
-      long    stk_mid_log_rmdir     ( const char *pathname ) ;
+      long    stk_mid_log_mkdir          ( stk_fs_t *fsi, const char *pathname, int mode ) ;
+      long    stk_mid_log_rmdir          ( stk_fs_t *fsi, const char *pathname ) ;
 
-      DIR   * stk_mid_log_opendir   ( char *path ) ;
-      int     stk_mid_log_closedir  ( DIR *dirp ) ;
-      struct dirent *stk_mid_log_readdir ( DIR *dirp ) ;
-      void    stk_mid_log_rewinddir ( DIR *dirp ) ;
+      DIR   * stk_mid_log_opendir        ( stk_fs_t *fsi, char *path ) ;
+      int     stk_mid_log_closedir       ( stk_fs_t *fsi, DIR *dirp ) ;
+      struct dirent *stk_mid_log_readdir ( stk_fs_t *fsi, DIR *dirp ) ;
+      void    stk_mid_log_rewinddir      ( stk_fs_t *fsi, DIR *dirp ) ;
 
 
   /* .................................................................... */

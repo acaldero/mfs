@@ -14,15 +14,16 @@
       #include "include/stk_fs.h"
 
 
+   /* ... Const / Constantes ............................................ */
+
+      #define FS_TAG_XPN        "stk_low_xpn"
+
+
    /* ... Functions / Funciones ......................................... */
 
-      // register + unregister
-      int     stk_low_xpn_register   ( stk_fs_t *fsi ) ;
-      int     stk_low_xpn_unregister ( stk_fs_t *fsi ) ;
-
-      // init + finalize
-      int     stk_low_xpn_init     ( void ) ;
-      int     stk_low_xpn_finalize ( void ) ;
+      // Init + finalize
+      int     stk_low_xpn_init     ( stk_fs_t *fsi, stk_fs_t *low_fsi ) ;
+      int     stk_low_xpn_finalize ( stk_fs_t *fsi ) ;
 
       // File API
       int     stk_low_xpn_creat  ( char *path, mode_t mode ) ;
