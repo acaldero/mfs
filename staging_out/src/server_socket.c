@@ -21,8 +21,6 @@
 
 
    #include <signal.h>
-
-/*
    #include "info_params.h"
    #include "stub_msg.h"
    #include "mfs_workers.h"
@@ -147,14 +145,12 @@
        // disconnect from server
        serverstub_socket_disconnect_all(&(th.ab), &params) ;
    }
-*/
 
 
 /*
  *  Main
  */
 
-/*
 int main ( int argc, char **argv )
 {
     int      ret, size, rank ;
@@ -228,12 +224,4 @@ int main ( int argc, char **argv )
 
     return 0 ;
 }
-*/
-
-
-int main ( int argc, char **argv )
-{
-    return 0 ;
-}
-
 

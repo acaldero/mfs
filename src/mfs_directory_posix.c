@@ -27,26 +27,14 @@
  *  File System API
  */
 
-int  mfs_directory_posix_init ( void )
-{
-    // Return OK
-    return 1 ;
-}
-
-int  mfs_directory_posix_finalize ( void )
-{
-    // Return OK
-    return 1 ;
-}
-
-int  mfs_directory_posix_opendir ( DIR **fd, const char *path_name )
+int  mfs_directory_posix::opendir ( const char *path_name )
 {
     // Check params...
-    NULL_PRT_MSG_RET_VAL(fd, "[DIR_POSIX] NULL fd :-/", -1) ;
+    NULL_PRT_MSG_RET_VAL(path_name, "[DIR_POSIX] NULL path_name :-/", -1) ;
 
     // Open file
-    (*fd) = opendir(path_name) ;
-    if (NULL == (*fd)) {
+    this->fd = opendir(path_name) ;
+    if (NULL == this->) {
     	mfs_print(DBG_INFO, "[DIR]: ERROR on opendir(path_name='%s')\n", path_name) ;
         return -1 ;
     }
@@ -55,33 +43,35 @@ int  mfs_directory_posix_opendir ( DIR **fd, const char *path_name )
     return 1 ;
 }
 
-int   mfs_directory_posix_closedir ( DIR *fd )
+int   mfs_directory_posix::closedir ( void )
 {
     int ret = -1 ;
 
     // Check params...
-    NULL_PRT_MSG_RET_VAL(fd, "[DIR_POSIX] NULL fd :-/", -1) ;
+    NULL_PRT_MSG_RET_VAL(this->fd, "[DIR_POSIX] NULL fd :-/", -1) ;
 
     // Close file
-    ret = closedir(fd) ;
+    ret = closedir(this->fd) ;
     if (ret < 0) {
     	mfs_print(DBG_INFO, "[DIR]: ERROR on closedir(fd='%s')\n", fd) ;
         return -1 ;
     }
 
+    this->fd = NULL ;
+
     // Return OK
     return 1 ;
 }
 
-struct dirent *mfs_directory_posix_readdir  ( DIR *fd )
+struct dirent *mfs_directory_posix::readdir  ( void )
 {
     struct dirent *ret ;
 
     // Check params...
-    NULL_PRT_MSG_RET_VAL(fd, "[DIR_POSIX] NULL fd :-/", NULL) ;
+    NULL_PRT_MSG_RET_VAL(this->fd, "[DIR_POSIX] NULL fd :-/", NULL) ;
 
     // Read from file...
-    ret = readdir(fd) ;
+    ret = readdir(this->fd) ;
     if (NULL == ret) {
 	mfs_print(DBG_INFO, "[DIR]: ERROR on read entry from directory '%d'\n", fd) ;
 	return NULL ;
@@ -91,7 +81,7 @@ struct dirent *mfs_directory_posix_readdir  ( DIR *fd )
     return ret ;
 }
 
-int   mfs_directory_posix_mkdir  ( char *path_name, mode_t mode )
+int   mfs_directory_posix::mkdir  ( char *path_name, mode_t mode )
 {
     int ret = -1 ;
 
@@ -109,7 +99,7 @@ int   mfs_directory_posix_mkdir  ( char *path_name, mode_t mode )
     return ret ;
 }
 
-int   mfs_directory_posix_rmdir  ( char *path_name )
+int   mfs_directory_posix::rmdir  ( char *path_name )
 {
     int ret = -1 ;
 
@@ -126,4 +116,5 @@ int   mfs_directory_posix_rmdir  ( char *path_name )
     // Return OK/KO
     return ret ;
 }
+
 

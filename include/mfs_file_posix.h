@@ -19,24 +19,27 @@
  *
  */
 
-#ifndef __MFS_DIRECTORIES_POSIX_H__
-#define __MFS_DIRECTORIES_POSIX_H__
+#ifndef __MFS_FILE_POSIX_H__
+#define __MFS_FILE_POSIX_H__
 
     // Includes
     #include "base_lib.h"
 
-    #include <dirent.h>
     #include <sys/stat.h>
+    #include <sys/mman.h>
 
 
-    // API
-    int            mfs_directory_posix_init     ( void ) ;
-    int            mfs_directory_posix_finalize ( void ) ;
-    int            mfs_directory_posix_opendir  ( DIR **fd, const char *path_name ) ;
-    int            mfs_directory_posix_closedir ( DIR  *fd ) ;
-    struct dirent *mfs_directory_posix_readdir  ( DIR  *fd ) ;
-    int            mfs_directory_posix_mkdir    ( char *path_name, mode_t mode ) ;
-    int            mfs_directory_posix_rmdir    ( char *path_name ) ;
+    class mfs_file_posix
+    {
+	private:
+	   int fd ;
+
+	public:
+           int  open  ( const char *path_name, int flags ) ;
+           int  close ( void ) ;
+           int  read  ( void *buffer, int buffer_size ) ;
+           int  write ( void *buffer, int buffer_size ) ;
+    }
 
 #endif
 

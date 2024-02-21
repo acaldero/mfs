@@ -20,60 +20,54 @@
  */
 
 
-#include "mfs_files_mpi.h"
+#include "mfs_file_mpi.h"
 
 
 /*
  *  File System API
  */
 
-int  mfs_file_mpi_init ( void )
-{
-    // Return OK
-    return 1 ;
-}
-
-int  mfs_file_mpi_finalize ( void )
-{
-    // Return OK
-    return 1 ;
-}
-
-int  mfs_file_mpi_open  ( MPI_File *fd, const char *path_name )
+int  mfs_file_mpi::open  ( const char *path_name )
 {
      int ret ;
 
-     ret = MPI_File_open(MPI_COMM_SELF, path_name, MPI_MODE_CREATE|MPI_MODE_RDWR, MPI_INFO_NULL, fd);
+     ret = MPI_File_open(MPI_COMM_SELF, path_name, MPI_MODE_CREATE|MPI_MODE_RDWR, MPI_INFO_NULL, this->fd) ;
      if (ret != MPI_SUCCESS) {
 	 mfs_print(DBG_INFO, "[FILE]: ERROR on open('%s') file.\n", path_name) ;
 	 return -1 ;
      }
 
+     this->file_backend = 1 ;
+     this->file_backend_name = "MPI-IO" ;
+
      // Return OK
      return 1 ;
 }
 
-int   mfs_file_mpi_close ( MPI_File *fd )
+int   mfs_file_mpi::close ( void )
 {
      int ret ;
 
-     ret = MPI_File_close(fd) ;
+     ret = MPI_File_close(this->fd) ;
      if (ret != MPI_SUCCESS) {
 	 mfs_print(DBG_INFO, "[FILE]: ERROR on close file.\n") ;
 	 return -1 ;
      }
 
+     this->file_backend = 0 ;
+     this->file_backend_name = "" ;
+
      // Return OK/KO
      return 1 ;
 }
 
-int   mfs_file_mpi_read   ( MPI_File fd, void *buffer, int buffer_size )
+int   mfs_file_mpi::read   ( void *buffer, int buffer_size )
 {
      int ret ;
      MPI_Status status ;
 
      // Read
-     ret = MPI_File_read(fd, buffer, buffer_size, MPI_CHAR, &status) ;
+     ret = MPI_File_read(this->fd, buffer, buffer_size, MPI_CHAR, &status) ;
      if (ret != MPI_SUCCESS) {
 	 mfs_print(DBG_INFO, "[FILE]: ERROR on read %d bytes from file '%d'\n", buffer_size, fd) ;
 	 return -1 ;
@@ -82,17 +76,20 @@ int   mfs_file_mpi_read   ( MPI_File fd, void *buffer, int buffer_size )
      // Get number of bytes read...
      MPI_Get_count(&status, MPI_INT, &ret);
 
+     // Stats...
+     (this->n_read_req) ++ ;
+
      // Return number of bytes
      return ret ;
 }
 
-int   mfs_file_mpi_write  ( MPI_File fd, void *buffer, int buffer_size )
+int   mfs_file_mpi::write  ( void *buffer, int buffer_size )
 {
      int ret ;
      MPI_Status status ;
 
      // Write
-     ret = MPI_File_write(fd, buffer, buffer_size, MPI_CHAR, &status) ;
+     ret = MPI_File_write(this->fd, buffer, buffer_size, MPI_CHAR, &status) ;
      if (ret != MPI_SUCCESS) {
 	 mfs_print(DBG_INFO, "[FILE]: ERROR on write %d bytes to file '%d'\n", buffer_size, fd) ;
 	 return -1 ;
@@ -101,7 +98,25 @@ int   mfs_file_mpi_write  ( MPI_File fd, void *buffer, int buffer_size )
      // Get number of bytes written...
      MPI_Get_count(&status, MPI_INT, &ret);
 
+     // Stats...
+     (this->n_write_req) ++ ;
+
      // Return number of bytes
      return ret ;
 }
+
+int  mfs_file_mpi::stats_show ( char *prefix )
+{
+    // Print stats...
+    printf("%s: File:\n",            prefix) ;
+    printf("%s: + been_used=1\n",    prefix) ;
+    printf("%s: + file_fd=%d\n",     prefix, this->fd) ;
+    printf("%s: + protocol=%s\n",    prefix, this->file_backend_name) ;
+    printf("%s: + # read=%ld\n",     prefix, this->n_read_req) ;
+    printf("%s: + # write=%ld\n",    prefix, this->n_write_req) ;
+
+    // Return OK
+    return 1 ;
+}
+
 

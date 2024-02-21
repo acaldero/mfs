@@ -20,13 +20,14 @@
  */
 
 
+   #include <signal.h>
+
+/*
    #include "info_params.h"
    #include "mfs_workers.h"
    #include "mfs_comm_mpi.h"
    #include "stub_msg.h"
    #include "server_stub_mpi.h"
-
-   #include <signal.h>
 
 
    // stats
@@ -147,12 +148,14 @@
        // disconnect from server
        serverstub_mpi_disconnect_all(&(th.ab), &params) ;
    }
+*/
 
 
 /*
  *  Main
  */
 
+/*
 int main ( int argc, char **argv )
 {
     int      ret ;
@@ -217,6 +220,13 @@ int main ( int argc, char **argv )
     mfs_print(DBG_INFO, "Server[%d]: ends.\n", wb.rank) ;
     serverstub_mpi_finalize(&wb, &params) ;
 
+    return 0 ;
+}
+*/
+
+
+int main ( int argc, char **argv )
+{
     return 0 ;
 }
 

@@ -14,16 +14,9 @@ SET    (CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG "lib")
 SET    (CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "bin")
 
 # source 
-SET    (MFS_SRC src/mfs_api.c
-	src/client_stub_mpi.c     src/client_stub_socket.c    src/client_stub_local.c
-        src/server_stub_mpi.c     src/server_stub_socket.c
-	src/mfs_comm.c            src/mfs_comm_mpi.c          src/mfs_comm_socket.c
-	src/mfs_files.c           src/mfs_files_posix.c       src/mfs_files_mpi.c
-	src/mfs_directories.c     src/mfs_directories_posix.c
-        src/mfs_dbm.c             src/mfs_dbm_gdbm.c          src/mfs_dbm_redis.c          src/mfs_dbm_tdb.c
-	src/mfs_workers.c         src/mfs_workers_pool.c      src/mfs_workers_onrequest.c
-	src/info_ns.c             src/info_params.c           src/info_fsconf.c
-	src/mfs_descriptors.c     src/base_socket.c           src/base_url.c
+SET    (MFS_SRC base_socket.c base_url.c
+	src/mfs_directory_posix.c
+	src/mfs_file_posix.c       src/mfs_file_mpi.c
 	src/base_lib.c)
 
 # Compiles the sources only once

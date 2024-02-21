@@ -20,17 +20,17 @@
  */
 
 
-   #include <signal.h>
-
-/*
    #include "info_params.h"
-   #include "stub_msg.h"
    #include "mfs_workers.h"
-   #include "server_stub_socket.h"
+   #include "mfs_comm_mpi.h"
+   #include "stub_msg.h"
+   #include "server_stub_mpi.h"
+
+   #include <signal.h>
 
 
    // stats
-   char    *ver     = "1.00-socket" ;
+   char    *ver     = "1.00-mpi" ;
    int      the_end = 0 ;
    long     t1      = 0L ;
    params_t params ;
@@ -60,10 +60,10 @@
        while (again)
        {
           mfs_print(DBG_INFO, "Server[%d]: waiting for request...\n", th.ab.rank) ;
-          ret = mfs_comm_socket_receive_request(&th.ab, MPI_ANY_SOURCE, &msg) ;
+          ret = mfs_comm_mpi_receive_request(&th.ab, MPI_ANY_SOURCE, &msg) ;
 	  if (ret < 0)
 	  {
-	      mfs_print(DBG_ERROR, "Server[%d]: stub_msg_socket_request_receive with no more request\n", th.ab.rank) ;
+	      mfs_print(DBG_ERROR, "Server[%d]: stub_msg_mpi_request_receive with no more request\n", th.ab.rank) ;
 	      again = 0 ;
 	      continue ;
 	  }
@@ -86,56 +86,56 @@
 
               // Files
 	      case REQ_ACTION_OPEN:
-                   ret = serverstub_socket_open(&th.ab, &params, &fd, msg.req_arg1, msg.req_arg2) ;
+                   ret = serverstub_mpi_open(&th.ab, &params, &fd, msg.req_arg1, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_CLOSE:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_socket_close(&th.ab, &params, fd) ;
+                   ret = serverstub_mpi_close(&th.ab, &params, fd) ;
 	           break;
 
 	      case REQ_ACTION_READ:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_socket_read(&th.ab, &params, fd, msg.req_arg2) ;
+                   ret = serverstub_mpi_read(&th.ab, &params, fd, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_WRITE:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_socket_write(&th.ab, &params, fd, msg.req_arg2) ;
+                   ret = serverstub_mpi_write(&th.ab, &params, fd, msg.req_arg2) ;
 	           break;
 
               // Directories
 	      case REQ_ACTION_MKDIR:
-                   ret = serverstub_socket_mkdir(&th.ab, &params, msg.req_arg1, msg.req_arg2) ;
+                   ret = serverstub_mpi_mkdir(&th.ab, &params, msg.req_arg1, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_RMDIR:
-                   ret = serverstub_socket_rmdir(&th.ab, &params, msg.req_arg1) ;
+                   ret = serverstub_mpi_rmdir(&th.ab, &params, msg.req_arg1) ;
 	           break;
 
               // DBM Files
 	      case REQ_ACTION_DBMOPEN:
-                   ret = serverstub_socket_dbmopen(&th.ab, &params, &fd, msg.req_arg1, msg.req_arg2) ;
+                   ret = serverstub_mpi_dbmopen(&th.ab, &params, &fd, msg.req_arg1, msg.req_arg2) ;
 	           break;
 
 	      case REQ_ACTION_DBMCLOSE:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_socket_dbmclose(&th.ab, &params, fd) ;
+                   ret = serverstub_mpi_dbmclose(&th.ab, &params, fd) ;
 	           break;
 
 	      case REQ_ACTION_DBMSTORE:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_socket_dbmstore(&th.ab, &params, fd, msg.req_arg2, msg.req_arg3) ;
+                   ret = serverstub_mpi_dbmstore(&th.ab, &params, fd, msg.req_arg2, msg.req_arg3) ;
 	           break;
 
 	      case REQ_ACTION_DBMFETCH:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_socket_dbmfetch(&th.ab, &params, fd, msg.req_arg2, msg.req_arg3) ;
+                   ret = serverstub_mpi_dbmfetch(&th.ab, &params, fd, msg.req_arg2, msg.req_arg3) ;
 	           break;
 
 	      case REQ_ACTION_DBMDELETE:
 		   ret = mfs_file_long2fd(&(fd), msg.req_arg1) ;
-                   ret = serverstub_socket_dbmdelete(&th.ab, &params, fd, msg.req_arg2) ;
+                   ret = serverstub_mpi_dbmdelete(&th.ab, &params, fd, msg.req_arg2) ;
 	           break;
 
 	      // Default
@@ -145,26 +145,24 @@
        }
 
        // disconnect from server
-       serverstub_socket_disconnect_all(&(th.ab), &params) ;
+       serverstub_mpi_disconnect_all(&(th.ab), &params) ;
    }
-*/
 
 
 /*
  *  Main
  */
 
-/*
 int main ( int argc, char **argv )
 {
-    int      ret, size, rank ;
+    int      ret ;
     comm_t   wb ;
     comm_t   ab ;
 
     // Welcome...
     printf("\n"
- 	   " mfs_server (sockets)\n"
-	   " --------------------\n") ;
+ 	   " mfs_server (MPI)\n"
+	   " ----------------\n") ;
 
     // Get parameters..
     ret = info_params_get(&params, &argc, &argv) ;
@@ -178,13 +176,6 @@ int main ( int argc, char **argv )
         mfs_print(DBG_INFO, "Server[%d]: initializing...\n", -1) ;
     }
 
-    // Get my rank
-    MPI_Init(NULL, NULL) ;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank) ;
-    MPI_Comm_size(MPI_COMM_WORLD, &size) ;
-    MPI_Finalize() ;
-    sleep(rank) ;
-
     // Initialize workers
     ret = mfs_workers_init(&params) ;
     if (ret < 0) {
@@ -193,9 +184,9 @@ int main ( int argc, char **argv )
     }
 
     // Initialize stub...
-    ret = serverstub_socket_init(&wb, &params, size, rank) ;
+    ret = serverstub_mpi_init(&wb, &params) ;
     if (ret < 0) {
-        mfs_print(DBG_ERROR, "Server[%d]: serverstub_socket_init fails :-(\n", -1) ;
+        mfs_print(DBG_ERROR, "Server[%d]: serverstub_mpi_init fails :-(\n", -1) ;
         return -1 ;
     }
 
@@ -208,7 +199,7 @@ int main ( int argc, char **argv )
     {
 	// To serve next request...
         mfs_print(DBG_INFO, "Server[%d]: accepting...\n", wb.rank) ;
-        ret = serverstub_socket_accept(&ab, &params, &wb) ;
+        ret = serverstub_mpi_accept(&ab, &params, &wb) ;
         if (ret < 0) {
             mfs_print(DBG_ERROR, "Server[%d]: accept fails :-(\n", -1) ;
         }
@@ -224,16 +215,8 @@ int main ( int argc, char **argv )
 
     // Finalize...
     mfs_print(DBG_INFO, "Server[%d]: ends.\n", wb.rank) ;
-    serverstub_socket_finalize(&wb, &params) ;
+    serverstub_mpi_finalize(&wb, &params) ;
 
     return 0 ;
 }
-*/
-
-
-int main ( int argc, char **argv )
-{
-    return 0 ;
-}
-
 

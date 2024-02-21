@@ -1,6 +1,6 @@
 
 /*
- *  Copyright 2020-2022 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
+ *  Copyright 2020-2024 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
  *
  *  This file is part of XPNlite.
  *
@@ -19,24 +19,27 @@
  *
  */
 
-#ifndef __MFS_FILES_POSIX_H__
-#define __MFS_FILES_POSIX_H__
+#ifndef __MFS_FILE_MPI_H__
+#define __MFS_FILE_MPI_H__
 
     // Includes
     #include "base_lib.h"
 
-    #include <sys/stat.h>
-    #include <sys/mman.h>
+    #include <mpi.h>
+    #include <fcntl.h>
 
 
-    // API
-    int  mfs_file_posix_init     ( void ) ;
-    int  mfs_file_posix_finalize ( void ) ;
+    class mfs_file_mpi
+    {
+	private:
+	   MPI_File fd ;
 
-    int  mfs_file_posix_open  ( long *fd, const char *path_name, int flags ) ;
-    int  mfs_file_posix_close ( int fd ) ;
-    int  mfs_file_posix_read  ( int fd, void *buffer, int buffer_size ) ;
-    int  mfs_file_posix_write ( int fd, void *buffer, int buffer_size ) ;
+	public:
+           int  open  ( const char *path_name, int flags ) ;
+           int  close ( void ) ;
+           int  read  ( void *buffer, int buffer_size ) ;
+           int  write ( void *buffer, int buffer_size ) ;
+    }
 
 #endif
 

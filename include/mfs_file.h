@@ -19,24 +19,35 @@
  *
  */
 
-#ifndef __MFS_FILES_MPI_H__
-#define __MFS_FILES_MPI_H__
+#ifndef __MFS_FILE_H__
+#define __MFS_FILE_H__
 
     // Includes
     #include "base_lib.h"
 
-    #include <mpi.h>
-    #include <fcntl.h>
 
+    // Datatypes
+    typedef struct
+    {
+      private:
+        // underlying protocol
+        int   file_backend ;
+        char *file_backend_name ;
 
-    // API
-    int  mfs_file_mpi_init     ( void ) ;
-    int  mfs_file_mpi_finalize ( void ) ;
+        // some stats
+        long  n_read_req ;
+        long  n_write_req ;
 
-    int  mfs_file_mpi_open  ( MPI_File *fd, const char *path_name ) ;
-    int  mfs_file_mpi_close ( MPI_File *fd ) ;
-    int  mfs_file_mpi_read  ( MPI_File  fd, void *buffer, int buffer_size ) ;
-    int  mfs_file_mpi_write ( MPI_File  fd, void *buffer, int buffer_size ) ;
+      public:
+        virtual int   open       ( const char *path_name, int flags ) = 0 ;
+        virtual int   close      ( void ) = 0 ;
+        virtual int   read       ( void *buff_data, int count ) = 0 ;
+        virtual int   write      ( void *buff_data, int count ) = 0 ;
+
+        virtual int   stats_show ( char *prefix ) = 0 ;
+
+    } file_t ;
+
 
 #endif
 

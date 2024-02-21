@@ -27,44 +27,38 @@
  *  File System API
  */
 
-int  mfs_file_posix_init ( void )
-{
-    // Return OK
-    return 1 ;
-}
-
-int  mfs_file_posix_finalize ( void )
-{
-    // Return OK
-    return 1 ;
-}
-
-int  mfs_file_posix_open  ( long *fd, const char *path_name, int flags )
+int  mfs_file_posix::open  ( const char *path_name, int flags )
 {
      int  ret ;
 
      // Check params...
-     (*fd) = open(path_name, flags, 0755) ;
-     if ((*fd) < 0) {
+     this->fd = open(path_name, flags, 0755) ;
+     if (this->fd < 0) {
  	 return -1 ;
      }
+
+     this->file_backend = 2 ;
+     this->file_backend_name = "POSIX" ;
 
      // Return OK
      return 1 ;
 }
 
-int   mfs_file_posix_close ( int fd )
+int   mfs_file_posix::close ( void )
 {
      int ret ;
 
      // Close file
-     ret = close(fd) ;
+     ret = close(this->fd) ;
+
+     this->file_backend = 0 ;
+     this->file_backend_name = "" ;
 
      // Return OK/KO
      return ret ;
 }
 
-int   mfs_file_posix_read   ( int fd, void *buffer, int buffer_size )
+int   mfs_file_posix::read   ( void *buffer, int buffer_size )
 {
      ssize_t bytes_read ;
      ssize_t remaining_bytes ;
@@ -72,7 +66,7 @@ int   mfs_file_posix_read   ( int fd, void *buffer, int buffer_size )
      remaining_bytes = buffer_size ;
      while (remaining_bytes > 0)
      {
-         bytes_read = read(fd, buffer, remaining_bytes) ;
+         bytes_read = read(this->fd, buffer, remaining_bytes) ;
          if (bytes_read < 0) {
 	     return -1 ;
          }
@@ -84,10 +78,13 @@ int   mfs_file_posix_read   ( int fd, void *buffer, int buffer_size )
          buffer          += bytes_read ;
      }
 
+     // Stats...
+     (this->n_read_req) ++ ;
+
      return buffer_size ;
 }
 
-int   mfs_file_posix_write  ( int fd, void *buffer, int buffer_size )
+int   mfs_file_posix::write  ( void *buffer, int buffer_size )
 {
      ssize_t write_num_bytes ;
      ssize_t remaining_bytes ;
@@ -95,7 +92,7 @@ int   mfs_file_posix_write  ( int fd, void *buffer, int buffer_size )
      remaining_bytes = buffer_size ;
      while (remaining_bytes > 0)
      {
-         write_num_bytes = write(fd, buffer, remaining_bytes) ;
+         write_num_bytes = write(this->fd, buffer, remaining_bytes) ;
          if (write_num_bytes == -1) {
 	     return -1 ;
          }
@@ -104,6 +101,24 @@ int   mfs_file_posix_write  ( int fd, void *buffer, int buffer_size )
          buffer          += write_num_bytes ;
      }
 
+     // Stats...
+     (this->n_write_req) ++ ;
+
      return buffer_size ;
 }
+
+int  mfs_file_posix::stats_show ( char *prefix )
+{
+    // Print stats...
+    printf("%s: File:\n",            prefix) ;
+    printf("%s: + been_used=1\n",    prefix) ;
+    printf("%s: + file_fd=%d\n",     prefix, this->fd) ;
+    printf("%s: + protocol=%s\n",    prefix, this->file_backend_name) ;
+    printf("%s: + # read=%ld\n",     prefix, this->n_read_req) ;
+    printf("%s: + # write=%ld\n",    prefix, this->n_write_req) ;
+
+    // Return OK
+    return 1 ;
+}
+
 
