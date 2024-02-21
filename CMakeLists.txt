@@ -15,9 +15,12 @@ SET    (CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "bin")
 
 # source 
 SET    (MFS_SRC
+	src/mfs_dbm_gdbm.c         src/mfs_dbm_redis.c         src/mfs_dbm_tdb.c
 	src/mfs_directory_posix.c
-	src/mfs_file_posix.c   src/mfs_file_mpi.c
-	src/base_socket.c      src/base_url.c src/base_lib.c)
+	src/mfs_file_posix.c       src/mfs_file_mpi.c
+	src/mfs_worker_onrequest.c src/mfs_worker_pool.c
+	src/info_params.c
+	src/base_socket.c          src/base_url.c src/base_lib.c)
 
 # Compiles the sources only once
 add_library(MFS_OBJ OBJECT ${MFS_SRC})

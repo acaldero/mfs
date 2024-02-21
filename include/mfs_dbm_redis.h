@@ -1,3 +1,4 @@
+
 /*
  *  Copyright 2020-2024 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
  *
@@ -18,20 +19,35 @@
  *
  */
 
-#ifndef __MFS_WORKERS_H__
-#define __MFS_WORKERS_H__
+#ifndef __MFS_DBM_REDIS_H__
+#define __MFS_DBM_REDIS_H__
 
-   #include "mfs_workers_common.h"
-   #include "mfs_workers_onrequest.h"
-   #include "mfs_workers_pool.h"
+    // Includes
+    #include "base_lib.h"
+    #include "mfs_dbm.h"
+
+#ifdef HAVE_HIREDIS_H
+    #include <hiredis/hiredis.h>
+#else
+    #define redisContext int
+#endif
 
 
-   // API
-   int  mfs_workers_init          ( params_t *params ) ;
-   int  mfs_workers_launch_worker ( int th_type, comm_t * wb, void (*worker_function)(struct st_th) ) ;
-   int  mfs_workers_destroy       ( void ) ;
+    class mfs_dbm_redis : mfs_dbm
+    {
+        protected:
+           redisContext  *fd ;
 
-   int  mfs_workers_stats_show    ( char *prefix ) ;
+        public:
+           int  open   ( const char *path_name, int flags ) ;
+           int  close  ( void ) ;
+
+           int  store      ( void *buff_key, int count_key, void *buff_val, int  count_val ) ;
+           int  fetch      ( void *buff_key, int count_key, void *buff_val, int *count_val ) ;
+           int  del        ( void *buff_key, int count_key ) ;
+           int  stats_show ( char *prefix ) ;
+    } ;
+
 
 #endif
 

@@ -27,40 +27,31 @@
  *  File System API
  */
 
-int  mfs_dbm_redis_init ( void )
-{
-    // Return OK
-    return 1 ;
-}
 
-int  mfs_dbm_redis_finalize ( void )
-{
-    // Return OK
-    return 1 ;
-}
-
-
-int  mfs_dbm_redis_open  ( redisContext  **fd, const char *path_name, int flags )
+int  mfs_dbm_redis::open  ( const char *path_name, int flags )
 {
 #ifdef HAVE_HIREDIS_H
      // Close connection
-     (*fd) = redisConnect(path_name, flags) ;
-     if ((*fd) != NULL && (*fd)->err) {
-         printf("[DBM_REDIS] Error: %s\n", (*fd)->errstr);
+     this->fd = ::redisConnect(path_name, flags) ;
+     if (this->fd != NULL && this->fd->err) {
+         printf("[DBM_REDIS] Error: %s\n", this->fd->errstr);
          return -1 ;
      }
 #endif
 
+     this->dbm_backend = 2 ;
+     this->dbm_backend_name = "REDIS" ;
+
      // Return OK
      return 1 ;
 }
 
-int   mfs_dbm_redis_close ( redisContext *fd )
+int   mfs_dbm_redis::close ( void )
 {
 #ifdef HAVE_HIREDIS_H
      // Close connection
-     if (NULL != fd) {
-	 redisFree(fd) ;
+     if (NULL != this->fd) {
+	 ::redisFree(this->fd) ;
      }
 #endif
 
@@ -68,53 +59,77 @@ int   mfs_dbm_redis_close ( redisContext *fd )
      return 1 ;
 }
 
-int   mfs_dbm_redis_store   ( redisContext *fd, void *buff_key, int count_key, void  *buff_val, int  count_val )
+int   mfs_dbm_redis::store   ( void *buff_key, int count_key, void  *buff_val, int  count_val )
 {
      int ret = -1 ;
 #ifdef HAVE_HIREDIS_H
      redisReply *reply ;
 
      // Store key+val
-     reply = (redisReply *)redisCommand(fd, "SET %s %s", buff_key, buff_val) ;
+     reply = (redisReply *)redisCommand(this->fd, "SET %s %s", buff_key, buff_val) ;
      freeReplyObject(reply) ;
      ret = 1 ;
 #endif
+
+     // Stats...
+     (this->n_write_req) ++ ;
 
      // Return OK/KO
      return ret ;
 }
 
-int   mfs_dbm_redis_fetch  ( redisContext *fd, void *buff_key, int count_key, void *buff_val, int *count_val )
+int   mfs_dbm_redis::fetch  ( void *buff_key, int count_key, void *buff_val, int *count_val )
 {
      int ret = -1 ;
 #ifdef HAVE_HIREDIS_H
      redisReply *reply ;
 
      // Fetch key+val
-     reply = (redisReply *)redisCommand(fd, "GET %s", buff_key) ;
+     reply = (redisReply *)redisCommand(this->fd, "GET %s", buff_key) ;
      printf("%s\n", reply->str) ;
      strcpy((char *)buff_val, reply->str) ;
      freeReplyObject(reply) ;
      ret = 1 ;
 #endif
 
+     // Stats...
+     (this->n_read_req) ++ ;
+
      // Return OK/KO
      return ret ;
 }
 
-int   mfs_dbm_redis_delete  ( redisContext *fd, void *buff_key, int count_key )
+int   mfs_dbm_redis::del     ( void *buff_key, int count_key )
 {
      int ret = -1 ;
 #ifdef HAVE_HIREDIS_H
      redisReply *reply ;
 
      // Delete key+val
-     reply = (redisReply *)redisCommand(fd, "DEL %s", buff_key) ;
+     reply = (redisReply *)redisCommand(this->fd, "DEL %s", buff_key) ;
      freeReplyObject(reply) ;
      ret = 1 ;
 #endif
 
+     // Stats...
+     (this->n_write_req) ++ ;
+
      // Return OK/KO
      return ret ;
 }
+
+int   mfs_dbm_redis::stats_show ( char *prefix )
+{
+    // Print stats...
+    printf("%s: File:\n",           prefix) ;
+    printf("%s: + been_used=1\n",   prefix) ;
+    printf("%s: + dbm_fd=%d\n",     prefix, this->fd) ;
+    printf("%s: + protocol=%s\n",   prefix, this->dbm_backend_name) ;
+    printf("%s: + # read=%ld\n",    prefix, this->n_read_req) ;
+    printf("%s: + # write=%ld\n",   prefix, this->n_write_req) ;
+
+    // Return OK
+    return 1 ;
+}
+
 

@@ -24,6 +24,7 @@
 
     // Includes
     #include "base_lib.h"
+    #include "mfs_dbm.h"
 
     #include <sys/file.h>
 
@@ -41,16 +42,20 @@
 #endif
 
 
-    // API
-    int  mfs_dbm_gdbm_init     ( void ) ;
-    int  mfs_dbm_gdbm_finalize ( void ) ;
+    class mfs_dbm_gdbm : mfs_dbm
+    {
+        protected:
+           GDBM_FILE fd ;
 
-    int  mfs_dbm_gdbm_open   ( GDBM_FILE *fd, const char *path_name, int flags ) ;
-    int  mfs_dbm_gdbm_close  ( GDBM_FILE  fd ) ;
+        public:
+           int  open       ( const char *path_name, int flags ) ;
+           int  close      ( void ) ;
 
-    int  mfs_dbm_gdbm_store  ( GDBM_FILE  fd, void *buff_key, int count_key, void *buff_val, int  count_val ) ;
-    int  mfs_dbm_gdbm_fetch  ( GDBM_FILE  fd, void *buff_key, int count_key, void *buff_val, int *count_val ) ;
-    int  mfs_dbm_gdbm_delete ( GDBM_FILE  fd, void *buff_key, int count_key ) ;
+           int  store      ( void *buff_key, int count_key, void *buff_val, int  count_val ) ;
+           int  fetch      ( void *buff_key, int count_key, void *buff_val, int *count_val ) ;
+           int  del        ( void *buff_key, int count_key ) ;
+           int  stats_show ( char *prefix ) ;
+    } ;
 
 #endif
 

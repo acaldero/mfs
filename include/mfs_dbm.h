@@ -24,21 +24,12 @@
 
     // Includes
     #include "base_lib.h"
-    #include "mfs_descriptors.h"
-    #include "mfs_dbm_gdbm.h"
-    #include "mfs_dbm_tdb.h"
-    #include "mfs_dbm_redis.h"
-
-
-    // File protocol
-    #define DBM_USE_GDBM   1
-    #define DBM_USE_TDB    2
-    #define DBM_USE_REDIS  3
 
 
     // Datatypes
-    typedef struct
+    class mfs_dbm
     {
+      protected:
         int   been_used ;
         int   dbm_fd ;
 
@@ -46,33 +37,21 @@
         int   dbm_backend ;
         char *dbm_backend_name ;
 
-        // descriptors
-        GDBM_FILE     gdbm_fd ;
-	redisContext *redis_ctxt ;
-	TDB_CONTEXT  *tdb_ctxt ;
-
         // some stats
-        long  offset ;
         long  n_read_req ;
         long  n_write_req ;
 
-    } dbm_t ;
+      public:
+        virtual int   open       ( int file_backend, const char *path_name, int flags ) = 0 ;
+        virtual int   close      ( void ) = 0 ;
 
+        virtual int   store      ( void *buff_key, int count_key, void  *buff_val, int  count_val ) = 0 ;
+        virtual int   fetch      ( void *buff_key, int count_key, void **buff_val, int *count_val ) = 0 ;
+        virtual int   del        ( void *buff_key, int count_key ) = 0 ;
 
-    // API
-    int   mfs_dbm_init       ( void ) ;
-    int   mfs_dbm_finalize   ( void ) ;
+        virtual int   stats_show ( char *prefix ) = 0 ;
+    } ;
 
-    long  mfs_dbm_fd2long    ( int  fd ) ;
-    int   mfs_dbm_long2fd    ( int *fd, long fref, int file_backend ) ;
-    int   mfs_dbm_stats_show ( int  fd, char *prefix ) ;
-
-    int   mfs_dbm_open       ( int *fd, int file_backend, const char *path_name, int flags ) ;
-    int   mfs_dbm_close      ( int  fd ) ;
-
-    int   mfs_dbm_store      ( int  fd, void *buff_key, int count_key, void  *buff_val, int  count_val ) ;
-    int   mfs_dbm_fetch      ( int  fd, void *buff_key, int count_key, void **buff_val, int *count_val ) ;
-    int   mfs_dbm_delete     ( int  fd, void *buff_key, int count_key ) ;
 
 #endif
 

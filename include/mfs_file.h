@@ -30,7 +30,7 @@
     class mfs_file
     {
       protected:
-        // underlying protocol
+        // underlying backend
         int   file_backend ;
         char *file_backend_name ;
 

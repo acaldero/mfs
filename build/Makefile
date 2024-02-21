@@ -256,6 +256,114 @@ src/base_url.c.s:
 	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/base_url.c.s
 .PHONY : src/base_url.c.s
 
+src/info_params.o: src/info_params.c.o
+
+.PHONY : src/info_params.o
+
+# target to build an object file
+src/info_params.c.o:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/info_params.c.o
+.PHONY : src/info_params.c.o
+
+src/info_params.i: src/info_params.c.i
+
+.PHONY : src/info_params.i
+
+# target to preprocess a source file
+src/info_params.c.i:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/info_params.c.i
+.PHONY : src/info_params.c.i
+
+src/info_params.s: src/info_params.c.s
+
+.PHONY : src/info_params.s
+
+# target to generate assembly for a file
+src/info_params.c.s:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/info_params.c.s
+.PHONY : src/info_params.c.s
+
+src/mfs_dbm_gdbm.o: src/mfs_dbm_gdbm.c.o
+
+.PHONY : src/mfs_dbm_gdbm.o
+
+# target to build an object file
+src/mfs_dbm_gdbm.c.o:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_gdbm.c.o
+.PHONY : src/mfs_dbm_gdbm.c.o
+
+src/mfs_dbm_gdbm.i: src/mfs_dbm_gdbm.c.i
+
+.PHONY : src/mfs_dbm_gdbm.i
+
+# target to preprocess a source file
+src/mfs_dbm_gdbm.c.i:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_gdbm.c.i
+.PHONY : src/mfs_dbm_gdbm.c.i
+
+src/mfs_dbm_gdbm.s: src/mfs_dbm_gdbm.c.s
+
+.PHONY : src/mfs_dbm_gdbm.s
+
+# target to generate assembly for a file
+src/mfs_dbm_gdbm.c.s:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_gdbm.c.s
+.PHONY : src/mfs_dbm_gdbm.c.s
+
+src/mfs_dbm_redis.o: src/mfs_dbm_redis.c.o
+
+.PHONY : src/mfs_dbm_redis.o
+
+# target to build an object file
+src/mfs_dbm_redis.c.o:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_redis.c.o
+.PHONY : src/mfs_dbm_redis.c.o
+
+src/mfs_dbm_redis.i: src/mfs_dbm_redis.c.i
+
+.PHONY : src/mfs_dbm_redis.i
+
+# target to preprocess a source file
+src/mfs_dbm_redis.c.i:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_redis.c.i
+.PHONY : src/mfs_dbm_redis.c.i
+
+src/mfs_dbm_redis.s: src/mfs_dbm_redis.c.s
+
+.PHONY : src/mfs_dbm_redis.s
+
+# target to generate assembly for a file
+src/mfs_dbm_redis.c.s:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_redis.c.s
+.PHONY : src/mfs_dbm_redis.c.s
+
+src/mfs_dbm_tdb.o: src/mfs_dbm_tdb.c.o
+
+.PHONY : src/mfs_dbm_tdb.o
+
+# target to build an object file
+src/mfs_dbm_tdb.c.o:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_tdb.c.o
+.PHONY : src/mfs_dbm_tdb.c.o
+
+src/mfs_dbm_tdb.i: src/mfs_dbm_tdb.c.i
+
+.PHONY : src/mfs_dbm_tdb.i
+
+# target to preprocess a source file
+src/mfs_dbm_tdb.c.i:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_tdb.c.i
+.PHONY : src/mfs_dbm_tdb.c.i
+
+src/mfs_dbm_tdb.s: src/mfs_dbm_tdb.c.s
+
+.PHONY : src/mfs_dbm_tdb.s
+
+# target to generate assembly for a file
+src/mfs_dbm_tdb.c.s:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_tdb.c.s
+.PHONY : src/mfs_dbm_tdb.c.s
+
 src/mfs_directory_posix.o: src/mfs_directory_posix.c.o
 
 .PHONY : src/mfs_directory_posix.o
@@ -337,6 +445,60 @@ src/mfs_file_posix.c.s:
 	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/mfs_file_posix.c.s
 .PHONY : src/mfs_file_posix.c.s
 
+src/mfs_worker_onrequest.o: src/mfs_worker_onrequest.c.o
+
+.PHONY : src/mfs_worker_onrequest.o
+
+# target to build an object file
+src/mfs_worker_onrequest.c.o:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/mfs_worker_onrequest.c.o
+.PHONY : src/mfs_worker_onrequest.c.o
+
+src/mfs_worker_onrequest.i: src/mfs_worker_onrequest.c.i
+
+.PHONY : src/mfs_worker_onrequest.i
+
+# target to preprocess a source file
+src/mfs_worker_onrequest.c.i:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/mfs_worker_onrequest.c.i
+.PHONY : src/mfs_worker_onrequest.c.i
+
+src/mfs_worker_onrequest.s: src/mfs_worker_onrequest.c.s
+
+.PHONY : src/mfs_worker_onrequest.s
+
+# target to generate assembly for a file
+src/mfs_worker_onrequest.c.s:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/mfs_worker_onrequest.c.s
+.PHONY : src/mfs_worker_onrequest.c.s
+
+src/mfs_worker_pool.o: src/mfs_worker_pool.c.o
+
+.PHONY : src/mfs_worker_pool.o
+
+# target to build an object file
+src/mfs_worker_pool.c.o:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/mfs_worker_pool.c.o
+.PHONY : src/mfs_worker_pool.c.o
+
+src/mfs_worker_pool.i: src/mfs_worker_pool.c.i
+
+.PHONY : src/mfs_worker_pool.i
+
+# target to preprocess a source file
+src/mfs_worker_pool.c.i:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/mfs_worker_pool.c.i
+.PHONY : src/mfs_worker_pool.c.i
+
+src/mfs_worker_pool.s: src/mfs_worker_pool.c.s
+
+.PHONY : src/mfs_worker_pool.s
+
+# target to generate assembly for a file
+src/mfs_worker_pool.c.s:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/mfs_worker_pool.c.s
+.PHONY : src/mfs_worker_pool.c.s
+
 src/server_mpi.o: src/server_mpi.c.o
 
 .PHONY : src/server_mpi.o
@@ -413,6 +575,18 @@ help:
 	@echo "... src/base_url.o"
 	@echo "... src/base_url.i"
 	@echo "... src/base_url.s"
+	@echo "... src/info_params.o"
+	@echo "... src/info_params.i"
+	@echo "... src/info_params.s"
+	@echo "... src/mfs_dbm_gdbm.o"
+	@echo "... src/mfs_dbm_gdbm.i"
+	@echo "... src/mfs_dbm_gdbm.s"
+	@echo "... src/mfs_dbm_redis.o"
+	@echo "... src/mfs_dbm_redis.i"
+	@echo "... src/mfs_dbm_redis.s"
+	@echo "... src/mfs_dbm_tdb.o"
+	@echo "... src/mfs_dbm_tdb.i"
+	@echo "... src/mfs_dbm_tdb.s"
 	@echo "... src/mfs_directory_posix.o"
 	@echo "... src/mfs_directory_posix.i"
 	@echo "... src/mfs_directory_posix.s"
@@ -422,6 +596,12 @@ help:
 	@echo "... src/mfs_file_posix.o"
 	@echo "... src/mfs_file_posix.i"
 	@echo "... src/mfs_file_posix.s"
+	@echo "... src/mfs_worker_onrequest.o"
+	@echo "... src/mfs_worker_onrequest.i"
+	@echo "... src/mfs_worker_onrequest.s"
+	@echo "... src/mfs_worker_pool.o"
+	@echo "... src/mfs_worker_pool.i"
+	@echo "... src/mfs_worker_pool.s"
 	@echo "... src/server_mpi.o"
 	@echo "... src/server_mpi.i"
 	@echo "... src/server_mpi.s"

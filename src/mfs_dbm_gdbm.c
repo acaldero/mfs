@@ -27,40 +27,31 @@
  *  File System API
  */
 
-int  mfs_dbm_gdbm_init ( void )
-{
-    // Return OK
-    return 1 ;
-}
 
-int  mfs_dbm_gdbm_finalize ( void )
-{
-    // Return OK
-    return 1 ;
-}
-
-
-int  mfs_dbm_gdbm_open  ( GDBM_FILE  *fd, const char *path_name, int flags )
+int  mfs_dbm_gdbm::open  ( const char *path_name, int flags )
 {
 #ifdef HAVE_GDBM_H
      // Open file
-     (*fd) = gdbm_open((char *)path_name, 0, flags, 0755, NULL) ;
-     if (NULL == (*fd)) {
+     this->fd = ::gdbm_open((char *)path_name, 0, flags, 0755, NULL) ;
+     if (NULL == this->fd) {
 	 fprintf(stderr, "gdbm_open: %s\n", gdbm_strerror(gdbm_errno)) ;
          return -1 ;
      }
 #endif
 
+     this->dbm_backend = 1 ;
+     this->dbm_backend_name = "GDBM" ;
+
      // Return OK
      return 1 ;
 }
 
-int   mfs_dbm_gdbm_close ( GDBM_FILE  fd )
+int   mfs_dbm_gdbm::close ( void )
 {
 #ifdef HAVE_GDBM_H
      // Close file
-     if (NULL != fd) {
-         gdbm_close(fd) ;
+     if (NULL != this->fd) {
+         ::gdbm_close(this->fd) ;
      }
 #endif
 
@@ -68,7 +59,7 @@ int   mfs_dbm_gdbm_close ( GDBM_FILE  fd )
      return 1 ;
 }
 
-int   mfs_dbm_gdbm_store   ( GDBM_FILE  fd, void *buff_key, int count_key, void  *buff_val, int  count_val )
+int   mfs_dbm_gdbm::store   ( void *buff_key, int count_key, void  *buff_val, int  count_val )
 {
      int ret = -1 ;
 #ifdef HAVE_GDBM_H
@@ -81,17 +72,20 @@ int   mfs_dbm_gdbm_store   ( GDBM_FILE  fd, void *buff_key, int count_key, void 
      value.dsize = count_val ;
 
      // Store key+val
-     ret = gdbm_store(fd, key, value, GDBM_REPLACE) ;
+     ret = ::gdbm_store(this->fd, key, value, GDBM_REPLACE) ;
      if (ret != 0) {
 	 fprintf(stderr, "gdbm_store: %s\n", gdbm_strerror(gdbm_errno)) ;
      }
 #endif
 
+     // Stats...
+     (this->n_write_req) ++ ;
+
      // Return OK/KO
      return ret ;
 }
 
-int   mfs_dbm_gdbm_fetch  ( GDBM_FILE  fd, void *buff_key, int count_key, void *buff_val, int *count_val )
+int   mfs_dbm_gdbm::fetch  ( void *buff_key, int count_key, void *buff_val, int *count_val )
 {
      int ret = -1 ;
 
@@ -104,7 +98,7 @@ int   mfs_dbm_gdbm_fetch  ( GDBM_FILE  fd, void *buff_key, int count_key, void *
      key.dsize = count_key ;
 
      // Fetch key+val
-     value = gdbm_fetch(fd, key) ;
+     value = ::gdbm_fetch(this->fd, key) ;
 
      // Check returned value
      if (value.dptr == NULL)
@@ -116,7 +110,7 @@ int   mfs_dbm_gdbm_fetch  ( GDBM_FILE  fd, void *buff_key, int count_key, void *
          }
          else
 	 {
-	     fprintf(stderr, "gdbm_fetch: %s\n", gdbm_db_strerror(fd)) ;
+	     fprintf(stderr, "gdbm_fetch: %s\n", gdbm_db_strerror(this->fd)) ;
              return -1 ;
          }
      }
@@ -129,11 +123,14 @@ int   mfs_dbm_gdbm_fetch  ( GDBM_FILE  fd, void *buff_key, int count_key, void *
      ret = 1 ;
 #endif
 
+     // Stats...
+     (this->n_read_req) ++ ;
+
      // Return OK/KO
      return ret ;
 }
 
-int   mfs_dbm_gdbm_delete  ( GDBM_FILE  fd, void *buff_key, int count_key )
+int   mfs_dbm_gdbm::del  ( void *buff_key, int count_key )
 {
      int ret = -1 ;
 
@@ -145,13 +142,31 @@ int   mfs_dbm_gdbm_delete  ( GDBM_FILE  fd, void *buff_key, int count_key )
      key.dsize = count_key ;
 
      // Fetch key+val
-     ret = gdbm_delete(fd, key) ;
+     ret = ::gdbm_delete(this->fd, key) ;
      if (ret < 0) {
 	 fprintf(stderr, "gdbm_delete: %s\n", gdbm_strerror(gdbm_errno)) ;
      }
 #endif
 
+     // Stats...
+     (this->n_write_req) ++ ;
+
      // Return OK/KO
      return ret ;
 }
+
+int   mfs_dbm_gdbm::stats_show ( char *prefix )
+{
+    // Print stats...
+    printf("%s: File:\n",           prefix) ;
+    printf("%s: + been_used=1\n",   prefix) ;
+    printf("%s: + dbm_fd=%d\n",     prefix, this->fd) ;
+    printf("%s: + protocol=%s\n",   prefix, this->dbm_backend_name) ;
+    printf("%s: + # read=%ld\n",    prefix, this->n_read_req) ;
+    printf("%s: + # write=%ld\n",   prefix, this->n_write_req) ;
+
+    // Return OK
+    return 1 ;
+}
+
 

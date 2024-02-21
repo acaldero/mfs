@@ -18,11 +18,11 @@
  *
  */
 
-#ifndef __MFS_WORKERS_POOL_H__
-#define __MFS_WORKERS_POOL_H__
+#ifndef __MFS_WORKER_POOL_H__
+#define __MFS_WORKER_POOL_H__
 
    #include "base_lib.h"
-   #include "mfs_workers_common.h"
+   #include "mfs_worker.h"
 
 
    /*
@@ -36,36 +36,39 @@
     * Datatype
     */
 
-   struct pool_t
-   {
-	pthread_t    *pool_ths ;
-	struct st_th *pool_buffer ;
+    class mfs_worker_pool : mfs_worker
+    {
+        protected:
+	   pthread_t    *pool_ths ;
+	   struct st_th *pool_buffer ;
 
-	int  pool_n_eltos ;
-	int  is_running ;
-	int  pool_theend ;
-	int  buff_position_receptor ;
-	int  buff_position_service ;
-	int  POOL_MAX_THREADS ;
-	params_t *params ;
+	   int  pool_n_eltos ;
+	   int  is_running ;
+	   int  pool_theend ;
+	   int  buff_position_receptor ;
+	   int  buff_position_service ;
+	   int  POOL_MAX_THREADS ;
+	   params_t *params ;
 
-	pthread_mutex_t  mutex ;
-	pthread_cond_t   c_no_full ;
-	pthread_cond_t   c_no_empty ;
-	pthread_cond_t   c_running ;
-	pthread_cond_t   c_stopped ;
-   };
+	   pthread_mutex_t  mutex ;
+	   pthread_cond_t   c_no_full ;
+	   pthread_cond_t   c_no_empty ;
+	   pthread_cond_t   c_running ;
+	   pthread_cond_t   c_stopped ;
 
+	   friend void * th_pool_service ( void * param ) ;
 
-   /*
-    * API
-    */
+        public:
+            mfs_worker_pool ( ) ;
+           ~mfs_worker_pool ( ) ;
 
-   int  mfs_workers_pool_init           ( pool_t *thpool, params_t *params ) ;
-   int  mfs_workers_pool_launch_worker  ( pool_t *thpool, comm_t *wb, void (*worker_function)(struct st_th) ) ;
-   int  mfs_workers_pool_destroy        ( pool_t *thpool ) ;
+           int  init           ( params_t *params ) ;
+           int  launch_worker  ( comm_t *wb, void (*worker_function)(struct st_th) ) ;
+           int  destroy        ( void ) ;
 
-   int  mfs_workers_pool_stats_show     ( pool_t *thpool, char *prefix ) ;
+           int  stats_show     ( char *prefix ) ;
+    } ;
+
 
 #endif
 

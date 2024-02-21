@@ -22,11 +22,11 @@
 #define _MFS_PARAMS_H_
 
    #include "base_lib.h"
-   #include "mfs_files.h"
+   #include "mfs_file.h"
    #include "mfs_dbm.h"
-   #include "mfs_directories.h"
-   #include "mfs_comm.h"
-   #include "info_ns_common.h"
+   #include "mfs_directory.h"
+// #include "mfs_comm.h"
+// #include "info_ns_common.h"
 
    #include <getopt.h>
 
@@ -39,6 +39,12 @@
    #define DEFAULT_CONF_FILE       "conf.yaml"
    #define DEFAULT_STUB_PNAME      "mfs"
 
+   #define FILE_USE_POSIX       1
+   #define FILE_USE_MPI_IO      2
+   #define DBM_USE_GDBM         1
+   #define DBM_USE_REDIS        2
+   #define DIRECTORY_USE_POSIX  1
+   #define NS_USE_TDB           1
    #define THREAD_USE_ONDEMAND  1
    #define THREAD_USE_POOL      2
 

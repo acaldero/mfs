@@ -24,6 +24,7 @@
 
     // Includes
     #include "base_lib.h"
+    #include "mfs_dbm.h"
 
     #include <sys/file.h>
 
@@ -40,16 +41,20 @@
 #endif
 
 
-    // API
-    int  mfs_dbm_tdb_init     ( void ) ;
-    int  mfs_dbm_tdb_finalize ( void ) ;
+    class mfs_dbm_tdb : mfs_dbm
+    {
+        protected:
+           TDB_CONTEXT  *fd ;
 
-    int  mfs_dbm_tdb_open   ( TDB_CONTEXT **fd, const char *path_name, int flags ) ;
-    int  mfs_dbm_tdb_close  ( TDB_CONTEXT  *fd ) ;
+        public:
+           int  open   ( const char *path_name, int flags ) ;
+           int  close  ( void ) ;
 
-    int  mfs_dbm_tdb_store  ( TDB_CONTEXT  *fd, void *buff_key, int count_key, void *buff_val, int  count_val ) ;
-    int  mfs_dbm_tdb_fetch  ( TDB_CONTEXT  *fd, void *buff_key, int count_key, void *buff_val, int *count_val ) ;
-    int  mfs_dbm_tdb_delete ( TDB_CONTEXT  *fd, void *buff_key, int count_key ) ;
+           int  store      ( void *buff_key, int count_key, void *buff_val, int  count_val ) ;
+           int  fetch      ( void *buff_key, int count_key, void *buff_val, int *count_val ) ;
+           int  del        ( void *buff_key, int count_key ) ;
+           int  stats_show ( char *prefix ) ;
+    } ;
 
 #endif
 

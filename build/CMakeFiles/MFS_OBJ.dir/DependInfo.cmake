@@ -7,9 +7,15 @@ set(CMAKE_DEPENDS_CHECK_C
   "/home/acaldero/work/mfs/src/base_lib.c" "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/base_lib.c.o"
   "/home/acaldero/work/mfs/src/base_socket.c" "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/base_socket.c.o"
   "/home/acaldero/work/mfs/src/base_url.c" "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/base_url.c.o"
+  "/home/acaldero/work/mfs/src/info_params.c" "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/info_params.c.o"
+  "/home/acaldero/work/mfs/src/mfs_dbm_gdbm.c" "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_gdbm.c.o"
+  "/home/acaldero/work/mfs/src/mfs_dbm_redis.c" "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_redis.c.o"
+  "/home/acaldero/work/mfs/src/mfs_dbm_tdb.c" "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_tdb.c.o"
   "/home/acaldero/work/mfs/src/mfs_directory_posix.c" "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_directory_posix.c.o"
   "/home/acaldero/work/mfs/src/mfs_file_mpi.c" "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_file_mpi.c.o"
   "/home/acaldero/work/mfs/src/mfs_file_posix.c" "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_file_posix.c.o"
+  "/home/acaldero/work/mfs/src/mfs_worker_onrequest.c" "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_worker_onrequest.c.o"
+  "/home/acaldero/work/mfs/src/mfs_worker_pool.c" "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_worker_pool.c.o"
   )
 set(CMAKE_C_COMPILER_ID "GNU")
 

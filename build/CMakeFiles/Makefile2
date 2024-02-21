@@ -82,12 +82,12 @@ clean: CMakeFiles/MFS_OBJ.dir/clean
 CMakeFiles/mfs_server_socket.dir/all: CMakeFiles/mfs_client.a.dir/all
 	$(MAKE) -f CMakeFiles/mfs_server_socket.dir/build.make CMakeFiles/mfs_server_socket.dir/depend
 	$(MAKE) -f CMakeFiles/mfs_server_socket.dir/build.make CMakeFiles/mfs_server_socket.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=11,12 "Built target mfs_server_socket"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=17,18 "Built target mfs_server_socket"
 .PHONY : CMakeFiles/mfs_server_socket.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/mfs_server_socket.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/acaldero/work/mfs/build/CMakeFiles 9
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/acaldero/work/mfs/build/CMakeFiles 15
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/mfs_server_socket.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/acaldero/work/mfs/build/CMakeFiles 0
 .PHONY : CMakeFiles/mfs_server_socket.dir/rule
@@ -109,12 +109,12 @@ CMakeFiles/mfs_server_socket.dir/clean:
 CMakeFiles/mfs_server_mpi.dir/all: CMakeFiles/mfs_client.a.dir/all
 	$(MAKE) -f CMakeFiles/mfs_server_mpi.dir/build.make CMakeFiles/mfs_server_mpi.dir/depend
 	$(MAKE) -f CMakeFiles/mfs_server_mpi.dir/build.make CMakeFiles/mfs_server_mpi.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=9,10 "Built target mfs_server_mpi"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=15,16 "Built target mfs_server_mpi"
 .PHONY : CMakeFiles/mfs_server_mpi.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/mfs_server_mpi.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/acaldero/work/mfs/build/CMakeFiles 9
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/acaldero/work/mfs/build/CMakeFiles 15
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/mfs_server_mpi.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/acaldero/work/mfs/build/CMakeFiles 0
 .PHONY : CMakeFiles/mfs_server_mpi.dir/rule
@@ -136,12 +136,12 @@ CMakeFiles/mfs_server_mpi.dir/clean:
 CMakeFiles/mfs_client.a.dir/all: CMakeFiles/MFS_OBJ.dir/all
 	$(MAKE) -f CMakeFiles/mfs_client.a.dir/build.make CMakeFiles/mfs_client.a.dir/depend
 	$(MAKE) -f CMakeFiles/mfs_client.a.dir/build.make CMakeFiles/mfs_client.a.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=7 "Built target mfs_client.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=13 "Built target mfs_client.a"
 .PHONY : CMakeFiles/mfs_client.a.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/mfs_client.a.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/acaldero/work/mfs/build/CMakeFiles 7
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/acaldero/work/mfs/build/CMakeFiles 13
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/mfs_client.a.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/acaldero/work/mfs/build/CMakeFiles 0
 .PHONY : CMakeFiles/mfs_client.a.dir/rule
@@ -163,12 +163,12 @@ CMakeFiles/mfs_client.a.dir/clean:
 CMakeFiles/mfs_client.so.dir/all: CMakeFiles/MFS_OBJ.dir/all
 	$(MAKE) -f CMakeFiles/mfs_client.so.dir/build.make CMakeFiles/mfs_client.so.dir/depend
 	$(MAKE) -f CMakeFiles/mfs_client.so.dir/build.make CMakeFiles/mfs_client.so.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=8 "Built target mfs_client.so"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=14 "Built target mfs_client.so"
 .PHONY : CMakeFiles/mfs_client.so.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/mfs_client.so.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/acaldero/work/mfs/build/CMakeFiles 7
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/acaldero/work/mfs/build/CMakeFiles 13
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/mfs_client.so.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/acaldero/work/mfs/build/CMakeFiles 0
 .PHONY : CMakeFiles/mfs_client.so.dir/rule
@@ -190,12 +190,12 @@ CMakeFiles/mfs_client.so.dir/clean:
 CMakeFiles/MFS_OBJ.dir/all:
 	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/depend
 	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=1,2,3,4,5,6 "Built target MFS_OBJ"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12 "Built target MFS_OBJ"
 .PHONY : CMakeFiles/MFS_OBJ.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/MFS_OBJ.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/acaldero/work/mfs/build/CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/acaldero/work/mfs/build/CMakeFiles 12
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/MFS_OBJ.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/acaldero/work/mfs/build/CMakeFiles 0
 .PHONY : CMakeFiles/MFS_OBJ.dir/rule

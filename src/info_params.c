@@ -162,13 +162,40 @@
 int  info_params_free       ( params_t *params )
 {
         // Free dynamic memory
-        free(params->conf_fname) ;
-        free(params->file_backend_name) ;
-        free(params->dbm_backend_name) ;
-        free(params->directory_backend_name) ;
-        free(params->thread_launch_name) ;
-        free(params->mfs_server_stub_pname) ;
-        free(params->ns_backend_name) ;
+        if (params->conf_fname != NULL) {
+            free(params->conf_fname) ;
+            params->conf_fname = NULL ;
+	}
+
+        if (params->file_backend_name != NULL) {
+            free(params->file_backend_name) ;
+            params->file_backend_name = NULL ;
+	}
+
+        if (params->dbm_backend_name  != NULL) {
+            free(params->dbm_backend_name) ;
+            params->dbm_backend_name = NULL ;
+	}
+
+        if (params->directory_backend_name != NULL) {
+            free(params->directory_backend_name) ;
+            params->directory_backend_name = NULL ;
+	}
+
+        if (params->thread_launch_name != NULL) {
+            free(params->thread_launch_name) ;
+            params->thread_launch_name = NULL ;
+	}
+
+        if (params->mfs_server_stub_pname != NULL) {
+            free(params->mfs_server_stub_pname) ;
+            params->mfs_server_stub_pname = NULL ;
+	}
+
+        if (params->ns_backend_name != NULL) {
+            free(params->ns_backend_name) ;
+            params->ns_backend_name = NULL ;
+	}
 
       	// return OK
       	return 1;

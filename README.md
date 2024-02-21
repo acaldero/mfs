@@ -1,4 +1,4 @@
-# XPNLite (v1.00)
+# XPNLite (v2.00)
 XPNLite: compact version of the XPN Parallel File System for prototyping
 
 *Licence*: GNU LESSER GENERAL PUBLIC LICENSE Version 2.1</br>

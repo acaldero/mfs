@@ -7,9 +7,21 @@ CMakeFiles/MFS_OBJ.dir/src/base_socket.c.o: ../src/base_socket.c
 
 CMakeFiles/MFS_OBJ.dir/src/base_url.c.o: ../src/base_url.c
 
+CMakeFiles/MFS_OBJ.dir/src/info_params.c.o: ../src/info_params.c
+
+CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_gdbm.c.o: ../src/mfs_dbm_gdbm.c
+
+CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_redis.c.o: ../src/mfs_dbm_redis.c
+
+CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_tdb.c.o: ../src/mfs_dbm_tdb.c
+
 CMakeFiles/MFS_OBJ.dir/src/mfs_directory_posix.c.o: ../src/mfs_directory_posix.c
 
 CMakeFiles/MFS_OBJ.dir/src/mfs_file_mpi.c.o: ../src/mfs_file_mpi.c
 
 CMakeFiles/MFS_OBJ.dir/src/mfs_file_posix.c.o: ../src/mfs_file_posix.c
+
+CMakeFiles/MFS_OBJ.dir/src/mfs_worker_onrequest.c.o: ../src/mfs_worker_onrequest.c
+
+CMakeFiles/MFS_OBJ.dir/src/mfs_worker_pool.c.o: ../src/mfs_worker_pool.c
 

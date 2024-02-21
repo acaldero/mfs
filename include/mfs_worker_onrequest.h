@@ -1,4 +1,3 @@
-
 /*
  *  Copyright 2020-2024 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
  *
@@ -19,29 +18,37 @@
  *
  */
 
-#ifndef __MFS_DBM_REDIS_H__
-#define __MFS_DBM_REDIS_H__
+#ifndef __MFS_WORKER_ONREQUEST_H__
+#define __MFS_WORKER_ONREQUEST_H__
 
-    // Includes
     #include "base_lib.h"
-
-#ifdef HAVE_HIREDIS_H
-    #include <hiredis/hiredis.h>
-#else
-    #define redisContext int
-#endif
+    #include "mfs_worker.h"
 
 
-    // API
-    int  mfs_dbm_redis_init     ( void ) ;
-    int  mfs_dbm_redis_finalize ( void ) ;
+    class mfs_worker_onrequest : mfs_worker
+    {
+        protected:
+	   friend void *mfs_workers_onrequest_worker_run ( void *arg ) ;
 
-    int  mfs_dbm_redis_open   ( redisContext **fd, const char *path_name, int flags ) ;
-    int  mfs_dbm_redis_close  ( redisContext  *fd ) ;
+        public:
+           struct st_th last_st_th ;
+           int sync_copied = 0 ;
+           int n_workers   = 0 ;
+           pthread_mutex_t m_worker ;
+           pthread_cond_t  c_worker ;
+           pthread_cond_t  end_cond ;
+           params_t *or_params ;
 
-    int  mfs_dbm_redis_store  ( redisContext  *fd, void *buff_key, int count_key, void  *buff_val, int  count_val ) ;
-    int  mfs_dbm_redis_fetch  ( redisContext  *fd, void *buff_key, int count_key, void *buff_val, int *count_val ) ;
-    int  mfs_dbm_redis_delete ( redisContext  *fd, void *buff_key, int count_key ) ;
+            mfs_worker_onrequest ( ) ;
+           ~mfs_worker_onrequest ( ) ;
+
+           int  init          ( params_t *params ) ;
+           int  launch_worker ( comm_t *wb, void (*worker_function)(struct st_th) ) ;
+           int  destroy       ( void ) ;
+
+           int  stats_show    ( char *prefix ) ;
+    } ;
+
 
 #endif
 

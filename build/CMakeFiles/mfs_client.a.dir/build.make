@@ -62,16 +62,28 @@ mfs_client_a_OBJECTS =
 
 # External object files for target mfs_client.a
 mfs_client_a_EXTERNAL_OBJECTS = \
+"/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_gdbm.c.o" \
+"/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_redis.c.o" \
+"/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_tdb.c.o" \
 "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_directory_posix.c.o" \
 "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_file_posix.c.o" \
 "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_file_mpi.c.o" \
+"/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_worker_onrequest.c.o" \
+"/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_worker_pool.c.o" \
+"/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/info_params.c.o" \
 "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/base_socket.c.o" \
 "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/base_url.c.o" \
 "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/base_lib.c.o"
 
+libmfs_client.a.a: CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_gdbm.c.o
+libmfs_client.a.a: CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_redis.c.o
+libmfs_client.a.a: CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_tdb.c.o
 libmfs_client.a.a: CMakeFiles/MFS_OBJ.dir/src/mfs_directory_posix.c.o
 libmfs_client.a.a: CMakeFiles/MFS_OBJ.dir/src/mfs_file_posix.c.o
 libmfs_client.a.a: CMakeFiles/MFS_OBJ.dir/src/mfs_file_mpi.c.o
+libmfs_client.a.a: CMakeFiles/MFS_OBJ.dir/src/mfs_worker_onrequest.c.o
+libmfs_client.a.a: CMakeFiles/MFS_OBJ.dir/src/mfs_worker_pool.c.o
+libmfs_client.a.a: CMakeFiles/MFS_OBJ.dir/src/info_params.c.o
 libmfs_client.a.a: CMakeFiles/MFS_OBJ.dir/src/base_socket.c.o
 libmfs_client.a.a: CMakeFiles/MFS_OBJ.dir/src/base_url.c.o
 libmfs_client.a.a: CMakeFiles/MFS_OBJ.dir/src/base_lib.c.o
