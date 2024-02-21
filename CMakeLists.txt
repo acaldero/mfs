@@ -1,5 +1,5 @@
 # Project
-cmake_minimum_required (VERSION 3.20.0)
+cmake_minimum_required (VERSION 3.16)
 
 project (XPNlite)
 
@@ -14,10 +14,10 @@ SET    (CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG "lib")
 SET    (CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "bin")
 
 # source 
-SET    (MFS_SRC base_socket.c base_url.c
+SET    (MFS_SRC
 	src/mfs_directory_posix.c
-	src/mfs_file_posix.c       src/mfs_file_mpi.c
-	src/base_lib.c)
+	src/mfs_file_posix.c   src/mfs_file_mpi.c
+	src/base_socket.c      src/base_url.c src/base_lib.c)
 
 # Compiles the sources only once
 add_library(MFS_OBJ OBJECT ${MFS_SRC})

@@ -1,6 +1,6 @@
 
 /*
- *  Copyright 2020-2022 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
+ *  Copyright 2020-2024 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
  *
  *  This file is part of XPNlite.
  *
@@ -24,13 +24,15 @@
 
     // Includes
     #include "base_lib.h"
+    #include "mfs_directory.h"
 
-    #include <dirent.h>
     #include <sys/stat.h>
+    #include <sys/types.h>
+    #include <dirent.h>
 
     class mfs_directory_posix : mfs_directory
     {
-	private:
+	protected:
 	   DIR *fd ;
 
 	public:

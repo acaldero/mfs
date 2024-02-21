@@ -1,0 +1,1 @@
+mpic++ -w -g -O2 -Wall -I/usr/local/include/ -I./  -I./include  -I/usr/local/include/ -I../ -I../include  -DHAVE_GDBM_H -DHAVE_HIREDIS_H -DHAVE_TDB_H    CMakeFiles/mfs_server_socket.dir/src/server_socket.c.o  -o mfs_server_socket  -lpthread -lhiredis -lgdbm -lyaml -ltdb libmfs_client.a.a 

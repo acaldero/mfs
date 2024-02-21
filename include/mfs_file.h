@@ -1,6 +1,6 @@
 
 /*
- *  Copyright 2020-2022 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
+ *  Copyright 2020-2024 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
  *
  *  This file is part of XPNlite.
  *
@@ -27,9 +27,9 @@
 
 
     // Datatypes
-    typedef struct
+    class mfs_file
     {
-      private:
+      protected:
         // underlying protocol
         int   file_backend ;
         char *file_backend_name ;
@@ -46,7 +46,7 @@
 
         virtual int   stats_show ( char *prefix ) = 0 ;
 
-    } file_t ;
+    } ;
 
 
 #endif

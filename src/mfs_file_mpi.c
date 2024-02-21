@@ -1,6 +1,6 @@
 
 /*
- *  Copyright 2020-2022 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
+ *  Copyright 2020-2024 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
  *
  *  This file is part of XPNlite.
  *
@@ -31,7 +31,7 @@ int  mfs_file_mpi::open  ( const char *path_name )
 {
      int ret ;
 
-     ret = MPI_File_open(MPI_COMM_SELF, path_name, MPI_MODE_CREATE|MPI_MODE_RDWR, MPI_INFO_NULL, this->fd) ;
+     ret = MPI_File_open(MPI_COMM_SELF, path_name, MPI_MODE_CREATE|MPI_MODE_RDWR, MPI_INFO_NULL, &(this->fd)) ;
      if (ret != MPI_SUCCESS) {
 	 mfs_print(DBG_INFO, "[FILE]: ERROR on open('%s') file.\n", path_name) ;
 	 return -1 ;
@@ -48,7 +48,7 @@ int   mfs_file_mpi::close ( void )
 {
      int ret ;
 
-     ret = MPI_File_close(this->fd) ;
+     ret = MPI_File_close(&(this->fd)) ;
      if (ret != MPI_SUCCESS) {
 	 mfs_print(DBG_INFO, "[FILE]: ERROR on close file.\n") ;
 	 return -1 ;

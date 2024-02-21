@@ -1,6 +1,6 @@
 
 /*
- *  Copyright 2020-2022 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
+ *  Copyright 2020-2024 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
  *
  *  This file is part of XPNlite.
  *
@@ -24,14 +24,15 @@
 
     // Includes
     #include "base_lib.h"
+    #include "mfs_file.h"
 
     #include <sys/stat.h>
     #include <sys/mman.h>
 
 
-    class mfs_file_posix
+    class mfs_file_posix : mfs_file
     {
-	private:
+	protected:
 	   int fd ;
 
 	public:
@@ -39,7 +40,8 @@
            int  close ( void ) ;
            int  read  ( void *buffer, int buffer_size ) ;
            int  write ( void *buffer, int buffer_size ) ;
-    }
+           int  stats_show ( char *prefix ) ;
+    } ;
 
 #endif
 

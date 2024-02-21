@@ -1,6 +1,6 @@
 
 /*
- *  Copyright 2020-2022 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
+ *  Copyright 2020-2024 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
  *
  *  This file is part of XPNlite.
  *
@@ -20,7 +20,10 @@
  */
 
 
-#include "mfs_directories_posix.h"
+#include "mfs_directory_posix.h"
+    #include <sys/stat.h>
+    #include <sys/types.h>
+    #include <dirent.h>
 
 
 /*
@@ -33,8 +36,8 @@ int  mfs_directory_posix::opendir ( const char *path_name )
     NULL_PRT_MSG_RET_VAL(path_name, "[DIR_POSIX] NULL path_name :-/", -1) ;
 
     // Open file
-    this->fd = opendir(path_name) ;
-    if (NULL == this->) {
+    this->fd = ::opendir(path_name) ;
+    if (NULL == this->fd) {
     	mfs_print(DBG_INFO, "[DIR]: ERROR on opendir(path_name='%s')\n", path_name) ;
         return -1 ;
     }
@@ -51,7 +54,7 @@ int   mfs_directory_posix::closedir ( void )
     NULL_PRT_MSG_RET_VAL(this->fd, "[DIR_POSIX] NULL fd :-/", -1) ;
 
     // Close file
-    ret = closedir(this->fd) ;
+    ret = ::closedir(this->fd) ;
     if (ret < 0) {
     	mfs_print(DBG_INFO, "[DIR]: ERROR on closedir(fd='%s')\n", fd) ;
         return -1 ;
@@ -71,7 +74,7 @@ struct dirent *mfs_directory_posix::readdir  ( void )
     NULL_PRT_MSG_RET_VAL(this->fd, "[DIR_POSIX] NULL fd :-/", NULL) ;
 
     // Read from file...
-    ret = readdir(this->fd) ;
+    ret = ::readdir(this->fd) ;
     if (NULL == ret) {
 	mfs_print(DBG_INFO, "[DIR]: ERROR on read entry from directory '%d'\n", fd) ;
 	return NULL ;
@@ -89,7 +92,7 @@ int   mfs_directory_posix::mkdir  ( char *path_name, mode_t mode )
     NULL_PRT_MSG_RET_VAL(path_name, "[DIR_POSIX] NULL path_name :-/", -1) ;
 
     // mkdir directory...
-    ret = mkdir(path_name, mode) ;
+    ret = ::mkdir(path_name, mode) ;
     if (ret < 0) {
 	mfs_print(DBG_INFO, "[DIR]: ERROR on mkdir directory '%s'\n", path_name) ;
 	return -1 ;
@@ -107,7 +110,7 @@ int   mfs_directory_posix::rmdir  ( char *path_name )
     NULL_PRT_MSG_RET_VAL(path_name, "[DIR_POSIX] NULL path_name :-/", -1) ;
 
     // Read from file...
-    ret = rmdir(path_name) ;
+    ret = ::rmdir(path_name) ;
     if (ret < 0) {
 	mfs_print(DBG_INFO, "[DIR]: ERROR on rmdir directory '%s'\n", path_name) ;
 	return -1 ;

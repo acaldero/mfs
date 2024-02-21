@@ -1,0 +1,7 @@
+/home/acaldero/work/mfs/build/CMakeFiles/rebuild_cache.dir
+/home/acaldero/work/mfs/build/CMakeFiles/edit_cache.dir
+/home/acaldero/work/mfs/build/CMakeFiles/mfs_server_socket.dir
+/home/acaldero/work/mfs/build/CMakeFiles/mfs_server_mpi.dir
+/home/acaldero/work/mfs/build/CMakeFiles/mfs_client.a.dir
+/home/acaldero/work/mfs/build/CMakeFiles/mfs_client.so.dir
+/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir

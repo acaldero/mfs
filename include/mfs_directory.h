@@ -25,14 +25,9 @@
     // Includes
     #include "base_lib.h"
 
-    #include <dirent.h>
-    #include <sys/stat.h>
-
     class mfs_directory
     {
 	public:
-          virtual int            init     ( void ) = 0 ;
-          virtual int            finalize ( void ) = 0 ;
           virtual int            opendir  ( const char *path_name ) = 0 ;
           virtual int            closedir ( void ) = 0 ;
           virtual struct dirent *readdir  ( void ) = 0 ;

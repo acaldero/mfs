@@ -1,6 +1,6 @@
 
 /*
- *  Copyright 2020-2022 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
+ *  Copyright 2020-2024 Felix Garcia Carballeira, Diego Camarmas Alonso, Alejandro Calderon Mateos
  *
  *  This file is part of XPNlite.
  *
@@ -20,7 +20,7 @@
  */
 
 
-#include "mfs_files_posix.h"
+#include "mfs_file_posix.h"
 
 
 /*
@@ -32,7 +32,7 @@ int  mfs_file_posix::open  ( const char *path_name, int flags )
      int  ret ;
 
      // Check params...
-     this->fd = open(path_name, flags, 0755) ;
+     this->fd = ::open(path_name, flags, 0755) ;
      if (this->fd < 0) {
  	 return -1 ;
      }
@@ -49,7 +49,7 @@ int   mfs_file_posix::close ( void )
      int ret ;
 
      // Close file
-     ret = close(this->fd) ;
+     ret = ::close(this->fd) ;
 
      this->file_backend = 0 ;
      this->file_backend_name = "" ;
@@ -66,7 +66,7 @@ int   mfs_file_posix::read   ( void *buffer, int buffer_size )
      remaining_bytes = buffer_size ;
      while (remaining_bytes > 0)
      {
-         bytes_read = read(this->fd, buffer, remaining_bytes) ;
+         bytes_read = ::read(this->fd, buffer, remaining_bytes) ;
          if (bytes_read < 0) {
 	     return -1 ;
          }
@@ -92,7 +92,7 @@ int   mfs_file_posix::write  ( void *buffer, int buffer_size )
      remaining_bytes = buffer_size ;
      while (remaining_bytes > 0)
      {
-         write_num_bytes = write(this->fd, buffer, remaining_bytes) ;
+         write_num_bytes = ::write(this->fd, buffer, remaining_bytes) ;
          if (write_num_bytes == -1) {
 	     return -1 ;
          }

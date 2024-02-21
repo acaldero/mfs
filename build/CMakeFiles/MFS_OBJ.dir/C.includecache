@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/acaldero/work/mfs/src/mfs_directory_posix.c
+mfs_directory_posix.h
+/home/acaldero/work/mfs/src/mfs_directory_posix.h
+sys/stat.h
+-
+sys/types.h
+-
+dirent.h
+-
+
+/home/acaldero/work/mfs/src/mfs_file_posix.c
+mfs_file_posix.h
+/home/acaldero/work/mfs/src/mfs_file_posix.h
+

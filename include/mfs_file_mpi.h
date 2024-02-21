@@ -24,22 +24,24 @@
 
     // Includes
     #include "base_lib.h"
+    #include "mfs_file.h"
 
     #include <mpi.h>
     #include <fcntl.h>
 
 
-    class mfs_file_mpi
+    class mfs_file_mpi : mfs_file
     {
-	private:
+	protected:
 	   MPI_File fd ;
 
 	public:
-           int  open  ( const char *path_name, int flags ) ;
+           int  open  ( const char *path_name ) ;
            int  close ( void ) ;
            int  read  ( void *buffer, int buffer_size ) ;
            int  write ( void *buffer, int buffer_size ) ;
-    }
+           int  stats_show ( char *prefix ) ;
+    } ;
 
 #endif
 
