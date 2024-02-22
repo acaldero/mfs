@@ -36,11 +36,10 @@
 	   DIR *fd ;
 
 	public:
-           int            opendir  ( const char *path_name ) ;
-           int            closedir ( void ) ;
-           struct dirent *readdir  ( void ) ;
-           int            mkdir    ( char *path_name, mode_t mode ) ;
-           int            rmdir    ( char *path_name ) ;
+           int            opendir   ( const char *path_name ) ;
+           int            closedir  ( void ) ;
+           struct dirent *readdir   ( void ) ;
+           int            rewinddir ( void ) ;
     } ;
 
 #endif

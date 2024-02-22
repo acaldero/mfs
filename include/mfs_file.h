@@ -39,7 +39,7 @@
         long  n_write_req ;
 
       public:
-        virtual int   open       ( const char *path_name, int flags ) = 0 ;
+        virtual int   open       ( const char *path_name, int flags, int mode ) = 0 ;
         virtual int   close      ( void ) = 0 ;
         virtual int   read       ( void *buff_data, int count ) = 0 ;
         virtual int   write      ( void *buff_data, int count ) = 0 ;

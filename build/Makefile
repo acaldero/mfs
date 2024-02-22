@@ -445,6 +445,33 @@ src/mfs_file_posix.c.s:
 	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/mfs_file_posix.c.s
 .PHONY : src/mfs_file_posix.c.s
 
+src/mfs_fs_posix.o: src/mfs_fs_posix.c.o
+
+.PHONY : src/mfs_fs_posix.o
+
+# target to build an object file
+src/mfs_fs_posix.c.o:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/mfs_fs_posix.c.o
+.PHONY : src/mfs_fs_posix.c.o
+
+src/mfs_fs_posix.i: src/mfs_fs_posix.c.i
+
+.PHONY : src/mfs_fs_posix.i
+
+# target to preprocess a source file
+src/mfs_fs_posix.c.i:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/mfs_fs_posix.c.i
+.PHONY : src/mfs_fs_posix.c.i
+
+src/mfs_fs_posix.s: src/mfs_fs_posix.c.s
+
+.PHONY : src/mfs_fs_posix.s
+
+# target to generate assembly for a file
+src/mfs_fs_posix.c.s:
+	$(MAKE) -f CMakeFiles/MFS_OBJ.dir/build.make CMakeFiles/MFS_OBJ.dir/src/mfs_fs_posix.c.s
+.PHONY : src/mfs_fs_posix.c.s
+
 src/mfs_worker_onrequest.o: src/mfs_worker_onrequest.c.o
 
 .PHONY : src/mfs_worker_onrequest.o
@@ -596,6 +623,9 @@ help:
 	@echo "... src/mfs_file_posix.o"
 	@echo "... src/mfs_file_posix.i"
 	@echo "... src/mfs_file_posix.s"
+	@echo "... src/mfs_fs_posix.o"
+	@echo "... src/mfs_fs_posix.i"
+	@echo "... src/mfs_fs_posix.s"
 	@echo "... src/mfs_worker_onrequest.o"
 	@echo "... src/mfs_worker_onrequest.i"
 	@echo "... src/mfs_worker_onrequest.s"

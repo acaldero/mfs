@@ -27,7 +27,7 @@
  *  File System API
  */
 
-int  mfs_file_mpi::open  ( const char *path_name )
+int  mfs_file_mpi::open  ( const char *path_name, int flags, int mode )
 {
      int ret ;
 

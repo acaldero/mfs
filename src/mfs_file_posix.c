@@ -27,12 +27,12 @@
  *  File System API
  */
 
-int  mfs_file_posix::open  ( const char *path_name, int flags )
+int  mfs_file_posix::open  ( const char *path_name, int flags, int mode )
 {
      int  ret ;
 
      // Check params...
-     this->fd = ::open(path_name, flags, 0755) ;
+     this->fd = ::open(path_name, flags, mode) ;
      if (this->fd < 0) {
  	 return -1 ;
      }

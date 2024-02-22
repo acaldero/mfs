@@ -21,9 +21,6 @@
 
 
 #include "mfs_directory_posix.h"
-    #include <sys/stat.h>
-    #include <sys/types.h>
-    #include <dirent.h>
 
 
 /*
@@ -84,40 +81,16 @@ struct dirent *mfs_directory_posix::readdir  ( void )
     return ret ;
 }
 
-int   mfs_directory_posix::mkdir  ( char *path_name, mode_t mode )
+int mfs_directory_posix::rewinddir  ( void )
 {
-    int ret = -1 ;
-
     // Check params...
-    NULL_PRT_MSG_RET_VAL(path_name, "[DIR_POSIX] NULL path_name :-/", -1) ;
-
-    // mkdir directory...
-    ret = ::mkdir(path_name, mode) ;
-    if (ret < 0) {
-	mfs_print(DBG_INFO, "[DIR]: ERROR on mkdir directory '%s'\n", path_name) ;
-	return -1 ;
-    }
-
-    // Return OK/KO
-    return ret ;
-}
-
-int   mfs_directory_posix::rmdir  ( char *path_name )
-{
-    int ret = -1 ;
-
-    // Check params...
-    NULL_PRT_MSG_RET_VAL(path_name, "[DIR_POSIX] NULL path_name :-/", -1) ;
+    NULL_PRT_MSG_RET_VAL(this->fd, "[DIR_POSIX] NULL fd :-/", -1) ;
 
     // Read from file...
-    ret = ::rmdir(path_name) ;
-    if (ret < 0) {
-	mfs_print(DBG_INFO, "[DIR]: ERROR on rmdir directory '%s'\n", path_name) ;
-	return -1 ;
-    }
+    ::rewinddir(this->fd) ;
 
-    // Return OK/KO
-    return ret ;
+    // Return OK
+    return 1 ;
 }
 
 

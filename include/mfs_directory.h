@@ -28,11 +28,10 @@
     class mfs_directory
     {
 	public:
-          virtual int            opendir  ( const char *path_name ) = 0 ;
-          virtual int            closedir ( void ) = 0 ;
-          virtual struct dirent *readdir  ( void ) = 0 ;
-          virtual int            mkdir    ( char *path_name, mode_t mode ) = 0 ;
-          virtual int            rmdir    ( char *path_name ) = 0 ;
+          virtual int            opendir   ( const char *path_name ) = 0 ;
+          virtual int            closedir  ( void ) = 0 ;
+          virtual struct dirent *readdir   ( void ) = 0 ;
+          virtual int            rewinddir ( void ) = 0 ;
     } ;
 
 #endif

@@ -36,7 +36,7 @@
 	   MPI_File fd ;
 
 	public:
-           int  open  ( const char *path_name ) ;
+           int  open  ( const char *path_name, int flags, int mode ) ;
            int  close ( void ) ;
            int  read  ( void *buffer, int buffer_size ) ;
            int  write ( void *buffer, int buffer_size ) ;
