@@ -32,6 +32,9 @@ mfs_fs_posix<F,D>::mfs_fs_posix ( )
 {
      this->fs_backend = 1 ;
      this->fs_backend_name = "POSIX" ;
+
+     // terminal/low-level file system
+     this->low_fs = NULL ;
 }
 
 template <class F, class D>

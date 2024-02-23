@@ -21,6 +21,8 @@ CMakeFiles/MFS_OBJ.dir/src/mfs_file_mpi.c.o: ../src/mfs_file_mpi.c
 
 CMakeFiles/MFS_OBJ.dir/src/mfs_file_posix.c.o: ../src/mfs_file_posix.c
 
+CMakeFiles/MFS_OBJ.dir/src/mfs_fs_log.c.o: ../src/mfs_fs_log.c
+
 CMakeFiles/MFS_OBJ.dir/src/mfs_fs_posix.c.o: ../src/mfs_fs_posix.c
 
 CMakeFiles/MFS_OBJ.dir/src/mfs_worker_onrequest.c.o: ../src/mfs_worker_onrequest.c

@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef __MFS_FS_POSIX_H__
-#define __MFS_FS_POSIX_H__
+#ifndef __MFS_FS_LOG_H__
+#define __MFS_FS_LOG_H__
 
     // Includes
     #include "base_lib.h"
@@ -31,13 +31,14 @@
 
     // Datatypes
     template <class F = mfs_file_posix, class D = mfs_directory_posix>
-    class mfs_fs_posix : mfs_fs<F,D>
+    class mfs_fs_log : mfs_fs<F,D>
     {
       protected:
 
       public:
-	 mfs_fs_posix ( ) ;
-	~mfs_fs_posix ( ) ;
+	 mfs_fs_log ( ) ;
+	 mfs_fs_log ( mfs_fs<F,D> low_fs ) ;
+	~mfs_fs_log ( ) ;
 
         // File API
         F        creat ( char *path, mode_t mode ) ;

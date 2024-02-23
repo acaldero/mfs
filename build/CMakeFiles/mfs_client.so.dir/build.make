@@ -66,6 +66,7 @@ mfs_client_so_EXTERNAL_OBJECTS = \
 "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_redis.c.o" \
 "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_tdb.c.o" \
 "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_fs_posix.c.o" \
+"/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_fs_log.c.o" \
 "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_directory_posix.c.o" \
 "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_file_posix.c.o" \
 "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_file_mpi.c.o" \
@@ -80,6 +81,7 @@ libmfs_client.so.so: CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_gdbm.c.o
 libmfs_client.so.so: CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_redis.c.o
 libmfs_client.so.so: CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_tdb.c.o
 libmfs_client.so.so: CMakeFiles/MFS_OBJ.dir/src/mfs_fs_posix.c.o
+libmfs_client.so.so: CMakeFiles/MFS_OBJ.dir/src/mfs_fs_log.c.o
 libmfs_client.so.so: CMakeFiles/MFS_OBJ.dir/src/mfs_directory_posix.c.o
 libmfs_client.so.so: CMakeFiles/MFS_OBJ.dir/src/mfs_file_posix.c.o
 libmfs_client.so.so: CMakeFiles/MFS_OBJ.dir/src/mfs_file_mpi.c.o

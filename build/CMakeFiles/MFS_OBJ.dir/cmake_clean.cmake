@@ -9,6 +9,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/MFS_OBJ.dir/src/mfs_directory_posix.c.o"
   "CMakeFiles/MFS_OBJ.dir/src/mfs_file_mpi.c.o"
   "CMakeFiles/MFS_OBJ.dir/src/mfs_file_posix.c.o"
+  "CMakeFiles/MFS_OBJ.dir/src/mfs_fs_log.c.o"
   "CMakeFiles/MFS_OBJ.dir/src/mfs_fs_posix.c.o"
   "CMakeFiles/MFS_OBJ.dir/src/mfs_worker_onrequest.c.o"
   "CMakeFiles/MFS_OBJ.dir/src/mfs_worker_pool.c.o"

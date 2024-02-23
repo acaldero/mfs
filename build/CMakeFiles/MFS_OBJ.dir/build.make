@@ -109,9 +109,22 @@ CMakeFiles/MFS_OBJ.dir/src/mfs_fs_posix.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/MFS_OBJ.dir/src/mfs_fs_posix.c.s"
 	mpic++ $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/acaldero/work/mfs/src/mfs_fs_posix.c -o CMakeFiles/MFS_OBJ.dir/src/mfs_fs_posix.c.s
 
+CMakeFiles/MFS_OBJ.dir/src/mfs_fs_log.c.o: CMakeFiles/MFS_OBJ.dir/flags.make
+CMakeFiles/MFS_OBJ.dir/src/mfs_fs_log.c.o: ../src/mfs_fs_log.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building C object CMakeFiles/MFS_OBJ.dir/src/mfs_fs_log.c.o"
+	mpic++ $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/MFS_OBJ.dir/src/mfs_fs_log.c.o   -c /home/acaldero/work/mfs/src/mfs_fs_log.c
+
+CMakeFiles/MFS_OBJ.dir/src/mfs_fs_log.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/MFS_OBJ.dir/src/mfs_fs_log.c.i"
+	mpic++ $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/acaldero/work/mfs/src/mfs_fs_log.c > CMakeFiles/MFS_OBJ.dir/src/mfs_fs_log.c.i
+
+CMakeFiles/MFS_OBJ.dir/src/mfs_fs_log.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/MFS_OBJ.dir/src/mfs_fs_log.c.s"
+	mpic++ $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/acaldero/work/mfs/src/mfs_fs_log.c -o CMakeFiles/MFS_OBJ.dir/src/mfs_fs_log.c.s
+
 CMakeFiles/MFS_OBJ.dir/src/mfs_directory_posix.c.o: CMakeFiles/MFS_OBJ.dir/flags.make
 CMakeFiles/MFS_OBJ.dir/src/mfs_directory_posix.c.o: ../src/mfs_directory_posix.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building C object CMakeFiles/MFS_OBJ.dir/src/mfs_directory_posix.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object CMakeFiles/MFS_OBJ.dir/src/mfs_directory_posix.c.o"
 	mpic++ $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/MFS_OBJ.dir/src/mfs_directory_posix.c.o   -c /home/acaldero/work/mfs/src/mfs_directory_posix.c
 
 CMakeFiles/MFS_OBJ.dir/src/mfs_directory_posix.c.i: cmake_force
@@ -124,7 +137,7 @@ CMakeFiles/MFS_OBJ.dir/src/mfs_directory_posix.c.s: cmake_force
 
 CMakeFiles/MFS_OBJ.dir/src/mfs_file_posix.c.o: CMakeFiles/MFS_OBJ.dir/flags.make
 CMakeFiles/MFS_OBJ.dir/src/mfs_file_posix.c.o: ../src/mfs_file_posix.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object CMakeFiles/MFS_OBJ.dir/src/mfs_file_posix.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object CMakeFiles/MFS_OBJ.dir/src/mfs_file_posix.c.o"
 	mpic++ $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/MFS_OBJ.dir/src/mfs_file_posix.c.o   -c /home/acaldero/work/mfs/src/mfs_file_posix.c
 
 CMakeFiles/MFS_OBJ.dir/src/mfs_file_posix.c.i: cmake_force
@@ -137,7 +150,7 @@ CMakeFiles/MFS_OBJ.dir/src/mfs_file_posix.c.s: cmake_force
 
 CMakeFiles/MFS_OBJ.dir/src/mfs_file_mpi.c.o: CMakeFiles/MFS_OBJ.dir/flags.make
 CMakeFiles/MFS_OBJ.dir/src/mfs_file_mpi.c.o: ../src/mfs_file_mpi.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object CMakeFiles/MFS_OBJ.dir/src/mfs_file_mpi.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building C object CMakeFiles/MFS_OBJ.dir/src/mfs_file_mpi.c.o"
 	mpic++ $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/MFS_OBJ.dir/src/mfs_file_mpi.c.o   -c /home/acaldero/work/mfs/src/mfs_file_mpi.c
 
 CMakeFiles/MFS_OBJ.dir/src/mfs_file_mpi.c.i: cmake_force
@@ -150,7 +163,7 @@ CMakeFiles/MFS_OBJ.dir/src/mfs_file_mpi.c.s: cmake_force
 
 CMakeFiles/MFS_OBJ.dir/src/mfs_worker_onrequest.c.o: CMakeFiles/MFS_OBJ.dir/flags.make
 CMakeFiles/MFS_OBJ.dir/src/mfs_worker_onrequest.c.o: ../src/mfs_worker_onrequest.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building C object CMakeFiles/MFS_OBJ.dir/src/mfs_worker_onrequest.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building C object CMakeFiles/MFS_OBJ.dir/src/mfs_worker_onrequest.c.o"
 	mpic++ $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/MFS_OBJ.dir/src/mfs_worker_onrequest.c.o   -c /home/acaldero/work/mfs/src/mfs_worker_onrequest.c
 
 CMakeFiles/MFS_OBJ.dir/src/mfs_worker_onrequest.c.i: cmake_force
@@ -163,7 +176,7 @@ CMakeFiles/MFS_OBJ.dir/src/mfs_worker_onrequest.c.s: cmake_force
 
 CMakeFiles/MFS_OBJ.dir/src/mfs_worker_pool.c.o: CMakeFiles/MFS_OBJ.dir/flags.make
 CMakeFiles/MFS_OBJ.dir/src/mfs_worker_pool.c.o: ../src/mfs_worker_pool.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building C object CMakeFiles/MFS_OBJ.dir/src/mfs_worker_pool.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building C object CMakeFiles/MFS_OBJ.dir/src/mfs_worker_pool.c.o"
 	mpic++ $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/MFS_OBJ.dir/src/mfs_worker_pool.c.o   -c /home/acaldero/work/mfs/src/mfs_worker_pool.c
 
 CMakeFiles/MFS_OBJ.dir/src/mfs_worker_pool.c.i: cmake_force
@@ -176,7 +189,7 @@ CMakeFiles/MFS_OBJ.dir/src/mfs_worker_pool.c.s: cmake_force
 
 CMakeFiles/MFS_OBJ.dir/src/info_params.c.o: CMakeFiles/MFS_OBJ.dir/flags.make
 CMakeFiles/MFS_OBJ.dir/src/info_params.c.o: ../src/info_params.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building C object CMakeFiles/MFS_OBJ.dir/src/info_params.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building C object CMakeFiles/MFS_OBJ.dir/src/info_params.c.o"
 	mpic++ $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/MFS_OBJ.dir/src/info_params.c.o   -c /home/acaldero/work/mfs/src/info_params.c
 
 CMakeFiles/MFS_OBJ.dir/src/info_params.c.i: cmake_force
@@ -189,7 +202,7 @@ CMakeFiles/MFS_OBJ.dir/src/info_params.c.s: cmake_force
 
 CMakeFiles/MFS_OBJ.dir/src/base_socket.c.o: CMakeFiles/MFS_OBJ.dir/flags.make
 CMakeFiles/MFS_OBJ.dir/src/base_socket.c.o: ../src/base_socket.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building C object CMakeFiles/MFS_OBJ.dir/src/base_socket.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building C object CMakeFiles/MFS_OBJ.dir/src/base_socket.c.o"
 	mpic++ $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/MFS_OBJ.dir/src/base_socket.c.o   -c /home/acaldero/work/mfs/src/base_socket.c
 
 CMakeFiles/MFS_OBJ.dir/src/base_socket.c.i: cmake_force
@@ -202,7 +215,7 @@ CMakeFiles/MFS_OBJ.dir/src/base_socket.c.s: cmake_force
 
 CMakeFiles/MFS_OBJ.dir/src/base_url.c.o: CMakeFiles/MFS_OBJ.dir/flags.make
 CMakeFiles/MFS_OBJ.dir/src/base_url.c.o: ../src/base_url.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building C object CMakeFiles/MFS_OBJ.dir/src/base_url.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building C object CMakeFiles/MFS_OBJ.dir/src/base_url.c.o"
 	mpic++ $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/MFS_OBJ.dir/src/base_url.c.o   -c /home/acaldero/work/mfs/src/base_url.c
 
 CMakeFiles/MFS_OBJ.dir/src/base_url.c.i: cmake_force
@@ -215,7 +228,7 @@ CMakeFiles/MFS_OBJ.dir/src/base_url.c.s: cmake_force
 
 CMakeFiles/MFS_OBJ.dir/src/base_lib.c.o: CMakeFiles/MFS_OBJ.dir/flags.make
 CMakeFiles/MFS_OBJ.dir/src/base_lib.c.o: ../src/base_lib.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building C object CMakeFiles/MFS_OBJ.dir/src/base_lib.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/acaldero/work/mfs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building C object CMakeFiles/MFS_OBJ.dir/src/base_lib.c.o"
 	mpic++ $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/MFS_OBJ.dir/src/base_lib.c.o   -c /home/acaldero/work/mfs/src/base_lib.c
 
 CMakeFiles/MFS_OBJ.dir/src/base_lib.c.i: cmake_force
@@ -230,6 +243,7 @@ MFS_OBJ: CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_gdbm.c.o
 MFS_OBJ: CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_redis.c.o
 MFS_OBJ: CMakeFiles/MFS_OBJ.dir/src/mfs_dbm_tdb.c.o
 MFS_OBJ: CMakeFiles/MFS_OBJ.dir/src/mfs_fs_posix.c.o
+MFS_OBJ: CMakeFiles/MFS_OBJ.dir/src/mfs_fs_log.c.o
 MFS_OBJ: CMakeFiles/MFS_OBJ.dir/src/mfs_directory_posix.c.o
 MFS_OBJ: CMakeFiles/MFS_OBJ.dir/src/mfs_file_posix.c.o
 MFS_OBJ: CMakeFiles/MFS_OBJ.dir/src/mfs_file_mpi.c.o

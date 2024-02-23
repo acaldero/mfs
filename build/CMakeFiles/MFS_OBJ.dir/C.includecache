@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/acaldero/work/mfs/src/mfs_fs_posix.c
-mfs_fs_posix.h
-/home/acaldero/work/mfs/src/mfs_fs_posix.h
+/home/acaldero/work/mfs/src/mfs_fs_log.c
+mfs_fs_log.h
+/home/acaldero/work/mfs/src/mfs_fs_log.h
 

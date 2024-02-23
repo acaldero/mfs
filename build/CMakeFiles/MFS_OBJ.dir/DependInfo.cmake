@@ -14,6 +14,7 @@ set(CMAKE_DEPENDS_CHECK_C
   "/home/acaldero/work/mfs/src/mfs_directory_posix.c" "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_directory_posix.c.o"
   "/home/acaldero/work/mfs/src/mfs_file_mpi.c" "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_file_mpi.c.o"
   "/home/acaldero/work/mfs/src/mfs_file_posix.c" "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_file_posix.c.o"
+  "/home/acaldero/work/mfs/src/mfs_fs_log.c" "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_fs_log.c.o"
   "/home/acaldero/work/mfs/src/mfs_fs_posix.c" "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_fs_posix.c.o"
   "/home/acaldero/work/mfs/src/mfs_worker_onrequest.c" "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_worker_onrequest.c.o"
   "/home/acaldero/work/mfs/src/mfs_worker_pool.c" "/home/acaldero/work/mfs/build/CMakeFiles/MFS_OBJ.dir/src/mfs_worker_pool.c.o"
