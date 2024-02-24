@@ -22,6 +22,7 @@
 #define _MFS_PARAMS_H_
 
    #include "base_lib.h"
+   #include "base_string.h"
    #include "mfs_file.h"
    #include "mfs_dbm.h"
    #include "mfs_directory.h"

@@ -67,6 +67,14 @@
         int receive_request       ( int rank, long *action, long *arg1, long *arg2, long *arg3 ) ;
 
         int send_buffer_in_chunks ( void *buff_char, int  count,  int  buffer_size ) ;
+
+	// getters
+        int mfs_comm_get_rank() { return this->rank ; }
+        int mfs_comm_get_size() { return this->size ; }
+
+        int mfs_comm_get_status_rank()  { return this->status_rank ; }
+        int mfs_comm_get_status_tag()   { return this->status_tag ;  }
+        int mfs_comm_get_status_count() { return this->status_count ; }
     } ;
 
 #endif

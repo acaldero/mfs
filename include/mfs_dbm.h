@@ -24,6 +24,7 @@
 
     // Includes
     #include "base_lib.h"
+    #include "base_string.h"
 
 
     // Datatypes
@@ -42,11 +43,11 @@
         long  n_write_req ;
 
       public:
-        virtual int   open       ( int file_backend, const char *path_name, int flags ) = 0 ;
+        virtual int   open       ( const char *path_name, int flags ) = 0 ;
         virtual int   close      ( void ) = 0 ;
 
-        virtual int   store      ( void *buff_key, int count_key, void  *buff_val, int  count_val ) = 0 ;
-        virtual int   fetch      ( void *buff_key, int count_key, void **buff_val, int *count_val ) = 0 ;
+        virtual int   store      ( void *buff_key, int count_key, void *buff_val, int  count_val ) = 0 ;
+        virtual int   fetch      ( void *buff_key, int count_key, void *buff_val, int *count_val ) = 0 ;
         virtual int   del        ( void *buff_key, int count_key ) = 0 ;
 
         virtual int   stats_show ( char *prefix ) = 0 ;

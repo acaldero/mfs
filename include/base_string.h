@@ -19,27 +19,26 @@
  *
  */
 
-#ifndef __MFS_NS_COMMON_H__
-#define __MFS_NS_COMMON_H__
+#ifndef __BASE_STRING_H__
+#define __BASE_STRING_H__
 
     // Includes
     #include <stdio.h>
     #include <stdlib.h>
-    #include <netinet/in.h>
-    #include <netdb.h>
-    #include <arpa/inet.h>
+    #include <string.h>
+    #include <strings.h>
+    #include <unistd.h>
+
+    #include "base_lib.h"
+    #include "base_alloc.h"
 
 
-    // File protocol
-    #define NS_USE_DBM   1
-    #define NS_USE_FILE  2
-    #define NS_USE_MFS   3
-    #define NS_USE_TDB   4
-
-    // Consts
-    #define MAXPATHLEN      (1024)
-    #define NS_FILE_NAME    "ns.data"
-    #define NS_DEFAULT_PORT 12345
+    // Strings
+    int    base_strlen         ( char *str1 ) ;
+    int    base_str_equal      ( char *str1, char *str2 ) ;
+    char * base_strdup         ( char *str1 ) ;
+    int    base_free_and_strdup ( char **ptr, char *str ) ;
+    int    base_str_prepare_pathname ( char **buff_data_sys, char *base_dirname, int local_rank, int pathname_length ) ;
 
 #endif
 

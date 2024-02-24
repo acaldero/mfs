@@ -28,14 +28,6 @@
     #include "info_fsconf.h"
 
 
-    // File protocol
-    #define COMM_NUMBER_OF_PROTOCOLS 3
-
-    #define COMM_USE_LOCAL   1
-    #define COMM_USE_MPI     2
-    #define COMM_USE_SOCKET  3
-
-
     // Datatypes
     typedef struct
     {
@@ -46,13 +38,6 @@
 
 
     // Macros
-    #define mfs_comm_get_rank(pcb)         ((pcb != NULL) ? pcb->rank : -1)
-    #define mfs_comm_get_size(pcb)         ((pcb != NULL) ? pcb->size : -1)
-
-    #define mfs_comm_get_status_rank(pcb)  ((pcb != NULL) ? pcb->status_rank : -1)
-    #define mfs_comm_get_status_tag(pcb)   ((pcb != NULL) ? pcb->status_tag : -1)
-    #define mfs_comm_get_status_count(pcb) ((pcb != NULL) ? pcb->status_count : -1)
-
     #define mfs_comm_get_nservers(pcb)     (info_fsconf_get_active_nnodes(&((pcb)->partitions)))
 
 #endif

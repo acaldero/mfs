@@ -25,18 +25,10 @@
     // Includes
     #include <stdio.h>
     #include <stdlib.h>
-    #include <string.h>
     #include <stdarg.h>
-
-    #include <sys/time.h>
     #include <fcntl.h>
     #include <unistd.h>
     #include <pthread.h>
-
-    // Consts
-    #define ONE_KB                   (1024)
-    #define ONE_MB            (1024 * 1024)
-    #define ONE_GB     (1024 * 1024 * 1024)
 
     // debug: levels
     #define DBG_ERROR    1, __FILE__, __LINE__, stderr
@@ -58,23 +50,8 @@
     // debug: API
     int mfs_print ( int src_type, char *src_fname, long src_line, FILE *fd, char *msg_fmt, ... ) ;
 
-    // time: API
-    long mfs_get_time ( void ) ;
-
     // thread: API
     int mfs_get_thread_id ( long *th_id ) ;
-
-    // memory: API
-    int mfs_malloc  ( char **ptr, long size ) ;
-    int mfs_free    ( char **ptr ) ;
-    int mfs_realloc ( char **ptr, long new_size ) ;
-
-    // Strings
-    int    base_strlen         ( char *str1 ) ;
-    int    base_str_equal      ( char *str1, char *str2 ) ;
-    char * base_strdup         ( char *str1 ) ;
-    int    base_free_and_strdup ( char **ptr, char *str ) ;
-    int    base_str_prepare_pathname ( char **buff_data_sys, char *base_dirname, int local_rank, int pathname_length ) ;
 
 #endif
 

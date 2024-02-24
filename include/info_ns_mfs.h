@@ -19,34 +19,27 @@
  *
  */
 
-#ifndef __BASE_SOCKET_H__
-#define __BASE_SOCKET_H__
+#ifndef __INFO_NS_MFS_H__
+#define __INFO_NS_MFS_H__
 
     // Includes
     #include "base_lib.h"
+    #include "base_string.h"
+    #include "info_ns.h"
 
-    #include <strings.h>
-    #include <string.h>
-    #include <sys/types.h>
-    #include <sys/socket.h>
-    #include <netinet/in.h>
-    #include <netinet/tcp.h>
-    #include <arpa/inet.h>
-    #include <netdb.h>
+    // Class
+    class info_ns_mfs : info_ns
+    {
+      protected:
 
+      public:
+	 info_ns_mfs ( ) ;
+	~info_ns_mfs ( ) ;
 
-    // Consts
-    #define ONE_MB     (1024 * 1024)
-
-
-    // API
-    int base_socket_set_default_options ( int  ab, int buf_size ) ;
-
-    int base_socket_serversocket        ( int *sd, int port ) ;
-    int base_socket_close               ( int *sd ) ;
-
-    int base_socket_accept              ( int  sd ) ;
-    int base_socket_connect             ( struct hostent *hp, int srv_port ) ;
+        int  insert  ( char *srv_name, char *port_name ) ;
+        int  lookup  ( char *srv_name, char *port_name, int *port_name_size ) ;
+        int  remove  ( char *srv_name ) ;
+    } ;
 
 #endif
 

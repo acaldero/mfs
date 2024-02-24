@@ -19,34 +19,44 @@
  *
  */
 
-#ifndef __BASE_SOCKET_H__
-#define __BASE_SOCKET_H__
+#ifndef __INFO_NS_H__
+#define __INFO_NS_H__
 
     // Includes
     #include "base_lib.h"
+    #include "base_string.h"
+    #include "base_socket.h"
 
-    #include <strings.h>
-    #include <string.h>
-    #include <sys/types.h>
-    #include <sys/socket.h>
-    #include <netinet/in.h>
-    #include <netinet/tcp.h>
-    #include <arpa/inet.h>
-    #include <netdb.h>
-
+    // File protocol
+    #define NS_USE_DBM   1
+    #define NS_USE_FILE  2
+    #define NS_USE_MFS   3
+    #define NS_USE_TDB   4
 
     // Consts
-    #define ONE_MB     (1024 * 1024)
+    #define NS_FILE_NAME    "ns.data"
+    #define MAXPATHLEN      (1024)
+    #define NS_DEFAULT_PORT 12345
 
+    // Class
+    class info_ns
+    {
+      protected:
+        // underlying backend
+        int   ns_backend ;
+        char *ns_backend_name ;
 
-    // API
-    int base_socket_set_default_options ( int  ab, int buf_size ) ;
+      public:
+	 info_ns ( ) ;
+	~info_ns ( ) ;
 
-    int base_socket_serversocket        ( int *sd, int port ) ;
-    int base_socket_close               ( int *sd ) ;
+        int  insert  ( char *srv_name, char *port_name ) ;
+        int  lookup  ( char *srv_name, char *port_name, int *port_name_size ) ;
+        int  remove  ( char *srv_name ) ;
 
-    int base_socket_accept              ( int  sd ) ;
-    int base_socket_connect             ( struct hostent *hp, int srv_port ) ;
+        static int  get_portname   ( char *port_name,  int sd ) ;
+        static int  split_portname ( char *port_name,  struct hostent **host, int *port ) ;
+    } ;
 
 #endif
 

@@ -19,26 +19,28 @@
  *
  */
 
-#ifndef __MFS_NS_H__
-#define __MFS_NS_H__
+#ifndef __INFO_NS_DBM_H__
+#define __INFO_NS_DBM_H__
 
     // Includes
-    #include "info_ns_common.h"
+    #include "base_lib.h"
+    #include "base_string.h"
+    #include "info_ns.h"
     #include "mfs_dbm_gdbm.h"
-    #include "mfs_dbm_tdb.h"
-    #include "mfs_api.h"
 
+    // Class
+    class info_ns_dbm : info_ns
+    {
+      protected:
 
-    // API
-    int  info_ns_init           ( void ) ;
-    int  info_ns_finalize       ( void ) ;
+      public:
+	 info_ns_dbm ( ) ;
+	~info_ns_dbm ( ) ;
 
-    int  info_ns_insert         ( comm_t *wb,  int   ns_backend, char *srv_name, char *port_name ) ;
-    int  info_ns_lookup         ( comm_t *wb,  int   ns_backend, char *srv_name, char *port_name, int *port_name_size ) ;
-    int  info_ns_remove         ( comm_t *wb,  int   ns_backend, char *srv_name ) ;
-
-    int  info_ns_get_portname   ( char *port_name,  int sd ) ;
-    int  info_ns_split_portname ( char *port_name,  struct hostent **host, int *port ) ;
+        int  insert  ( char *srv_name, char *port_name ) ;
+        int  lookup  ( char *srv_name, char *port_name, int *port_name_size ) ;
+        int  remove  ( char *srv_name ) ;
+    } ;
 
 #endif
 

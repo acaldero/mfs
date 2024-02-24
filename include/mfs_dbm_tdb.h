@@ -24,6 +24,7 @@
 
     // Includes
     #include "base_lib.h"
+    #include "base_string.h"
     #include "mfs_dbm.h"
 
     #include <sys/file.h>

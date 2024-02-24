@@ -24,6 +24,7 @@
 
     // Includes
     #include "base_lib.h"
+    #include "base_time.h"
     #include "mfs_fs.h"
     #include "mfs_file_posix.h"
     #include "mfs_directory_posix.h"

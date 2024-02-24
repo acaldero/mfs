@@ -19,34 +19,18 @@
  *
  */
 
-#ifndef __BASE_SOCKET_H__
-#define __BASE_SOCKET_H__
+#ifndef __BASE_TIME_H__
+#define __BASE_TIME_H__
 
     // Includes
-    #include "base_lib.h"
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <sys/time.h>
+    #include <fcntl.h>
+    #include <unistd.h>
 
-    #include <strings.h>
-    #include <string.h>
-    #include <sys/types.h>
-    #include <sys/socket.h>
-    #include <netinet/in.h>
-    #include <netinet/tcp.h>
-    #include <arpa/inet.h>
-    #include <netdb.h>
-
-
-    // Consts
-    #define ONE_MB     (1024 * 1024)
-
-
-    // API
-    int base_socket_set_default_options ( int  ab, int buf_size ) ;
-
-    int base_socket_serversocket        ( int *sd, int port ) ;
-    int base_socket_close               ( int *sd ) ;
-
-    int base_socket_accept              ( int  sd ) ;
-    int base_socket_connect             ( struct hostent *hp, int srv_port ) ;
+    // time: API
+    long mfs_get_time ( void ) ;
 
 #endif
 

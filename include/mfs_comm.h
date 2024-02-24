@@ -26,6 +26,13 @@
     #include "base_lib.h"
     #include "info_params.h"
 
+    // File protocol
+    #define COMM_NUMBER_OF_PROTOCOLS 3
+
+    #define COMM_USE_LOCAL   1
+    #define COMM_USE_MPI     2
+    #define COMM_USE_SOCKET  3
+
 
     // Datatypes
     class mfs_comm

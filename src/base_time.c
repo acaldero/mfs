@@ -19,34 +19,22 @@
  *
  */
 
-#ifndef __BASE_SOCKET_H__
-#define __BASE_SOCKET_H__
-
-    // Includes
-    #include "base_lib.h"
-
-    #include <strings.h>
-    #include <string.h>
-    #include <sys/types.h>
-    #include <sys/socket.h>
-    #include <netinet/in.h>
-    #include <netinet/tcp.h>
-    #include <arpa/inet.h>
-    #include <netdb.h>
+#include "base_time.h"
 
 
-    // Consts
-    #define ONE_MB     (1024 * 1024)
+//
+// Time
+//
 
+long mfs_get_time ( void )
+{
+    struct timeval timenow ;
 
-    // API
-    int base_socket_set_default_options ( int  ab, int buf_size ) ;
+    // get timestamp
+    gettimeofday(&timenow, NULL) ;
 
-    int base_socket_serversocket        ( int *sd, int port ) ;
-    int base_socket_close               ( int *sd ) ;
+    // return timestamp
+    return (long)timenow.tv_sec * 1000 + (long)timenow.tv_usec / 1000 ;
+}
 
-    int base_socket_accept              ( int  sd ) ;
-    int base_socket_connect             ( struct hostent *hp, int srv_port ) ;
-
-#endif
 

@@ -24,6 +24,8 @@
 
     // Includes
     #include "base_lib.h"
+    #include "base_alloc.h"
+    #include "base_string.h"
     #include "base_socket.h"
 
 

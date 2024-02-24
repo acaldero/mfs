@@ -19,34 +19,25 @@
  *
  */
 
-#ifndef __BASE_SOCKET_H__
-#define __BASE_SOCKET_H__
+#ifndef __BASE_ALLOC_H__
+#define __BASE_ALLOC_H__
 
     // Includes
-    #include "base_lib.h"
-
-    #include <strings.h>
+    #include <stdio.h>
+    #include <stdlib.h>
     #include <string.h>
-    #include <sys/types.h>
-    #include <sys/socket.h>
-    #include <netinet/in.h>
-    #include <netinet/tcp.h>
-    #include <arpa/inet.h>
-    #include <netdb.h>
-
+    #include <fcntl.h>
+    #include <unistd.h>
 
     // Consts
-    #define ONE_MB     (1024 * 1024)
+    #define ONE_KB                   (1024)
+    #define ONE_MB            (1024 * 1024)
+    #define ONE_GB     (1024 * 1024 * 1024)
 
-
-    // API
-    int base_socket_set_default_options ( int  ab, int buf_size ) ;
-
-    int base_socket_serversocket        ( int *sd, int port ) ;
-    int base_socket_close               ( int *sd ) ;
-
-    int base_socket_accept              ( int  sd ) ;
-    int base_socket_connect             ( struct hostent *hp, int srv_port ) ;
+    // memory: API
+    int mfs_malloc  ( char **ptr, long size ) ;
+    int mfs_free    ( char **ptr ) ;
+    int mfs_realloc ( char **ptr, long new_size ) ;
 
 #endif
 
